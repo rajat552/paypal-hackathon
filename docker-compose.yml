@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: paymesh-db
+    environment:
+      POSTGRES_USER: paymesh
+      POSTGRES_PASSWORD: paymesh_password_sandbox
+      POSTGRES_DB: paymesh
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paymesh"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: paymesh-backend
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg://paymesh:paymesh_password_sandbox@db:5432/paymesh
+      PAYPAL_ENVIRONMENT: sandbox
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID:-replace-with-sandbox-client-id}
+      PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET:-replace-with-sandbox-client-secret}
+      CHANNEL3_API_KEY: ${CHANNEL3_API_KEY:-}
+      APP_BASE_URL: http://localhost:8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
