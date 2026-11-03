@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusCircle, Tag, Check, AlertCircle } from 'lucide-react';
+import { PlusCircle, Tag, Check, AlertCircle, ShoppingBag, Eye, DollarSign, Clock, Layers } from 'lucide-react';
 
 export const PublisherConsole: React.FC = () => {
   const [slug, setSlug] = useState('');
@@ -62,7 +62,7 @@ export const PublisherConsole: React.FC = () => {
         throw new Error('Failed to create offer');
       }
 
-      setMessage({ text: `Successfully published resource "${title}" with $${price} offer!`, type: 'success' });
+      setMessage({ text: `Successfully published resource "${title}" with $${price} USD offer!`, type: 'success' });
       setSlug('');
       setTitle('');
       setDescription('');
@@ -74,112 +74,216 @@ export const PublisherConsole: React.FC = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
-        <h2 className="text-xl font-bold text-white mb-2">Merchant &amp; Publisher Studio</h2>
-        <p className="text-xs text-slate-400 mb-6">
-          Expose a new dataset or API with an authoritative PayMesh AI L402 challenge and PayPal Sandbox price.
+    <div className="space-y-8 max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="pb-4 border-b-2 border-slate-900">
+        <div className="inline-flex items-center space-x-2 px-3 py-0.5 rounded-full bg-amber-100 text-amber-950 border-2 border-slate-900 font-mono text-xs font-bold shadow-neo-sm mb-2">
+          <ShoppingBag className="w-3.5 h-3.5 text-amber-600" />
+          <span>MERCHANT PUBLISHING STUDIO</span>
+        </div>
+        <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 tracking-tight">
+          Publish Data &amp; Configure L402 Offers
+        </h2>
+        <p className="text-xs sm:text-sm text-slate-600 font-medium">
+          Monetize proprietary datasets and APIs for autonomous AI agents via automated PayPal Sandbox micro-payments.
         </p>
+      </div>
 
-        {message && (
-          <div
-            className={`p-3 rounded-xl mb-6 text-xs flex items-center space-x-2 ${
-              message.type === 'success'
-                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                : 'bg-red-500/10 text-red-400 border border-red-500/20'
-            }`}
-          >
-            {message.type === 'success' ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-            <span>{message.text}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Resource Slug</label>
-              <input
-                type="text"
-                placeholder="e.g. gpu-benchmarks-2026"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                required
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Provider Type</label>
-              <select
-                value={provider}
-                onChange={(e) => setProvider(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+        {/* Form Column */}
+        <div className="md:col-span-7">
+          <div className="p-6 sm:p-8 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-6">
+            {message && (
+              <div
+                className={`p-3.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-2.5 border-2 ${
+                  message.type === 'success'
+                    ? 'bg-emerald-100 text-emerald-950 border-emerald-800'
+                    : 'bg-red-100 text-red-950 border-red-800'
+                }`}
               >
-                <option value="channel3">Channel3 Product Intelligence</option>
-                <option value="crawlerpal_demo">CrawlerPal Demo Data</option>
-              </select>
-            </div>
-          </div>
+                {message.type === 'success' ? <Check className="w-4 h-4 text-emerald-700" /> : <AlertCircle className="w-4 h-4 text-red-600" />}
+                <span>{message.text}</span>
+              </div>
+            )}
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Product Title</label>
-            <input
-              type="text"
-              placeholder="e.g. Next-Gen GPU Performance & Latency Matrix"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
-            />
-          </div>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-mono font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Resource Slug
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. gpu-latencies-2026"
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value)}
+                    required
+                    className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl p-2.5 text-xs text-slate-900 font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-mono font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Provider
+                  </label>
+                  <select
+                    value={provider}
+                    onChange={(e) => setProvider(e.target.value)}
+                    className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl p-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
+                  >
+                    <option value="channel3">Channel3 Product Intelligence</option>
+                    <option value="crawlerpal_demo">CrawlerPal Demo Data</option>
+                    <option value="custom_merchant">Custom Merchant API</option>
+                  </select>
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Description</label>
-            <textarea
-              rows={3}
-              placeholder="Detailed description of what the dataset contains..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
-          <div className="pt-4 border-t border-slate-800">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Initial Access Offer</h3>
-            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Price (USD)</label>
+                <label className="block text-xs font-mono font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Dataset / API Title
+                </label>
                 <input
-                  type="number"
-                  step="0.01"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  type="text"
+                  placeholder="e.g. Ultra-Low Latency Switch Profiles"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
+                  className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl p-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
                 />
               </div>
+
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Access Duration (Seconds)</label>
-                <input
-                  type="number"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
+                <label className="block text-xs font-mono font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Description
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Describe dataset contents, frequency, and schema for AI agents..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
+                  className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
                 />
               </div>
+
+              {/* Pricing Offer Specification */}
+              <div className="p-4 rounded-xl bg-slate-50 border-2 border-slate-900 space-y-4 shadow-neo-sm">
+                <div className="flex items-center space-x-2 text-xs font-mono font-bold text-slate-800 uppercase">
+                  <Tag className="w-3.5 h-3.5 text-brand-600" />
+                  <span>Initial L402 Pricing Offer</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-mono font-bold text-slate-600 mb-1">
+                      Offer Code
+                    </label>
+                    <input
+                      type="text"
+                      value={offerCode}
+                      onChange={(e) => setOfferCode(e.target.value)}
+                      required
+                      className="w-full bg-white border-2 border-slate-900 rounded-lg p-2 text-xs font-mono text-slate-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-mono font-bold text-slate-600 mb-1">
+                      Offer Label
+                    </label>
+                    <input
+                      type="text"
+                      value={offerTitle}
+                      onChange={(e) => setOfferTitle(e.target.value)}
+                      required
+                      className="w-full bg-white border-2 border-slate-900 rounded-lg p-2 text-xs text-slate-900"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-mono font-bold text-slate-600 mb-1">
+                      Price (USD)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 font-mono font-bold">$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        required
+                        className="w-full bg-white border-2 border-slate-900 rounded-lg pl-6 pr-2 p-2 text-xs font-mono font-bold text-slate-900"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-mono font-bold text-slate-600 mb-1">
+                      Duration (Seconds)
+                    </label>
+                    <input
+                      type="number"
+                      value={duration}
+                      onChange={(e) => setDuration(e.target.value)}
+                      required
+                      className="w-full bg-white border-2 border-slate-900 rounded-lg p-2 text-xs font-mono text-slate-900"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full neo-button-amber py-3 px-6 flex items-center justify-center space-x-2 text-xs font-black uppercase tracking-wider disabled:opacity-50"
+              >
+                <PlusCircle className="w-4 h-4 stroke-[2.5]" />
+                <span>{loading ? 'Publishing to Mesh...' : 'Publish Product & Activate L402 Paywall'}</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Live Preview Column */}
+        <div className="md:col-span-5 space-y-4">
+          <div className="p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-4">
+            <div className="flex items-center space-x-2 pb-3 border-b-2 border-slate-100">
+              <Eye className="w-4 h-4 text-slate-700" />
+              <h3 className="font-display font-extrabold text-xs text-slate-900 uppercase tracking-wider">
+                Live AI Agent Card Preview
+              </h3>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 border-2 border-slate-900 space-y-3 shadow-neo-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-300 text-slate-950 border border-slate-900 uppercase">
+                  {provider}
+                </span>
+                <span className="text-[10px] font-mono text-slate-500">
+                  /{slug || 'preview-slug'}
+                </span>
+              </div>
+
+              <div className="font-display font-extrabold text-sm text-slate-900">
+                {title || 'Example Dataset Title'}
+              </div>
+
+              <p className="text-xs text-slate-600">
+                {description || 'Description preview of how this product will be summarized for AI agents.'}
+              </p>
+
+              <div className="p-2.5 rounded-lg bg-white border border-slate-300 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800">{offerTitle}</span>
+                <span className="text-xs font-mono font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-600">
+                  ${parseFloat(price || '0').toFixed(2)} USD
+                </span>
+              </div>
+            </div>
+
+            <div className="text-[11px] font-mono text-slate-500 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
+              💡 <strong>Instant Activation:</strong> Once published, this resource immediately appears in the catalogue, generates machine-readable L402 challenge envelopes on access, and supports PayPal Sandbox checkout.
             </div>
           </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 transition flex items-center justify-center space-x-2 disabled:opacity-50"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>{loading ? 'Publishing...' : 'Publish Data Product & Offer'}</span>
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );
