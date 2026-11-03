@@ -30,7 +30,7 @@ export const App: React.FC = () => {
         {activeTab === 'policy' && <PolicyManager />}
         {activeTab === 'catalogue' && <CatalogueView onSelectResource={() => setActiveTab('workspace')} />}
         {activeTab === 'analytics' && <AnalyticsView />}
-        {activeTab === 'publisher' && <PublisherConsole />}
+        {activeTab === 'publisher' && <PublisherConsole onNavigateToCatalogue={() => setActiveTab('catalogue')} />}
       </main>
 
       {/* Developer Ecosystem Footer inspired by MLH Reference Screenshot 3 */}
@@ -49,7 +49,7 @@ export const App: React.FC = () => {
               </p>
             </div>
 
-            {/* Square Ecosystem Links (from Screenshot 3) */}
+            {/* Square Ecosystem Links */}
             <div className="md:col-span-5 flex flex-wrap gap-2.5 justify-start md:justify-end">
               <a
                 href="https://github.com/rajat552/paypal-hackathon"
