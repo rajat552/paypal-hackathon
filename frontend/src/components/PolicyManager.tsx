@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Lock, Sliders, AlertCircle, CheckCircle2, History, RefreshCw } from 'lucide-react';
+import { ShieldCheck, Lock, Sliders, AlertCircle, CheckCircle2, History, RefreshCw, KeyRound, DollarSign, Check } from 'lucide-react';
 
 export const PolicyManager: React.FC = () => {
   const [maxPerTransaction, setMaxPerTransaction] = useState(0.50);
@@ -17,130 +17,167 @@ export const PolicyManager: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-white flex items-center space-x-2">
-            <span>Deterministic Trust &amp; Spending Policy Engine</span>
-            <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-              Enforced by Server
-            </span>
+    <div className="space-y-8">
+      {/* Top Banner with warm gradient / neo-tech styling (Reference Screenshot 2) */}
+      <div className="relative overflow-hidden rounded-3xl border-2 border-slate-900 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 p-6 sm:p-8 shadow-neo text-slate-950">
+        <div className="relative z-10 max-w-3xl space-y-2">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-950 text-white font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(255,255,255,0.8)]">
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+            <span>DETERMINISTIC TRUST ENGINE</span>
+          </div>
+
+          <h2 className="font-display font-black text-2xl sm:text-4xl tracking-tight text-slate-950">
+            Autonomous Spending Guardrails &amp; Policy
           </h2>
-          <p className="text-xs text-slate-400">
-            Configure guardrails for autonomous AI agents. The LLM cannot override or bypass these deterministic rules.
+          <p className="text-xs sm:text-sm font-medium text-slate-900 max-w-2xl">
+            Large Language Models are probabilistic and susceptible to prompt injection. PayMesh AI removes payment authorization from the LLM entirely: deterministic rules run on the server before any PayPal Sandbox Order is created.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Controls */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Controls Form */}
         <div className="lg:col-span-7 space-y-6">
-          <form onSubmit={handleSave} className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-6">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center space-x-2">
-              <Sliders className="w-4 h-4 text-blue-400" />
-              <span>Financial Limits &amp; Guardrails</span>
-            </h3>
+          <form onSubmit={handleSave} className="p-6 sm:p-8 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b-2 border-slate-100">
+              <div className="flex items-center space-x-2.5">
+                <div className="p-2 bg-amber-100 border-2 border-slate-900 rounded-lg text-slate-950 shadow-neo-sm">
+                  <Sliders className="w-4 h-4" />
+                </div>
+                <h3 className="font-display font-extrabold text-base text-slate-900">
+                  Financial Limits &amp; Constraints
+                </h3>
+              </div>
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 border-2 border-emerald-800">
+                ACTIVE IN RUNTIME
+              </span>
+            </div>
 
             {saved && (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center space-x-2">
-                <CheckCircle2 className="w-4 h-4" />
+              <div className="p-3.5 rounded-xl bg-emerald-100 border-2 border-emerald-800 text-emerald-950 text-xs font-mono font-bold flex items-center space-x-2 shadow-neo-sm animate-in fade-in">
+                <CheckCircle2 className="w-4 h-4 text-emerald-700 flex-shrink-0" />
                 <span>Deterministic spending policy saved and propagated to PayPal Gateway.</span>
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Max Spend Per Transaction (USD)
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 font-mono">
+                  Max Spend Per Transaction
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={maxPerTransaction}
-                  onChange={(e) => setMaxPerTransaction(parseFloat(e.target.value) || 0)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
-                />
-                <span className="text-[10px] text-slate-500 mt-1 block">Hard ceiling on any single AI purchase.</span>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 font-mono font-bold">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={maxPerTransaction}
+                    onChange={(e) => setMaxPerTransaction(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl pl-8 pr-3.5 py-2.5 text-sm text-slate-900 font-mono font-bold focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
+                  />
+                </div>
+                <span className="text-[11px] text-slate-500 mt-1.5 block font-medium">Hard ceiling on any single AI micro-purchase.</span>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Cumulative Daily Cap (USD)
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 font-mono">
+                  Cumulative Daily Cap
                 </label>
-                <input
-                  type="number"
-                  step="0.10"
-                  value={dailyCap}
-                  onChange={(e) => setDailyCap(parseFloat(e.target.value) || 0)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
-                />
-                <span className="text-[10px] text-slate-500 mt-1 block">24-hour rolling expenditure limit.</span>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 font-mono font-bold">$</span>
+                  <input
+                    type="number"
+                    step="0.10"
+                    value={dailyCap}
+                    onChange={(e) => setDailyCap(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl pl-8 pr-3.5 py-2.5 text-sm text-slate-900 font-mono font-bold focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
+                  />
+                </div>
+                <span className="text-[11px] text-slate-500 mt-1.5 block font-medium">24-hour rolling expenditure quota.</span>
               </div>
             </div>
 
-            <div className="space-y-3 pt-4 border-t border-slate-800">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">AI Security &amp; Isolation</h4>
+            <div className="space-y-3.5 pt-4 border-t-2 border-slate-100">
+              <h4 className="text-xs font-mono font-bold text-slate-600 uppercase tracking-wider">
+                AI Security &amp; Protocol Isolation
+              </h4>
               
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
-                <div className="text-xs">
-                  <div className="font-semibold text-white">Prompt-Injection Sanitization</div>
-                  <div className="text-[11px] text-slate-400">Treat all external provider responses as untrusted strings.</div>
+              <label className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border-2 border-slate-900 cursor-pointer shadow-neo-sm hover:bg-amber-50 transition-colors">
+                <div className="text-xs pr-4">
+                  <div className="font-bold text-slate-900">Prompt-Injection Sanitization</div>
+                  <div className="text-[11px] text-slate-600 mt-0.5">Treat external data provider payloads as untrusted strings.</div>
                 </div>
                 <input
                   type="checkbox"
                   checked={enforcePromptSanitization}
                   onChange={(e) => setEnforcePromptSanitization(e.target.checked)}
-                  className="h-4 w-4 rounded accent-blue-600 bg-slate-900 border-slate-700"
+                  className="h-5 w-5 rounded accent-amber-500 border-2 border-slate-900 cursor-pointer"
                 />
-              </div>
+              </label>
 
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
-                <div className="text-xs">
-                  <div className="font-semibold text-white">Strict Resource Scope Invariants</div>
-                  <div className="text-[11px] text-slate-400">Enforce cryptographic binding between Bearer token and purchased dataset.</div>
+              <label className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border-2 border-slate-900 cursor-pointer shadow-neo-sm hover:bg-amber-50 transition-colors">
+                <div className="text-xs pr-4">
+                  <div className="font-bold text-slate-900">Strict Resource Scope Invariants</div>
+                  <div className="text-[11px] text-slate-600 mt-0.5">Enforce cryptographic binding between Bearer token and purchased dataset.</div>
                 </div>
                 <input
                   type="checkbox"
                   checked={strictScopeCheck}
                   onChange={(e) => setStrictScopeCheck(e.target.checked)}
-                  className="h-4 w-4 rounded accent-blue-600 bg-slate-900 border-slate-700"
+                  className="h-5 w-5 rounded accent-amber-500 border-2 border-slate-900 cursor-pointer"
                 />
-              </div>
+              </label>
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition shadow-lg shadow-blue-600/30"
+              className="w-full neo-button-amber py-3 px-6 flex items-center justify-center space-x-2 text-xs font-black uppercase tracking-wider"
             >
-              Update Deterministic Policy Rules
+              <Check className="w-4 h-4 stroke-[2.5]" />
+              <span>Update Deterministic Policy Rules</span>
             </button>
           </form>
         </div>
 
         {/* Policy Verification & Architecture Card */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center space-x-2">
-              <Lock className="w-4 h-4 text-emerald-400" />
-              <span>Active Security Invariants</span>
-            </h3>
+          <div className="p-6 sm:p-8 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-4">
+            <div className="flex items-center space-x-2.5 pb-3 border-b-2 border-slate-100">
+              <div className="p-1.5 bg-emerald-100 border-2 border-slate-900 rounded-lg text-emerald-800 shadow-neo-sm">
+                <Lock className="w-4 h-4" />
+              </div>
+              <h3 className="font-display font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+                Cryptographic Security Invariants
+              </h3>
+            </div>
 
-            <ul className="space-y-3 text-xs text-slate-300">
-              <li className="flex items-start space-x-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                <span><strong>No LLM Payment Authority:</strong> The AI model recommends; deterministic backend logic approves and triggers PayPal Sandbox.</span>
+            <ul className="space-y-4 text-xs text-slate-700">
+              <li className="flex items-start space-x-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong className="text-slate-900 block font-bold">No LLM Payment Authority</strong>
+                  <span className="text-[11px] text-slate-600">The model only suggests tasks; server-side code evaluates spending limits and approves PayPal checkout.</span>
+                </div>
               </li>
-              <li className="flex items-start space-x-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                <span><strong>One Source of Truth for Money:</strong> Prices and currencies are resolved strictly from database offer records, ignoring client amounts.</span>
+              <li className="flex items-start space-x-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong className="text-slate-900 block font-bold">Server-Calculated Purchase Units</strong>
+                  <span className="text-[11px] text-slate-600">Pricing is looked up directly in the database. Agent prompt parameters cannot tamper with transaction price.</span>
+                </div>
               </li>
-              <li className="flex items-start space-x-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                <span><strong>Cryptographic Separation:</strong> Challenge ID, PayPal Order ID, and Bearer Access Token are completely independent hashes.</span>
+              <li className="flex items-start space-x-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong className="text-slate-900 block font-bold">Token &amp; Order ID Separation</strong>
+                  <span className="text-[11px] text-slate-600">Challenge ID (`chl_...`), PayPal Order ID, and Bearer token (`pm_live_...`) are distinct and cryptographically hashed.</span>
+                </div>
               </li>
-              <li className="flex items-start space-x-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                <span><strong>Idempotent Captures:</strong> Replayed callbacks or duplicate approvals never create duplicate charges or multiple entitlements.</span>
+              <li className="flex items-start space-x-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong className="text-slate-900 block font-bold">Idempotent Captures</strong>
+                  <span className="text-[11px] text-slate-600">Server prevents duplicate captures or double payments even if network drops or agent retries.</span>
+                </div>
               </li>
             </ul>
           </div>
