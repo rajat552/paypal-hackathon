@@ -17,7 +17,10 @@ import {
   Keyboard, 
   Newspaper,
   Layers,
-  CreditCard
+  CreditCard,
+  X,
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
 
 interface LogEntry {
@@ -38,6 +41,7 @@ export const AgentWorkspace: React.FC = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [copiedToken, setCopiedToken] = useState(false);
   const [copiedLog, setCopiedLog] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
   const addLog = (type: LogEntry['type'], message: string, data?: any) => {
     setLogs((prev) => [
@@ -57,6 +61,7 @@ export const AgentWorkspace: React.FC = () => {
     setChallenge(null);
     setUnlockedData(null);
     setBearerToken(null);
+    setShowCheckoutModal(false);
     addLog('INFO', `Starting AI commerce orchestration for task: "${task}"`);
     addLog('INFO', `Enforcing strict spending policy limit: $${budget.toFixed(2)} USD`);
 
@@ -84,8 +89,9 @@ export const AgentWorkspace: React.FC = () => {
     }
   };
 
-  const handleApproveAndPay = async () => {
+  const handleConfirmAndCapture = async () => {
     if (!challenge) return;
+    setShowCheckoutModal(false);
     setStatus('PAYING');
     addLog('INFO', 'Initiating PayPal Sandbox checkout order (intent: CAPTURE)...');
 
@@ -145,9 +151,13 @@ export const AgentWorkspace: React.FC = () => {
     setTimeout(() => setCopiedLog(false), 2000);
   };
 
+  const clearLogs = () => {
+    setLogs([]);
+  };
+
   return (
     <div className="space-y-8">
-      {/* Hero Header Section inspired by MLH reference screenshots */}
+      {/* Hero Header Section */}
       <div className="relative overflow-hidden rounded-3xl border-2 border-slate-900 bg-white p-6 sm:p-10 shadow-neo bg-blueprint-grid">
         <div className="relative z-10 max-w-4xl space-y-4">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-300 text-slate-950 border-2 border-slate-900 font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
@@ -163,7 +173,7 @@ export const AgentWorkspace: React.FC = () => {
             AI agents shouldn't hold credit cards. PayMesh AI empowers programmatic clients to negotiate machine-readable <strong>L402 payment challenges</strong>, enforce strict spending guardrails, and execute verified <strong>PayPal Sandbox Orders v2</strong> server captures.
           </p>
 
-          {/* Quick Metrics Bar from Screenshot 1 */}
+          {/* Quick Metrics Bar */}
           <div className="pt-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
               <div className="font-display font-black text-xl text-brand-600">$0.01</div>
@@ -185,7 +195,7 @@ export const AgentWorkspace: React.FC = () => {
         </div>
       </div>
 
-      {/* Preset Track Cards (Reference Screenshot 1 & 2) */}
+      {/* Preset Track Cards */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -194,7 +204,7 @@ export const AgentWorkspace: React.FC = () => {
               Select an AI Agent Mission Track
             </h3>
           </div>
-          <span className="text-xs font-mono text-slate-500">Click card to load research target</span>
+          <span className="text-xs font-mono text-slate-500">Click track to auto-load prompt and policy</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -264,7 +274,7 @@ export const AgentWorkspace: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Grid: Left Column (Controls & Offers) + Right Column (Terminal Log) */}
+      {/* Main Grid: Left Column + Right Column */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Interactive Agent Studio */}
         <div className="lg:col-span-7 space-y-6">
@@ -321,7 +331,11 @@ export const AgentWorkspace: React.FC = () => {
                     disabled={status === 'DISCOVERING' || status === 'PAYING'}
                     className="w-full neo-button-amber py-2.5 px-4 flex items-center justify-center space-x-2 text-xs font-black uppercase tracking-wider disabled:opacity-50"
                   >
-                    <Play className="w-4 h-4 fill-current stroke-[1.5]" />
+                    {status === 'DISCOVERING' ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                    ) : (
+                      <Play className="w-4 h-4 fill-current stroke-[1.5]" />
+                    )}
                     <span>{status === 'DISCOVERING' ? 'Discovering...' : 'Dispatch Agent'}</span>
                   </button>
                 </div>
@@ -377,7 +391,7 @@ export const AgentWorkspace: React.FC = () => {
 
                   {recommendation.policy_allowed && (
                     <button
-                      onClick={handleApproveAndPay}
+                      onClick={() => setShowCheckoutModal(true)}
                       disabled={status === 'PAYING'}
                       className="neo-button-blue py-2.5 px-5 flex items-center justify-center space-x-2 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
                     >
@@ -501,14 +515,24 @@ export const AgentWorkspace: React.FC = () => {
             </div>
             <div className="flex items-center space-x-2">
               {logs.length > 0 && (
-                <button
-                  onClick={copyLogToClipboard}
-                  className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border-2 border-slate-900 text-[11px] font-mono font-bold text-slate-700 shadow-neo-sm flex items-center space-x-1"
-                  title="Copy All Log Entries"
-                >
-                  {copiedLog ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                  <span>{copiedLog ? 'Copied' : 'Copy'}</span>
-                </button>
+                <>
+                  <button
+                    onClick={copyLogToClipboard}
+                    className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border-2 border-slate-900 text-[11px] font-mono font-bold text-slate-700 shadow-neo-sm flex items-center space-x-1"
+                    title="Copy All Log Entries"
+                  >
+                    {copiedLog ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedLog ? 'Copied' : 'Copy'}</span>
+                  </button>
+                  <button
+                    onClick={clearLogs}
+                    className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border-2 border-slate-900 text-[11px] font-mono font-bold text-slate-700 shadow-neo-sm flex items-center space-x-1"
+                    title="Clear Terminal Log"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>Clear</span>
+                  </button>
+                </>
               )}
               <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-300 text-slate-950 border-2 border-slate-900 shadow-neo-sm">
                 STATE: {status}
@@ -554,6 +578,74 @@ export const AgentWorkspace: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* FinTech Checkout Confirmation Modal */}
+      {showCheckoutModal && recommendation && challenge && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-md bg-white border-2 border-slate-900 rounded-3xl p-6 sm:p-7 shadow-neo-lg animate-neo-pop space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b-2 border-slate-100">
+              <div className="flex items-center space-x-2">
+                <div className="p-1.5 bg-amber-300 border-2 border-slate-900 rounded-lg text-slate-950 shadow-neo-sm">
+                  <CreditCard className="w-4 h-4" />
+                </div>
+                <h3 className="font-display font-black text-base text-slate-900">
+                  PayPal Sandbox Authorization
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowCheckoutModal(false)}
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 font-mono text-xs text-slate-700">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Resource:</span>
+                  <span className="font-bold text-slate-900">{recommendation.resource_title}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Offer Code:</span>
+                  <span className="font-bold text-slate-900">{challenge.offer_id}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Challenge ID:</span>
+                  <span className="text-slate-900 font-bold truncate max-w-[180px]">{challenge.challenge_id}</span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-emerald-50 rounded-xl border-2 border-emerald-700 flex items-center justify-between text-emerald-950">
+                <span className="font-bold">Total Capture Amount:</span>
+                <span className="font-black text-base">${recommendation.amount.toFixed(2)} {recommendation.currency}</span>
+              </div>
+
+              <div className="text-[11px] text-slate-500 leading-relaxed font-sans">
+                🔒 <strong>Server-Side Capture:</strong> Authorizing will dispatch an OAuth 2.0 capture request directly to PayPal Sandbox Orders v2. Upon capture, a scoped cryptographic Bearer token will be granted immediately.
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowCheckoutModal(false)}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-900 text-xs font-mono font-bold text-slate-800 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmAndCapture}
+                className="flex-1 neo-button-amber py-2.5 px-4 text-xs font-black uppercase tracking-wider flex items-center justify-center space-x-1.5"
+              >
+                <span>Authorize &amp; Pay</span>
+                <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
