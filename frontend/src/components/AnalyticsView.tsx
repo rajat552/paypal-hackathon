@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { ColDef } from 'ag-grid-community';
-import { DollarSign, ShoppingCart, KeyRound, Users, Activity, TrendingUp, RefreshCw, BarChart3, Download } from 'lucide-react';
+import { DollarSign, ShoppingCart, KeyRound, Users, Activity, TrendingUp, RefreshCw, BarChart3, Download, Check } from 'lucide-react';
 
 interface SummaryData {
   total_revenue_usd: number;
@@ -28,6 +28,7 @@ export const AnalyticsView: React.FC = () => {
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exported, setExported] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -50,6 +51,30 @@ export const AnalyticsView: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleExportCSV = () => {
+    if (transactions.length === 0) return;
+    const headers = ['Captured At', 'Resource Title', 'PayPal Order ID', 'Capture ID', 'Amount', 'Currency', 'Status'];
+    const rows = transactions.map(t => [
+      `"${t.captured_at}"`,
+      `"${t.resource_title}"`,
+      `"${t.paypal_order_id}"`,
+      `"${t.paypal_capture_id}"`,
+      t.amount,
+      `"${t.currency}"`,
+      `"${t.status}"`
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `paymesh_ledger_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setExported(true);
+    setTimeout(() => setExported(false), 2500);
+  };
 
   const columnDefs = useMemo<ColDef<TransactionRow>[]>(() => [
     {
@@ -142,16 +167,27 @@ export const AnalyticsView: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={fetchData}
-          className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 border-2 border-slate-900 text-xs font-mono font-bold text-slate-900 shadow-neo-sm hover:-translate-y-0.5 transition-all self-start sm:self-auto"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Refresh Ledger</span>
-        </button>
+        <div className="flex items-center space-x-2 self-start sm:self-auto">
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-100 border-2 border-slate-900 text-xs font-mono font-bold text-slate-800 shadow-neo-sm hover:-translate-y-0.5 transition-all"
+            title="Export Ledger to CSV"
+          >
+            {exported ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Download className="w-3.5 h-3.5" />}
+            <span>{exported ? 'Exported!' : 'Export CSV'}</span>
+          </button>
+
+          <button
+            onClick={fetchData}
+            className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 border-2 border-slate-900 text-xs font-mono font-bold text-slate-900 shadow-neo-sm hover:-translate-y-0.5 transition-all"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Refresh Ledger</span>
+          </button>
+        </div>
       </div>
 
-      {/* KPI Stat Cards (Reference Screenshot 1) */}
+      {/* KPI Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <div className="p-4 rounded-2xl bg-white border-2 border-slate-900 shadow-neo">
           <div className="flex items-center space-x-1.5 text-slate-600 text-xs mb-1 font-mono font-bold">
