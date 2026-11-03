@@ -27,14 +27,20 @@ async def capture_all():
             await asyncio.sleep(1.5)
             await page.screenshot(path=SCREENSHOT_DIR / "02-l402-challenge.png", full_page=False)
 
-            # 3. Approve & Pay -> Unlocked Intelligence
-            print("Capturing PayPal Sandbox Order approval & server capture...")
+            # 3. Open Modal -> Authorize & Pay -> Unlocked Intelligence
+            print("Opening PayPal Sandbox Order modal & capturing...")
             pay_btn = page.locator("button:has-text('Approve & Pay via PayPal Sandbox')").first
             if await pay_btn.is_visible():
                 await pay_btn.click()
-                await page.wait_for_selector("text=Unlocked:", timeout=15000)
-                await asyncio.sleep(2)
-                await page.screenshot(path=SCREENSHOT_DIR / "03-unlocked-intelligence.png", full_page=False)
+                await asyncio.sleep(1)
+                
+                # Click modal Authorize & Pay
+                auth_btn = page.locator("button:has-text('Authorize & Pay')").first
+                if await auth_btn.is_visible():
+                    await auth_btn.click()
+                    await page.wait_for_selector("text=Unlocked:", timeout=15000)
+                    await asyncio.sleep(2)
+                    await page.screenshot(path=SCREENSHOT_DIR / "03-unlocked-intelligence.png", full_page=False)
 
         # 4. Spending Policy & Trust Engine Tab
         print("Capturing 04: Spending Policy Manager...")
