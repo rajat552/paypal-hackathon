@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { PlusCircle, Tag, Check, AlertCircle, ShoppingBag, Eye, DollarSign, Clock, Layers } from 'lucide-react';
+import { PlusCircle, Tag, Check, AlertCircle, ShoppingBag, Eye, DollarSign, Clock, Layers, Wand2 } from 'lucide-react';
 
-export const PublisherConsole: React.FC = () => {
+export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> = ({ onNavigateToCatalogue }) => {
   const [slug, setSlug] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -16,6 +16,16 @@ export const PublisherConsole: React.FC = () => {
 
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const handleAutoSlug = () => {
+    if (title) {
+      const generated = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+      setSlug(generated);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,18 +105,53 @@ export const PublisherConsole: React.FC = () => {
           <div className="p-6 sm:p-8 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-6">
             {message && (
               <div
-                className={`p-3.5 rounded-xl text-xs font-mono font-bold flex items-center space-x-2.5 border-2 ${
+                className={`p-3.5 rounded-xl text-xs font-mono font-bold flex items-center justify-between border-2 ${
                   message.type === 'success'
                     ? 'bg-emerald-100 text-emerald-950 border-emerald-800'
                     : 'bg-red-100 text-red-950 border-red-800'
                 }`}
               >
-                {message.type === 'success' ? <Check className="w-4 h-4 text-emerald-700" /> : <AlertCircle className="w-4 h-4 text-red-600" />}
-                <span>{message.text}</span>
+                <div className="flex items-center space-x-2.5">
+                  {message.type === 'success' ? <Check className="w-4 h-4 text-emerald-700" /> : <AlertCircle className="w-4 h-4 text-red-600" />}
+                  <span>{message.text}</span>
+                </div>
+                {message.type === 'success' && onNavigateToCatalogue && (
+                  <button
+                    onClick={onNavigateToCatalogue}
+                    className="underline hover:text-emerald-800 ml-2 text-[11px]"
+                  >
+                    View in Catalogue &rarr;
+                  </button>
+                )}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-xs font-mono font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Dataset / API Title
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g. Ultra-Low Latency Switch Profiles"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
+                    className="flex-1 bg-slate-50 border-2 border-slate-900 rounded-xl p-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAutoSlug}
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 border-2 border-slate-900 rounded-xl text-[11px] font-mono font-bold flex items-center space-x-1"
+                    title="Generate slug from title"
+                  >
+                    <Wand2 className="w-3.5 h-3.5 text-brand-600" />
+                    <span>Auto Slug</span>
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-mono font-bold text-slate-700 uppercase tracking-wider mb-1.5">
@@ -135,20 +180,6 @@ export const PublisherConsole: React.FC = () => {
                     <option value="custom_merchant">Custom Merchant API</option>
                   </select>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Dataset / API Title
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Ultra-Low Latency Switch Profiles"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                  className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl p-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
-                />
               </div>
 
               <div>
