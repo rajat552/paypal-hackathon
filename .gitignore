@@ -32,5 +32,11 @@ dist/
 frontend/dist/
 frontend/.next/
 frontend/out/
+
+# Remotion Video
+video/node_modules/
+video/.remotion/
+video/out/
+*.mp4
 .DS_Store
 Thumbs.db
