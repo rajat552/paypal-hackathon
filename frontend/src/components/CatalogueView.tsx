@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Database, ShieldCheck, ArrowRight, Tag, Layers, RefreshCw, ExternalLink, Search, Cpu, Globe } from 'lucide-react';
+import { Database, ShieldCheck, ArrowRight, Tag, Layers, RefreshCw, ExternalLink, Search, Cpu, Globe, Filter, X } from 'lucide-react';
 
 interface Offer {
   id: string;
@@ -27,6 +27,7 @@ export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const fetchCatalogue = async () => {
     setLoading(true);
@@ -45,12 +46,24 @@ export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void
     fetchCatalogue();
   }, []);
 
-  const filteredResources = resources.filter(r => 
-    r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.slug.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const categories = [
+    { id: 'all', label: 'All Products' },
+    { id: 'channel3', label: 'Channel3 Hardware' },
+    { id: 'crawlerpal_demo', label: 'News Feeds' },
+  ];
+
+  const filteredResources = resources.filter(r => {
+    const matchesSearch = 
+      r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.slug.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = 
+      selectedCategory === 'all' || r.provider.toLowerCase() === selectedCategory.toLowerCase();
+
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="space-y-8">
@@ -79,6 +92,14 @@ export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void
               onChange={(e) => setSearchTerm(e.target.value)}
               className="bg-white border-2 border-slate-900 rounded-xl pl-9 pr-3.5 py-2 text-xs font-mono font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-neo-sm"
             />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
           <button
@@ -91,13 +112,42 @@ export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void
         </div>
       </div>
 
+      {/* Category Filter Chips */}
+      <div className="flex items-center space-x-2 overflow-x-auto pb-1">
+        <Filter className="w-3.5 h-3.5 text-slate-500 mr-1 flex-shrink-0" />
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.id)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all whitespace-nowrap ${
+              selectedCategory === cat.id
+                ? 'bg-amber-400 text-slate-950 border-2 border-slate-900 shadow-neo-sm'
+                : 'bg-white text-slate-700 hover:bg-slate-100 border-2 border-slate-300'
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <div className="p-16 text-center text-slate-500 font-mono text-sm bg-white border-2 border-slate-900 rounded-2xl shadow-neo">
           // Loading data catalog from PostgreSQL / SQLite...
         </div>
       ) : filteredResources.length === 0 ? (
-        <div className="p-16 text-center text-slate-500 font-mono text-sm bg-white border-2 border-slate-900 rounded-2xl shadow-neo">
-          No matching data products found. Try a different search query.
+        <div className="p-16 text-center bg-white border-2 border-slate-900 rounded-2xl shadow-neo space-y-3">
+          <div className="font-display font-extrabold text-slate-900 text-base">
+            No matching datasets found
+          </div>
+          <p className="text-xs text-slate-500 font-mono">
+            No products match the filter "{searchTerm || selectedCategory}".
+          </p>
+          <button
+            onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }}
+            className="px-4 py-2 rounded-xl bg-amber-400 border-2 border-slate-900 text-xs font-mono font-bold text-slate-950 shadow-neo-sm"
+          >
+            Reset Filters
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
