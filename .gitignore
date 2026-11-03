@@ -1,5 +1,36 @@
 .venv
+venv
 __pycache__ 
 server/__pycache__
-
 client/__pycache__
+backend/**/__pycache__
+*.pyc
+*.pyo
+
+# Environment files
+.env
+.env.local
+server/.env
+backend/.env
+
+# Databases & local state
+*.db
+*.sqlite
+*.sqlite3
+crawlerpal.db
+server/payments_db.json
+
+# Test & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node & Next.js
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+frontend/.next/
+frontend/out/
+.DS_Store
+Thumbs.db
