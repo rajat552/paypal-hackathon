@@ -11,11 +11,11 @@ def pretty_print_json(data):
         print(data)
 
 def main():
-    parser = argparse.ArgumentParser(description="CLI client for the CrawlerPal News Demo server.")
+    parser = argparse.ArgumentParser(description="CLI client for PayMesh AI autonomous agent data commerce.")
     parser.add_argument(
         '--server-url',
         default="http://localhost:8000",
-        help="URL of the CrawlerPal server."
+        help="URL of the PayMesh AI server."
     )
 
     # --- Action Group (Mutually Exclusive) ---
