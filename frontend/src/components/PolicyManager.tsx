@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Lock, Sliders, AlertCircle, CheckCircle2, History, RefreshCw, KeyRound, DollarSign, Check } from 'lucide-react';
+import { ShieldCheck, Lock, Sliders, AlertCircle, CheckCircle2, History, RefreshCw, KeyRound, DollarSign, Check, Activity, Percent } from 'lucide-react';
 
 export const PolicyManager: React.FC = () => {
   const [maxPerTransaction, setMaxPerTransaction] = useState(0.50);
@@ -13,12 +13,16 @@ export const PolicyManager: React.FC = () => {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setTimeout(() => setSaved(false), 3500);
   };
+
+  // Simulated utilized budget for visualization
+  const currentUtilized = 0.24;
+  const utilizedPct = Math.min(100, Math.round((currentUtilized / dailyCap) * 100));
 
   return (
     <div className="space-y-8">
-      {/* Top Banner with warm gradient / neo-tech styling (Reference Screenshot 2) */}
+      {/* Top Banner with warm gradient */}
       <div className="relative overflow-hidden rounded-3xl border-2 border-slate-900 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 p-6 sm:p-8 shadow-neo text-slate-950">
         <div className="relative z-10 max-w-3xl space-y-2">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-950 text-white font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(255,255,255,0.8)]">
@@ -32,6 +36,30 @@ export const PolicyManager: React.FC = () => {
           <p className="text-xs sm:text-sm font-medium text-slate-900 max-w-2xl">
             Large Language Models are probabilistic and susceptible to prompt injection. PayMesh AI removes payment authorization from the LLM entirely: deterministic rules run on the server before any PayPal Sandbox Order is created.
           </p>
+        </div>
+      </div>
+
+      {/* Visual Budget Utilization Meter Card */}
+      <div className="p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-3">
+        <div className="flex items-center justify-between text-xs font-mono font-bold">
+          <div className="flex items-center space-x-2 text-slate-800">
+            <Activity className="w-4 h-4 text-brand-600" />
+            <span>24-Hour Rolling Budget Utilization</span>
+          </div>
+          <span className="text-slate-600">${currentUtilized.toFixed(2)} / ${dailyCap.toFixed(2)} USD ({utilizedPct}%)</span>
+        </div>
+
+        {/* Progress Bar Container */}
+        <div className="w-full h-4 bg-slate-100 rounded-full border-2 border-slate-900 overflow-hidden p-0.5">
+          <div 
+            className="h-full bg-gradient-to-r from-emerald-500 to-amber-400 rounded-full transition-all duration-500 shadow-inner"
+            style={{ width: `${Math.max(5, utilizedPct)}%` }}
+          ></div>
+        </div>
+
+        <div className="flex justify-between text-[11px] font-mono text-slate-500 pt-1">
+          <span>$0.00</span>
+          <span>Threshold Limit: ${dailyCap.toFixed(2)} USD</span>
         </div>
       </div>
 
@@ -186,4 +214,3 @@ export const PolicyManager: React.FC = () => {
     </div>
   );
 };
-
