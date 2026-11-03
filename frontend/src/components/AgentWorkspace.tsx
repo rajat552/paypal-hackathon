@@ -1,5 +1,24 @@
 import React, { useState } from 'react';
-import { Bot, Sparkles, ShieldCheck, CheckCircle2, AlertTriangle, ExternalLink, ArrowRight, Play, Terminal, Lock, Unlock } from 'lucide-react';
+import { 
+  Bot, 
+  Sparkles, 
+  ShieldCheck, 
+  CheckCircle2, 
+  AlertTriangle, 
+  ExternalLink, 
+  ArrowRight, 
+  Play, 
+  Terminal, 
+  Lock, 
+  Unlock, 
+  Copy, 
+  Check, 
+  Zap, 
+  Keyboard, 
+  Newspaper,
+  Layers,
+  CreditCard
+} from 'lucide-react';
 
 interface LogEntry {
   type: 'INFO' | 'L402' | 'SUCCESS' | 'ERROR';
@@ -17,6 +36,8 @@ export const AgentWorkspace: React.FC = () => {
   const [bearerToken, setBearerToken] = useState<string | null>(null);
   const [unlockedData, setUnlockedData] = useState<any>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [copiedToken, setCopiedToken] = useState(false);
+  const [copiedLog, setCopiedLog] = useState(false);
 
   const addLog = (type: LogEntry['type'], message: string, data?: any) => {
     setLogs((prev) => [
@@ -36,7 +57,8 @@ export const AgentWorkspace: React.FC = () => {
     setChallenge(null);
     setUnlockedData(null);
     setBearerToken(null);
-    addLog('INFO', `Executing task: "${task}" with max budget limit $${budget.toFixed(2)} USD`);
+    addLog('INFO', `Starting AI commerce orchestration for task: "${task}"`);
+    addLog('INFO', `Enforcing strict spending policy limit: $${budget.toFixed(2)} USD`);
 
     try {
       const res = await fetch('/api/v1/agent/runs', {
@@ -49,8 +71,8 @@ export const AgentWorkspace: React.FC = () => {
       if (data.recommendation) {
         setRecommendation(data.recommendation);
         setChallenge(data.challenge);
-        addLog('L402', `Received HTTP 402 challenge with offer for ${data.recommendation.resource_title}`, data.challenge);
-        addLog('INFO', `Deterministic policy result: ${data.recommendation.policy_reason}`);
+        addLog('L402', `HTTP 402 Payment Required issued for "${data.recommendation.resource_title}"`, data.challenge);
+        addLog('INFO', `Deterministic policy gate: ${data.recommendation.policy_reason}`);
         setStatus('AWAITING_APPROVAL');
       } else {
         addLog('ERROR', data.summary || 'No matching resources found');
@@ -82,7 +104,7 @@ export const AgentWorkspace: React.FC = () => {
       addLog('SUCCESS', `PayPal Sandbox Order Created: ${sessData.paypal_order_id}`, sessData);
 
       // 2. Server-side Capture
-      addLog('INFO', 'Buyer approved. Capturing and verifying PayPal order on server...');
+      addLog('INFO', 'Buyer confirmed approval. Capturing PayPal Order via server credentials...');
       const capRes = await fetch(`/api/v1/payment-sessions/${sessData.session_id}/capture`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -91,16 +113,16 @@ export const AgentWorkspace: React.FC = () => {
       addLog('SUCCESS', `PayPal Capture Verified: Status ${capData.status} (Capture ID: ${capData.paypal_capture_id})`, capData);
       
       setBearerToken(capData.access_token);
-      addLog('INFO', `Issued Scoped Bearer Token: ${capData.access_token}`);
+      addLog('INFO', `Issued Cryptographic Bearer Token: ${capData.access_token}`);
 
       // 3. Retrieve Protected Content
-      addLog('INFO', `Retrieving protected resource content using Bearer token...`);
+      addLog('INFO', `Exchanging Bearer token for protected dataset from /api/v1/resources/${capData.resource_slug}/content...`);
       const contentRes = await fetch(`/api/v1/resources/${capData.resource_slug}/content`, {
         headers: { Authorization: `Bearer ${capData.access_token}` },
       });
       const contentData = await contentRes.json();
       setUnlockedData(contentData);
-      addLog('SUCCESS', 'HTTP 200 OK — Unlocked Protected Channel3 Dataset!', contentData);
+      addLog('SUCCESS', 'HTTP 200 OK — Decrypted and unlocked protected intelligence data!', contentData);
       setStatus('COMPLETED');
     } catch (e: any) {
       addLog('ERROR', `Payment or retrieval error: ${e.message}`);
@@ -108,120 +130,260 @@ export const AgentWorkspace: React.FC = () => {
     }
   };
 
+  const copyTokenToClipboard = () => {
+    if (bearerToken) {
+      navigator.clipboard.writeText(bearerToken);
+      setCopiedToken(true);
+      setTimeout(() => setCopiedToken(false), 2000);
+    }
+  };
+
+  const copyLogToClipboard = () => {
+    const text = logs.map(l => `[${l.time}] [${l.type}] ${l.message} ${l.data ? JSON.stringify(l.data) : ''}`).join('\n');
+    navigator.clipboard.writeText(text);
+    setCopiedLog(true);
+    setTimeout(() => setCopiedLog(false), 2000);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Controls and Offer Cards */}
+    <div className="space-y-8">
+      {/* Hero Header Section inspired by MLH reference screenshots */}
+      <div className="relative overflow-hidden rounded-3xl border-2 border-slate-900 bg-white p-6 sm:p-10 shadow-neo bg-blueprint-grid">
+        <div className="relative z-10 max-w-4xl space-y-4">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-300 text-slate-950 border-2 border-slate-900 font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
+            <Zap className="w-3.5 h-3.5 fill-current" />
+            <span>PAYPAL AI HACKATHON 2026 ARCHITECTURE</span>
+          </div>
+
+          <h1 className="font-display font-black text-3xl sm:text-5xl tracking-tight text-slate-900 leading-tight">
+            The Trust &amp; Payment Mesh for <span className="text-brand-500 underline decoration-amber-400 decoration-wavy decoration-2">Autonomous AI</span> Commerce
+          </h1>
+
+          <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed max-w-2xl">
+            AI agents shouldn't hold credit cards. PayMesh AI empowers programmatic clients to negotiate machine-readable <strong>L402 payment challenges</strong>, enforce strict spending guardrails, and execute verified <strong>PayPal Sandbox Orders v2</strong> server captures.
+          </p>
+
+          {/* Quick Metrics Bar from Screenshot 1 */}
+          <div className="pt-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
+              <div className="font-display font-black text-xl text-brand-600">$0.01</div>
+              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Micro-Payments</div>
+            </div>
+            <div className="p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
+              <div className="font-display font-black text-xl text-emerald-600">100%</div>
+              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Policy Enforced</div>
+            </div>
+            <div className="p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
+              <div className="font-display font-black text-xl text-amber-500">&lt; 120ms</div>
+              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Capture Latency</div>
+            </div>
+            <div className="p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
+              <div className="font-display font-black text-xl text-indigo-600">L402 / MCP</div>
+              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Open Protocol</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Preset Track Cards (Reference Screenshot 1 & 2) */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Layers className="w-4 h-4 text-slate-700" />
+            <h3 className="font-display font-bold text-sm text-slate-900 uppercase tracking-wider">
+              Select an AI Agent Mission Track
+            </h3>
+          </div>
+          <span className="text-xs font-mono text-slate-500">Click card to load research target</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Track 1: Channel3 Hardware Intelligence */}
+          <div 
+            onClick={() => {
+              setTask('Compare high-performance mechanical keyboards with ultra-low latency under budget.');
+              setBudget(0.10);
+            }}
+            className="group cursor-pointer p-4 bg-white border-2 border-slate-900 rounded-2xl shadow-neo hover:-translate-y-0.5 hover:shadow-neo-lg transition-all flex items-center justify-between gap-4"
+          >
+            <div className="flex items-center space-x-3.5">
+              <div className="h-11 w-11 rounded-xl bg-blue-100 border-2 border-slate-900 flex items-center justify-center text-blue-700 shadow-neo-sm">
+                <Keyboard className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="font-display font-extrabold text-sm text-slate-900 group-hover:text-brand-600 transition-colors">
+                    Hardware Latency Benchmarks
+                  </span>
+                  <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-mono font-bold">
+                    Channel3
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Micro-purchase switch latency &amp; retail profiles ($0.05 / session)
+                </p>
+              </div>
+            </div>
+
+            <div className="h-9 w-9 rounded-xl bg-amber-400 border-2 border-slate-900 flex items-center justify-center text-slate-950 shadow-neo-sm group-hover:translate-x-1 transition-transform flex-shrink-0">
+              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+            </div>
+          </div>
+
+          {/* Track 2: CrawlerPal News Feed */}
+          <div 
+            onClick={() => {
+              setTask('Curated technology and economics news feed.');
+              setBudget(0.05);
+            }}
+            className="group cursor-pointer p-4 bg-white border-2 border-slate-900 rounded-2xl shadow-neo hover:-translate-y-0.5 hover:shadow-neo-lg transition-all flex items-center justify-between gap-4"
+          >
+            <div className="flex items-center space-x-3.5">
+              <div className="h-11 w-11 rounded-xl bg-emerald-100 border-2 border-slate-900 flex items-center justify-center text-emerald-700 shadow-neo-sm">
+                <Newspaper className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="font-display font-extrabold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors">
+                    Economics &amp; Tech Intelligence
+                  </span>
+                  <span className="text-[10px] px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-mono font-bold">
+                    CrawlerPal
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Pay-per-query machine access to real-time articles ($0.01 / request)
+                </p>
+              </div>
+            </div>
+
+            <div className="h-9 w-9 rounded-xl bg-amber-400 border-2 border-slate-900 flex items-center justify-center text-slate-950 shadow-neo-sm group-hover:translate-x-1 transition-transform flex-shrink-0">
+              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Grid: Left Column (Controls & Offers) + Right Column (Terminal Log) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Column: Interactive Agent Studio */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
-            <div className="flex items-center space-x-2 mb-4">
-              <Bot className="w-5 h-5 text-blue-400" />
-              <h2 className="text-base font-bold text-white">PayMesh AI — Autonomous Commerce Agent</h2>
+          {/* Agent Goal Input Card */}
+          <div className="p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b-2 border-slate-100">
+              <div className="flex items-center space-x-2.5">
+                <div className="p-1.5 bg-brand-50 border-2 border-slate-900 rounded-lg text-brand-600 shadow-neo-sm">
+                  <Bot className="w-4 h-4" />
+                </div>
+                <h2 className="font-display font-extrabold text-base text-slate-900">
+                  AI Commerce Agent Studio
+                </h2>
+              </div>
+              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
+                L402 Protocol Active
+              </span>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Research Prompt / Goal</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 font-mono">
+                  Autonomous Agent Prompt / Goal
+                </label>
                 <textarea
                   rows={3}
                   value={task}
                   onChange={(e) => setTask(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500 font-mono"
+                  className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl p-3.5 text-sm text-slate-900 font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
+                  placeholder="Describe data or intelligence requirement..."
                 />
               </div>
 
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Spending Policy Limit (USD)</label>
-                  <input
-                    type="number"
-                    value={budget}
-                    step="0.01"
-                    onChange={(e) => setBudget(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white focus:outline-none focus:border-blue-500 font-mono"
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                <div className="sm:col-span-7">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 font-mono">
+                    Spending Policy Limit (USD)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 font-mono font-bold">$</span>
+                    <input
+                      type="number"
+                      value={budget}
+                      step="0.01"
+                      onChange={(e) => setBudget(parseFloat(e.target.value) || 0)}
+                      className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl pl-8 pr-3.5 py-2.5 text-sm text-slate-900 font-mono font-bold focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
+                    />
+                  </div>
                 </div>
-                <div className="flex items-end">
+
+                <div className="sm:col-span-5 flex items-end">
                   <button
                     onClick={handleRunTask}
                     disabled={status === 'DISCOVERING' || status === 'PAYING'}
-                    className="h-[42px] px-6 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition flex items-center space-x-2 shadow-lg shadow-blue-600/30 disabled:opacity-50"
+                    className="w-full neo-button-amber py-2.5 px-4 flex items-center justify-center space-x-2 text-xs font-black uppercase tracking-wider disabled:opacity-50"
                   >
-                    <Play className="w-3.5 h-3.5 fill-current" />
-                    <span>{status === 'DISCOVERING' ? 'Discovering...' : 'Run Agent'}</span>
+                    <Play className="w-4 h-4 fill-current stroke-[1.5]" />
+                    <span>{status === 'DISCOVERING' ? 'Discovering...' : 'Dispatch Agent'}</span>
                   </button>
                 </div>
               </div>
             </div>
-
-            {/* Presets */}
-            <div className="mt-4 pt-4 border-t border-slate-800 flex items-center space-x-2 text-xs text-slate-400">
-              <span className="font-semibold text-slate-500">Presets:</span>
-              <button
-                onClick={() => setTask('Compare high-performance mechanical keyboards with ultra-low latency under budget.')}
-                className="hover:text-blue-400 underline decoration-slate-700"
-              >
-                Keyboards (Channel3)
-              </button>
-              <span>&bull;</span>
-              <button
-                onClick={() => setTask('Curated technology and economics news feed.')}
-                className="hover:text-blue-400 underline decoration-slate-700"
-              >
-                News Feed
-              </button>
-            </div>
           </div>
 
-          {/* Recommendation & Policy Gate Card */}
+          {/* L402 Challenge & Payment Gate Card */}
           {recommendation && (
-            <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4 animate-in fade-in">
-              <div className="flex items-center justify-between">
+            <div className="p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-5 animate-in fade-in">
+              <div className="flex items-center justify-between pb-3 border-b-2 border-slate-100">
                 <div className="flex items-center space-x-2">
-                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                    L402 CHALLENGE
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-amber-400 text-slate-950 border-2 border-slate-900 shadow-[1px_1px_0px_0px_rgba(15,23,42,1)]">
+                    HTTP 402 CHALLENGE
                   </span>
-                  <span className="text-xs font-semibold text-white">{recommendation.resource_title}</span>
+                  <span className="font-display font-extrabold text-sm text-slate-900">
+                    {recommendation.resource_title}
+                  </span>
                 </div>
-                <span className="text-sm font-extrabold text-emerald-400 font-mono">
-                  ${recommendation.amount.toFixed(2)} {recommendation.currency}
-                </span>
+                <div className="flex items-center space-x-1 font-mono font-black text-base text-slate-950 px-2.5 py-1 bg-amber-100 border-2 border-slate-900 rounded-lg shadow-neo-sm">
+                  <span>${recommendation.amount.toFixed(2)}</span>
+                  <span className="text-xs text-slate-600">{recommendation.currency}</span>
+                </div>
               </div>
 
-              <p className="text-xs text-slate-300 leading-relaxed">{recommendation.explanation}</p>
+              <p className="text-xs text-slate-700 leading-relaxed font-medium bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                {recommendation.explanation}
+              </p>
 
-              {/* Policy Indicator */}
+              {/* Policy Assessment Strip */}
               <div
-                className={`p-3 rounded-xl border flex items-center space-x-2 text-xs font-mono ${
+                className={`p-3.5 rounded-xl border-2 flex items-center space-x-2.5 text-xs font-mono font-bold ${
                   recommendation.policy_allowed
-                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                    : 'bg-red-500/10 border-red-500/20 text-red-400'
+                    ? 'bg-emerald-50 border-emerald-800 text-emerald-950'
+                    : 'bg-red-50 border-red-800 text-red-950'
                 }`}
               >
                 {recommendation.policy_allowed ? (
-                  <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <ShieldCheck className="w-5 h-5 text-emerald-700 flex-shrink-0" />
                 ) : (
-                  <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
                 )}
-                <span>{recommendation.policy_reason}</span>
+                <span>Policy Evaluation: {recommendation.policy_reason}</span>
               </div>
 
-              {/* Action / Checkout */}
+              {/* Action / Checkout Area */}
               {status !== 'COMPLETED' && (
-                <div className="pt-2 flex items-center justify-between">
-                  <div className="text-[11px] text-slate-400 flex items-center space-x-1">
-                    <Lock className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Protected access locked until PayPal capture</span>
+                <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t-2 border-slate-100">
+                  <div className="text-xs text-slate-600 font-mono flex items-center space-x-1.5">
+                    <Lock className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Protected access locked until PayPal Sandbox capture</span>
                   </div>
 
                   {recommendation.policy_allowed && (
                     <button
                       onClick={handleApproveAndPay}
                       disabled={status === 'PAYING'}
-                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition flex items-center space-x-1.5 disabled:opacity-50"
+                      className="neo-button-blue py-2.5 px-5 flex items-center justify-center space-x-2 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
                     >
+                      <CreditCard className="w-4 h-4" />
                       <span>{status === 'PAYING' ? 'Capturing PayPal Order...' : 'Approve & Pay via PayPal Sandbox'}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                     </button>
                   )}
                 </div>
@@ -231,59 +393,96 @@ export const AgentWorkspace: React.FC = () => {
 
           {/* Unlocked Protected Content Presentation */}
           {unlockedData && (
-            <div className="p-6 rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div className="p-6 rounded-2xl bg-white border-2 border-emerald-600 shadow-neo space-y-5 animate-in slide-in-from-bottom-2">
+              <div className="flex items-center justify-between pb-3 border-b-2 border-emerald-100">
                 <div className="flex items-center space-x-2">
-                  <Unlock className="w-5 h-5 text-emerald-400" />
-                  <h3 className="text-base font-bold text-white">Unlocked: {unlockedData.title}</h3>
+                  <div className="p-1.5 bg-emerald-100 border-2 border-emerald-800 rounded-lg text-emerald-800">
+                    <Unlock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-black text-base text-slate-900">
+                      Unlocked: {unlockedData.title}
+                    </h3>
+                    <div className="text-[11px] text-slate-500 font-mono">
+                      Attribution: {unlockedData.attribution}
+                    </div>
+                  </div>
                 </div>
-                <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                  Bearer Token Verified
-                </span>
+
+                <div className="flex items-center space-x-2">
+                  {bearerToken && (
+                    <button
+                      onClick={copyTokenToClipboard}
+                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border-2 border-slate-900 rounded-lg text-[11px] font-mono font-bold flex items-center space-x-1 text-slate-800 shadow-neo-sm"
+                      title="Copy Bearer Token"
+                    >
+                      {copiedToken ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedToken ? 'Copied' : 'Token'}</span>
+                    </button>
+                  )}
+                  <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 border-2 border-emerald-700 font-mono font-bold shadow-neo-sm">
+                    Verified 200 OK
+                  </span>
+                </div>
               </div>
 
-              <div className="text-xs text-slate-400 mb-2">
-                <strong>Source:</strong> {unlockedData.attribution}
-              </div>
-
+              {/* If Channel3 Hardware Benchmarks */}
               {unlockedData.data && unlockedData.data.benchmarks ? (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                     {unlockedData.data.benchmarks.map((item: any) => (
-                      <div key={item.provider_item_id} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs flex flex-col justify-between">
+                      <div 
+                        key={item.provider_item_id} 
+                        className="p-4 rounded-xl bg-slate-50 border-2 border-slate-900 text-xs flex flex-col justify-between shadow-neo-sm hover:shadow-neo transition-all"
+                      >
                         <div>
                           <div className="flex items-center justify-between mb-1.5">
-                            <span className="font-bold text-white">{item.brand}</span>
-                            <span className="font-mono text-emerald-400 font-bold">${item.price}</span>
+                            <span className="font-display font-black text-slate-900 text-sm">{item.brand}</span>
+                            <span className="font-mono text-emerald-700 font-black text-sm bg-emerald-100 px-2 py-0.5 rounded border border-emerald-600">
+                              ${item.price}
+                            </span>
                           </div>
-                          <div className="text-slate-300 font-medium mb-1">{item.title}</div>
-                          <div className="text-[11px] text-slate-500 space-y-0.5 font-mono">
-                            <div>Latency: <span className="text-blue-400">{item.latency_ms} ms</span></div>
-                            <div>Switch: {item.switch_type}</div>
+                          <div className="text-slate-800 font-bold mb-2 leading-tight">{item.title}</div>
+                          
+                          <div className="p-2.5 bg-white rounded-lg border border-slate-200 space-y-1 font-mono text-[11px] text-slate-600">
+                            <div className="flex justify-between">
+                              <span>Switch:</span>
+                              <span className="font-bold text-slate-900">{item.switch_type}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Measured Latency:</span>
+                              <span className="font-bold text-brand-600">{item.latency_ms} ms</span>
+                            </div>
                           </div>
                         </div>
+
                         <a
                           href={item.source_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="mt-3 inline-flex items-center space-x-1 text-[11px] text-blue-400 hover:text-blue-300 font-semibold"
+                          className="mt-3 inline-flex items-center justify-center space-x-1.5 py-1.5 px-3 rounded-lg bg-brand-50 hover:bg-brand-100 border border-brand-300 text-brand-700 font-mono font-bold text-xs transition-colors"
                         >
-                          <span>Channel3 Verified Link</span>
-                          <ExternalLink className="w-3 h-3" />
+                          <span>Channel3 Retail Link</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
                         </a>
                       </div>
                     ))}
                   </div>
 
                   {unlockedData.data.market_insights && (
-                    <div className="p-3 rounded-xl bg-blue-950/40 border border-blue-500/30 text-xs text-blue-200">
-                      <strong>AI Summary: </strong>
-                      {unlockedData.data.market_insights.recommendation}
+                    <div className="p-4 rounded-xl bg-amber-50 border-2 border-slate-900 shadow-neo-sm text-xs text-slate-900 space-y-1">
+                      <div className="font-mono font-bold uppercase text-amber-800 flex items-center space-x-1">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Channel3 Market Synthesis:</span>
+                      </div>
+                      <p className="font-medium leading-relaxed">
+                        {unlockedData.data.market_insights.recommendation}
+                      </p>
                     </div>
                   )}
                 </div>
               ) : (
-                <pre className="p-3 bg-slate-950 rounded-lg text-xs font-mono text-slate-300 overflow-x-auto">
+                <pre className="p-4 bg-slate-900 text-emerald-400 rounded-xl text-xs font-mono overflow-x-auto border-2 border-slate-900 shadow-inner">
                   {JSON.stringify(unlockedData, null, 2)}
                 </pre>
               )}
@@ -291,34 +490,60 @@ export const AgentWorkspace: React.FC = () => {
           )}
         </div>
 
-        {/* Right Column: Real-time Terminal Log */}
-        <div className="lg:col-span-5 space-y-4">
+        {/* Right Column: Dark Protocol Terminal Inspector */}
+        <div className="lg:col-span-5 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Terminal className="w-4 h-4 text-slate-400" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Protocol Inspection Log</h3>
+              <Terminal className="w-4 h-4 text-slate-900" />
+              <h3 className="font-display font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+                Protocol Inspector (L402 / MCP)
+              </h3>
             </div>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">
-              STATUS: {status}
-            </span>
+            <div className="flex items-center space-x-2">
+              {logs.length > 0 && (
+                <button
+                  onClick={copyLogToClipboard}
+                  className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border-2 border-slate-900 text-[11px] font-mono font-bold text-slate-700 shadow-neo-sm flex items-center space-x-1"
+                  title="Copy All Log Entries"
+                >
+                  {copiedLog ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedLog ? 'Copied' : 'Copy'}</span>
+                </button>
+              )}
+              <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-300 text-slate-950 border-2 border-slate-900 shadow-neo-sm">
+                STATE: {status}
+              </span>
+            </div>
           </div>
 
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 font-mono text-[11px] h-[550px] overflow-y-auto space-y-2.5 shadow-2xl">
+          {/* High-Contrast Technical Terminal */}
+          <div className="bg-[#0b0f19] border-2 border-slate-900 rounded-2xl p-4 font-mono text-[11px] h-[580px] overflow-y-auto space-y-2.5 shadow-neo">
             {logs.length === 0 ? (
-              <div className="text-slate-600 italic">// Ready. Run an agent task to observe L402 challenge and PayPal capture in real time.</div>
+              <div className="text-slate-500 italic pt-6 text-center">
+                // Ready for execution.
+                <br />
+                // Select a preset mission or enter a prompt, then click "Dispatch Agent"
+                <br />
+                // to observe the live HTTP 402 handshake and PayPal capture.
+              </div>
             ) : (
               logs.map((log, idx) => {
-                let badgeClass = 'text-blue-400';
-                if (log.type === 'L402') badgeClass = 'text-amber-400 font-bold';
-                if (log.type === 'SUCCESS') badgeClass = 'text-emerald-400 font-bold';
-                if (log.type === 'ERROR') badgeClass = 'text-red-400 font-bold';
+                let badgeStyle = 'bg-blue-900/60 text-blue-300 border-blue-600';
+                if (log.type === 'L402') badgeStyle = 'bg-amber-400 text-slate-950 font-black border-amber-300';
+                if (log.type === 'SUCCESS') badgeStyle = 'bg-emerald-500 text-slate-950 font-black border-emerald-400';
+                if (log.type === 'ERROR') badgeStyle = 'bg-red-500 text-white font-black border-red-400';
 
                 return (
-                  <div key={idx} className="leading-relaxed border-b border-slate-900 pb-2">
-                    <span className="text-slate-600">[{log.time}]</span>{' '}
-                    <span className={badgeClass}>[{log.type}]</span> {log.message}
+                  <div key={idx} className="leading-relaxed border-b border-slate-800/80 pb-2.5 last:border-0">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-slate-500 text-[10px]">[{log.time}]</span>
+                      <span className={`px-1.5 py-0.2 rounded text-[10px] border ${badgeStyle}`}>
+                        {log.type}
+                      </span>
+                    </div>
+                    <div className="text-slate-200 font-medium pl-1">{log.message}</div>
                     {log.data && (
-                      <pre className="mt-1 text-[10px] text-slate-400 bg-slate-900/80 p-2 rounded overflow-x-auto border border-slate-800">
+                      <pre className="mt-1.5 text-[10px] text-slate-400 bg-slate-950/90 p-2.5 rounded-lg overflow-x-auto border border-slate-800 shadow-inner">
                         {JSON.stringify(log.data, null, 2)}
                       </pre>
                     )}
