@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayMesh AI — A Trust &amp; Payment Infrastructure for Autonomous AI Commerce</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            500: '#0070ba',
+                            600: '#003087',
+                            900: '#001c48',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-blue-500 selection:text-white">
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="h-9 w-9 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/20">
+                    PM
+                </div>
+                <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">PayMesh AI</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">PayPal AI 2026</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="/docs" target="_blank" class="text-sm text-slate-400 hover:text-white transition">Swagger API</a>
+                <a href="/api/v1/catalogue" target="_blank" class="text-sm text-slate-400 hover:text-white transition">Catalogue JSON</a>
+                <a href="/api/v1/agent/mcp/manifest" target="_blank" class="text-sm text-slate-400 hover:text-white transition">MCP Manifest</a>
+                <a href="https://developer.paypal.com" target="_blank" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-md font-semibold transition flex items-center space-x-1">
+                    <span>PayPal Sandbox</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 py-12 w-full">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs text-slate-300 mb-6">
+                <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>L402 Protocol &bull; PayPal Orders v2 &bull; Channel3 Intelligence</span>
+            </div>
+            <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight mb-6">
+                A Trust &amp; Payment Infrastructure for <br/>
+                <span class="bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">Autonomous AI Commerce</span>
+            </h1>
+            <p class="text-lg text-slate-400 leading-relaxed">
+                PayMesh AI enables publishers and data providers to monetize machine-readable datasets and APIs. Autonomous AI agents discover transparent pricing, check deterministic budget policy, pay via PayPal Sandbox, and unlock verified entitlements.
+            </p>
+            <div class="mt-8 flex justify-center gap-4">
+                <a href="#demo" class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold text-white transition shadow-lg shadow-blue-600/30">
+                    Try Live Agentic Demo
+                </a>
+                <a href="/api/v1/resources/product-intelligence-report/content" target="_blank" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 font-semibold text-slate-200 border border-slate-700 transition flex items-center space-x-2">
+                    <span>Trigger HTTP 402</span>
+                    <span class="text-xs text-amber-400 font-mono">(L402)</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+            <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition">
+                <div class="h-10 w-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-lg mb-4">402</div>
+                <h3 class="text-lg font-bold text-white mb-2">Machine-Readable L402</h3>
+                <p class="text-sm text-slate-400">Autonomous agents receive structured challenges with server-calculated pricing, resource scopes, and correlation IDs.</p>
+            </div>
+            <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition">
+                <div class="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-lg mb-4">PP</div>
+                <h3 class="text-lg font-bold text-white mb-2">PayPal Orders v2 Lifecycle</h3>
+                <p class="text-sm text-slate-400">Deterministic backend approval and capture verification. Separate hashed Bearer tokens issued exclusively after capture.</p>
+            </div>
+            <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition">
+                <div class="h-10 w-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-lg mb-4">C3</div>
+                <h3 class="text-lg font-bold text-white mb-2">Channel3 Intelligence</h3>
+                <p class="text-sm text-slate-400">Normalised retail hardware comparisons, latency benchmarks, and verified source attribution links.</p>
+            </div>
+        </div>
+
+        <!-- Interactive Demo Section -->
+        <div id="demo" class="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden shadow-2xl">
+            <div class="border-b border-slate-800 bg-slate-950/50 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="h-3 w-3 rounded-full bg-red-500/80 inline-block"></span>
+                    <span class="h-3 w-3 rounded-full bg-amber-500/80 inline-block"></span>
+                    <span class="h-3 w-3 rounded-full bg-emerald-500/80 inline-block"></span>
+                    <span class="text-xs text-slate-400 font-mono ml-2">PayMesh AI Agent Orchestrator &bull; Live Gateway</span>
+                </div>
+                <div class="text-xs font-mono text-slate-500">API: /api/v1</div>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Left: Task & Agent Input -->
+                <div>
+                    <h4 class="text-base font-bold text-white mb-3">1. Ask Autonomous AI Agent</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Research Prompt</label>
+                            <textarea id="taskInput" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500 font-mono">Compare high-performance mechanical keyboards with ultra-low latency under budget.</textarea>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Max Budget Limit (USD)</label>
+                                <input type="number" id="budgetInput" value="0.10" step="0.01" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500 font-mono"/>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="runAgentTask()" id="runBtn" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition">
+                                    Execute Task
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendations Card -->
+                    <div id="recommendationCard" class="mt-6 hidden p-4 rounded-xl bg-slate-950 border border-slate-800">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Discovered Resource</span>
+                            <span id="recPrice" class="text-sm font-extrabold text-white font-mono">$0.05 USD</span>
+                        </div>
+                        <h5 id="recTitle" class="font-bold text-white text-sm mb-1">Product Intelligence Report</h5>
+                        <p id="recExplanation" class="text-xs text-slate-400 mb-3"></p>
+                        <div id="policyBadge" class="text-xs px-2.5 py-1 rounded inline-block font-mono mb-4"></div>
+                        
+                        <div id="checkoutAction" class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                            <span class="text-xs text-slate-400">Requires explicit buyer confirmation:</span>
+                            <button onclick="proceedToPayPal()" id="payBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center space-x-1">
+                                <span>Approve & Pay via PayPal</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Live Terminal & Response View -->
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-base font-bold text-white">2. Protocol Inspection Log</h4>
+                        <span id="logStatus" class="text-xs font-mono text-slate-500">IDLE</span>
+                    </div>
+                    <div id="terminal" class="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-slate-300 h-96 overflow-y-auto space-y-2">
+                        <div class="text-slate-600">// Ready. Run agent task above or call endpoints.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500">
+        PayMesh AI &bull; Built for PayPal AI Hackathon 2026 &bull; Channel3 &bull; AG Grid &bull; APIMatic Context
+    </footer>
+
+    <script>
+        let currentRun = null;
+
+        function log(type, message, data = null) {
+            const term = document.getElementById("terminal");
+            const div = document.createElement("div");
+            const time = new Date().toLocaleTimeString();
+            div.className = "leading-relaxed";
+            
+            let color = "text-slate-400";
+            if (type === "INFO") color = "text-blue-400";
+            if (type === "L402") color = "text-amber-400 font-bold";
+            if (type === "SUCCESS") color = "text-emerald-400 font-bold";
+            if (type === "ERROR") color = "text-red-400 font-bold";
+
+            let content = `<span class="text-slate-600">[${time}]</span> <span class="${color}">[${type}]</span> ${message}`;
+            if (data) {
+                content += `<pre class="mt-1 text-slate-400 bg-slate-900/60 p-2 rounded overflow-x-auto text-[11px]">${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            div.innerHTML = content;
+            term.appendChild(div);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        async function runAgentTask() {
+            const task = document.getElementById("taskInput").value;
+            const budget = parseFloat(document.getElementById("budgetInput").value);
+            const btn = document.getElementById("runBtn");
+            btn.disabled = true;
+            btn.innerText = "Discovering...";
+            document.getElementById("logStatus").innerText = "DISCOVERING";
+
+            log("INFO", `Invoking AI Agent with task: "${task}" (Budget: $${budget.toFixed(2)})`);
+
+            try {
+                const res = await fetch("/api/v1/agent/runs", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ task: task, budget_limit: budget })
+                });
+                const data = await res.json();
+                currentRun = data;
+
+                log("L402", `Server returned HTTP 402 challenge with offer for ${data.recommendation.resource_title}`, data.challenge);
+                log("INFO", `Deterministic Policy Result: ${data.recommendation.policy_reason}`);
+
+                // Display recommendation
+                document.getElementById("recommendationCard").classList.remove("hidden");
+                document.getElementById("recTitle").innerText = data.recommendation.resource_title;
+                document.getElementById("recPrice").innerText = `$${data.recommendation.amount.toFixed(2)} ${data.recommendation.currency}`;
+                document.getElementById("recExplanation").innerText = data.recommendation.explanation;
+                
+                const badge = document.getElementById("policyBadge");
+                if (data.recommendation.policy_allowed) {
+                    badge.className = "text-xs px-2.5 py-1 rounded inline-block font-mono mb-4 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                    badge.innerText = "POLICY PASSED: Within Budget";
+                    document.getElementById("checkoutAction").classList.remove("hidden");
+                } else {
+                    badge.className = "text-xs px-2.5 py-1 rounded inline-block font-mono mb-4 bg-red-500/10 text-red-400 border border-red-500/20";
+                    badge.innerText = "POLICY REJECTED: Exceeds Budget Limit";
+                    document.getElementById("checkoutAction").classList.add("hidden");
+                }
+                document.getElementById("logStatus").innerText = "AWAITING_APPROVAL";
+            } catch (e) {
+                log("ERROR", `Task execution failed: ${e.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Execute Task";
+            }
+        }
+
+        async function proceedToPayPal() {
+            if (!currentRun || !currentRun.challenge) return;
+            const payBtn = document.getElementById("payBtn");
+            payBtn.disabled = true;
+            payBtn.innerText = "Creating PayPal Order...";
+            document.getElementById("logStatus").innerText = "PAYPAL_ORDER_CREATING";
+
+            log("INFO", "Initiating PayPal Sandbox checkout order (intent: CAPTURE)...");
+
+            try {
+                // 1. Create Payment Session
+                const sessRes = await fetch("/api/v1/payment-sessions", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        challenge_id: currentRun.challenge.challenge_id,
+                        offer_id: currentRun.challenge.offer_id,
+                        buyer_confirmed: true
+                    })
+                });
+                const sessData = await sessRes.json();
+                log("SUCCESS", `PayPal Sandbox Order Created: ${sessData.paypal_order_id}`, sessData);
+
+                // 2. Simulate / execute server capture
+                log("INFO", "Simulating buyer approval & capturing PayPal order on server...");
+                const capRes = await fetch(`/api/v1/payment-sessions/${sessData.session_id}/capture`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+                const capData = await capRes.json();
+                log("SUCCESS", `PayPal Capture Verified: Status ${capData.status} (Capture ID: ${capData.paypal_capture_id})`, capData);
+                log("INFO", `Issued Scoped Bearer Token: ${capData.access_token}`);
+
+                // 3. Fetch protected resource with newly issued Bearer token
+                log("INFO", `Retrying protected content with Bearer ${capData.access_token}...`);
+                const contentRes = await fetch(`/api/v1/resources/${capData.resource_slug}/content`, {
+                    headers: { "Authorization": `Bearer ${capData.access_token}` }
+                });
+                const contentData = await contentRes.json();
+                log("SUCCESS", `HTTP 200 OK — Unlocked Protected Channel3 Dataset!`, contentData);
+                document.getElementById("logStatus").innerText = "COMPLETED";
+            } catch (e) {
+                log("ERROR", `Payment/Retrieval failed: ${e.message}`);
+            } finally {
+                payBtn.disabled = false;
+                payBtn.innerText = "Approve & Pay via PayPal";
+            }
+        }
+    </script>
+</body>
+</html>
