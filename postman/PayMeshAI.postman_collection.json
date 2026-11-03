@@ -1,0 +1,127 @@
+{
+  "info": {
+    "name": "PayMesh AI API Collection",
+    "description": "PayPal AI Hackathon 2026 - A Trust & Payment Infrastructure for Autonomous AI Commerce",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Get Resource Catalogue",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/catalogue",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "catalogue"]
+        }
+      }
+    },
+    {
+      "name": "Trigger HTTP 402 PayMesh L402 Challenge",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/resources/product-intelligence-report/content",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "resources", "product-intelligence-report", "content"]
+        }
+      }
+    },
+    {
+      "name": "Create Payment Session (PayPal Sandbox Order)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"challenge_id\": \"{{challengeId}}\",\n  \"offer_id\": \"{{offerId}}\",\n  \"buyer_confirmed\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/payment-sessions",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "payment-sessions"]
+        }
+      }
+    },
+    {
+      "name": "Capture PayPal Order & Issue Entitlement",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/payment-sessions/{{sessionId}}/capture",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "payment-sessions", "{{sessionId}}", "capture"]
+        }
+      }
+    },
+    {
+      "name": "Fetch Protected Content (Bearer Token)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{bearerToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/resources/product-intelligence-report/content",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "resources", "product-intelligence-report", "content"]
+        }
+      }
+    },
+    {
+      "name": "Publisher Analytics Summary (AG Grid)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/publisher/analytics/summary",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "publisher", "analytics", "summary"]
+        }
+      }
+    },
+    {
+      "name": "PayMesh AI MCP Server Manifest",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/agent/mcp/manifest",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "agent", "mcp", "manifest"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "challengeId", "value": "" },
+    { "key": "offerId", "value": "" },
+    { "key": "sessionId", "value": "" },
+    { "key": "bearerToken", "value": "" }
+  ]
+}
+
