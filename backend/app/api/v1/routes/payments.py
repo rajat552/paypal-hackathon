@@ -1,23 +1,28 @@
 import json
 import uuid
-from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.db.session import get_db
+from backend.app.models.entities import (
+    AuditLog,
+    Offer,
+    PaymentSession,
+    Resource,
+    Transaction,
+)
+from backend.app.schemas.payment import (
+    CaptureRequest,
+    CaptureResponse,
+    PaymentSessionCreateRequest,
+    PaymentSessionResponse,
+    PaymentSessionStatusResponse,
+)
 from backend.app.services.challenge_service import challenge_service
 from backend.app.services.entitlement_service import entitlement_service
 from backend.app.services.paypal_gateway import paypal_gateway
-from backend.app.services.resource_service import resource_service
-from backend.app.models.entities import (
-    PaymentSession, Transaction, Offer, Resource, AuditLog
-)
-from backend.app.schemas.payment import (
-    PaymentSessionCreateRequest, PaymentSessionResponse,
-    PaymentSessionStatusResponse, CaptureRequest, CaptureResponse
-)
-from backend.app.core.exceptions import InvalidChallengeException, PayPalApiException
 
 router = APIRouter(tags=["Payments"])
 
@@ -41,6 +46,10 @@ async def create_payment_session(
     offer = res.scalars().first()
     if not offer or not offer.active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Selected offer is invalid or inactive")
+
+    # Authoritative binding check: offer must match challenge
+    if offer.id != challenge.offer_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Offer does not match the active challenge.")
 
     # 3. Create PayPal Sandbox Order
     session_id = str(uuid.uuid4())
@@ -96,7 +105,7 @@ async def get_payment_session_status(session_id: str, session: AsyncSession = De
 @router.post("/api/v1/payment-sessions/{session_id}/capture", response_model=CaptureResponse)
 async def capture_payment_session(
     session_id: str,
-    payload: Optional[CaptureRequest] = None,
+    payload: CaptureRequest | None = None,
     session: AsyncSession = Depends(get_db)
 ):
     stmt = select(PaymentSession).where(PaymentSession.id == session_id)
@@ -204,7 +213,7 @@ async def legacy_payment_request(payload: dict, session: AsyncSession = Depends(
     offer = res.scalars().first()
     if not offer:
         # Fallback to first available offer
-        stmt = select(Offer).where(Offer.active == True)
+        stmt = select(Offer).where(Offer.active.is_(True))
         res = await session.execute(stmt)
         offer = res.scalars().first()
         if not offer:
@@ -216,10 +225,10 @@ async def legacy_payment_request(payload: dict, session: AsyncSession = Depends(
         currency=offer.currency,
         session_id=session_id
     )
-    capture_data = await paypal_gateway.capture_order(paypal_order["id"])
+    await paypal_gateway.capture_order(paypal_order["id"])
 
     # Issue entitlement
-    entitlement, raw_bearer_token = await entitlement_service.issue_entitlement(
+    _entitlement, raw_bearer_token = await entitlement_service.issue_entitlement(
         session=session,
         resource_id=offer.resource_id,
         offer_id=offer.id,
