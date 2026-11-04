@@ -1,11 +1,13 @@
-from typing import Optional, Dict, Any, List
+from typing import Any
+
 from pydantic import BaseModel, Field
+
 
 class PolicyEvaluateRequest(BaseModel):
     offer_id: str
     budget_limit: float
     currency: str = "USD"
-    agent_id: Optional[str] = None
+    agent_id: str | None = None
 
 class PolicyEvaluateResponse(BaseModel):
     allowed: bool
@@ -38,19 +40,25 @@ class AgentRunResponse(BaseModel):
     task: str
     budget_limit: float
     status: str # DISCOVERED, CHALLENGED, AWAITING_APPROVAL, COMPLETED
-    recommendation: Optional[AgentRecommendation] = None
-    challenge: Optional[Dict[str, Any]] = None
-    approval_url: Optional[str] = None
-    session_id: Optional[str] = None
-    summary: Optional[str] = None
-    data: Optional[Dict[str, Any]] = None
+    ai_mode: str = "deterministic_fallback" # "live_llm" or "deterministic_fallback"
+    ai_provider: str | None = None
+    ai_model: str | None = None
+    interpreted_intent: str | None = None
+    comparison_reasoning: str | None = None
+    tool_calls_trace: list[dict[str, Any]] | None = None
+    recommendation: AgentRecommendation | None = None
+    challenge: dict[str, Any] | None = None
+    approval_url: str | None = None
+    session_id: str | None = None
+    summary: str | None = None
+    data: dict[str, Any] | None = None
 
 class ToolExecutionRequest(BaseModel):
     tool_name: str
-    arguments: Dict[str, Any] = {}
+    arguments: dict[str, Any] = {}
 
 class ToolExecutionResponse(BaseModel):
     tool_name: str
     success: bool
     result: Any
-    error: Optional[str] = None
+    error: str | None = None
