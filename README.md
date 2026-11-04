@@ -436,23 +436,6 @@ Execute all 7 end-to-end integration steps against the live deployment:
 python scripts/smoke_test.py https://paypal-hackathon-s0gq.onrender.com
 ```
 
----
-
-## 🏆 Hackathon Prize Track Alignment
-
-PayMesh AI was engineered specifically for the **PayPal AI Hackathon 2026** and qualifies across 7 sponsor and category prize tracks:
-
-| Track / Sponsor | Eligibility & Implementation Highlights | Prize Pool |
-| :--- | :--- | :--- |
-| **🥇 Overall 1st Place: Build What's Next with PayPal and AI** | End-to-end autonomous commerce network merging Google Gemini AI reasoning with genuine PayPal Orders v2 Sandbox settlement and L402 machine paywalls. | $20,000 |
-| **🤖 Agentic Commerce Category Prize** | Autonomous procurement agent executing goal formulation, policy evaluation, server-side PayPal order creation, and cryptographic Bearer token unlock. | $10,000 |
-| **📊 Best Use of AG Grid** | High-performance AG Grid financial ledger tracking all captured PayPal transactions, order IDs, capture IDs, and live metrics with instant CSV export. | $5,000 |
-| **🛍 Best Use of Channel3** | Live Channel3 client integration normalizing retail hardware latency profiles, actuation benchmarks, and direct merchant links. | $5,000 |
-| **☁️ Best Use of Render** | Production deployment on Render with 1-click [`render.yaml`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/render.yaml) Blueprint, automatic PostgreSQL provisioning, and live health monitoring. | $5,000 |
-| **🚀 Best Deployment with Vercel** | Ultra-responsive React 18 frontend hosted globally on Vercel at `paypal-hackathon-mu.vercel.app` with automated API rewrite proxies. | Sponsor |
-| **🏆 The Podium Award** | Rigorous engineering standard with 26 automated tests, complete ADRs, MCP manifest, and a programmatic Remotion React demo video. | $5,000 |
-
----
 
 ## 📄 License & Attribution
 
