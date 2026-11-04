@@ -22,7 +22,7 @@
 [![AG Grid](https://img.shields.io/badge/Financial%20Ledger-AG%20Grid%20v32-E0234E.svg?logo=aggrid&logoColor=white)](https://www.ag-grid.com)
 [![Protocol](https://img.shields.io/badge/Protocol-L402%20HTTP%20402-F5A623.svg)](https://L402.org)
 [![MCP Standard](https://img.shields.io/badge/Standard-Anthropic%20MCP-6366F1.svg)](https://modelcontextprotocol.io/)
-[![Tests](https://img.shields.io/badge/Tests-26%20Passed%20%7C%20100%25-10B981.svg)](backend/tests/)
+[![Tests](https://img.shields.io/badge/Tests-27%20Passed%20%7C%20100%25-10B981.svg)](backend/tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 [🌐 Live Frontend](https://paypal-hackathon-mu.vercel.app/) • [⚡ Live Backend](https://paypal-hackathon-s0gq.onrender.com) • [📸 Visual Showcase](#-dashboard-screenshots--visual-showcase) • [💡 Overview](#-overview) • [⚡ Key Features](#-key-features) • [🛠 Tech Stack](#-technology-stack) • [🏛 Architecture](#-system-architecture) • [🔄 Workflows](#-end-to-end-workflows) • [🚀 Quick Start](#-installation--setup) • [🔐 Environment Variables](#-environment-variables) • [📡 API Docs](#-api-documentation) • [🧪 Testing](#-testing--quality-checks) • [🏆 Hackathon Tracks](#-hackathon-prize-track-alignment)
