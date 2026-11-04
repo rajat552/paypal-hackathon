@@ -1,11 +1,15 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.app.db.session import get_db
-from backend.app.services.analytics_service import analytics_service
 from backend.app.schemas.analytics import (
-    AnalyticsSummaryResponse, PaginatedTransactionsResponse,
-    TransactionItemResponse, PaginatedUsageResponse, UsageItemResponse
+    AnalyticsSummaryResponse,
+    PaginatedTransactionsResponse,
+    PaginatedUsageResponse,
+    TransactionItemResponse,
+    UsageItemResponse,
 )
+from backend.app.services.analytics_service import analytics_service
 
 router = APIRouter(prefix="/publisher/analytics", tags=["Publisher Analytics"])
 
