@@ -48,3 +48,4 @@ export const HeaderBadge: React.FC<HeaderBadgeProps> = ({
     </div>
   );
 };
+
