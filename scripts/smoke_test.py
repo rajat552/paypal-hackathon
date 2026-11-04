@@ -12,7 +12,6 @@ Verifies the complete 7-step sequence:
 """
 
 import sys
-import time
 import requests
 
 def run_smoke_test(base_url="http://localhost:8000"):
@@ -69,7 +68,7 @@ def run_smoke_test(base_url="http://localhost:8000"):
     print(f"PASS: PayPal captured successfully! Bearer Token: {access_token[:15]}...")
 
     # 6. Fetch Protected Content with Token
-    print(f"\n[6/7] Testing authenticated content retrieval with Bearer token...")
+    print("\n[6/7] Testing authenticated content retrieval with Bearer token...")
     p_res = requests.get(
         f"{base_url}/api/v1/resources/{resource_slug}/content",
         headers={"Authorization": f"Bearer {access_token}"}
