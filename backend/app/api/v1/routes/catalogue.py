@@ -1,9 +1,11 @@
 import json
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.app.db.session import get_db
+from backend.app.schemas.catalogue import CatalogueResponse, OfferPublic, ResourcePublic
 from backend.app.services.resource_service import resource_service
-from backend.app.schemas.catalogue import CatalogueResponse, ResourcePublic, OfferPublic
 
 router = APIRouter(prefix="/catalogue", tags=["Catalogue"])
 
