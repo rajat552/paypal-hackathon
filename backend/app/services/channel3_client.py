@@ -1,12 +1,11 @@
-import os
-import json
+from typing import Any
+
 import httpx
-from datetime import datetime, timezone, timedelta
-from typing import List, Dict, Any, Optional
+
 from backend.app.core.config import settings
 from backend.app.core.logging import logger
 
-FIXTURE_PRODUCTS: List[Dict[str, Any]] = [
+FIXTURE_PRODUCTS: list[dict[str, Any]] = [
     {
         "provider_item_id": "c3_kb_001",
         "title": "Keychron Q1 Pro Wireless Custom Mechanical Keyboard",
@@ -70,11 +69,11 @@ FIXTURE_PRODUCTS: List[Dict[str, Any]] = [
 ]
 
 class Channel3Client:
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key or settings.CHANNEL3_API_KEY
         self.base_url = "https://api.channel3.ai/v1"
 
-    async def search_products(self, query: str, limit: int = 5) -> Dict[str, Any]:
+    async def search_products(self, query: str, limit: int = 5) -> dict[str, Any]:
         """Search products using Channel3 API if credentials exist, else return validated benchmark dataset."""
         if self.api_key and self.api_key != "replace-with-channel3-key":
             try:
@@ -90,12 +89,13 @@ class Channel3Client:
                         return {
                             "provider": "channel3",
                             "mode": "live",
+                            "provenance": "live_channel3_api",
                             "query": query,
                             "items": data.get("products", []),
-                            "source_attribution": "Channel3 Real-Time Commerce Data"
+                            "source_attribution": "Live Channel3 Commerce API (Real-Time Data)"
                         }
-            except Exception as e:
-                logger.warning(f"Channel3 live API call failed ({e}), falling back to verified benchmark data.")
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"Channel3 live API call failed ({e}), falling back to verified sample dataset.")
 
         # Deterministic benchmark data filtered by query
         q_lower = query.lower()
@@ -108,10 +108,11 @@ class Channel3Client:
 
         return {
             "provider": "channel3",
-            "mode": "benchmark_fixture",
+            "mode": "sample_fallback",
+            "provenance": "publisher_managed_sample_dataset",
             "query": query,
             "items": matched[:limit],
-            "source_attribution": "Channel3 Product Intelligence Platform (Attributed Demo Catalog)"
+            "source_attribution": "Publisher-Managed Sample Dataset (Attributed to Channel3 Specifications)"
         }
 
 channel3_client = Channel3Client()
