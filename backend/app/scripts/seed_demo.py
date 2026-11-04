@@ -1,9 +1,12 @@
 import json
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.app.models.entities import User, Agent, Resource, Offer
-from backend.app.core.security import hash_password, hash_token
+
 from backend.app.core.logging import logger
+from backend.app.core.security import hash_password, hash_token
+from backend.app.models.entities import Agent, Offer, Resource, User
+
 
 async def seed_demo_data(session: AsyncSession):
     """Seed initial publisher, demo resources, and offers idempotently."""
