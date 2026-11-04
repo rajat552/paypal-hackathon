@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     CHANNEL3_API_KEY: str | None = None
     DEMO_DATA_MODE: str = "live_or_fixture"
 
+    # MongoDB Atlas & AI
+    MONGODB_URI: str | None = None
+    MONGODB_AI_ENDPOINT: str = "https://ai.mongodb.com"
+    MONGODB_MODEL_API_KEY: str | None = None
+
     @property
     def is_sqlite(self) -> bool:
         return self.DATABASE_URL.startswith("sqlite")

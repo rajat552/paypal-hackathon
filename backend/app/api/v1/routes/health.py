@@ -5,6 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.db.session import get_db
+from backend.app.db.mongodb import check_mongo_health
 
 router = APIRouter(tags=["Health"])
 
@@ -16,11 +17,14 @@ async def health_check(session: AsyncSession = Depends(get_db)):
     except Exception as e:  # noqa: BLE001
         db_status = f"unhealthy: {e!s}"
 
+    mongo_info = check_mongo_health()
+
     return {
         "status": "ok" if db_status == "connected" else "degraded",
         "app": "PayMesh AI — A Trust & Payment Infrastructure for Autonomous AI Commerce",
         "version": "2.0.0",
         "timestamp": datetime.now(UTC).isoformat(),
-        "database": db_status
+        "database": db_status,
+        "mongodb": mongo_info
     }
 

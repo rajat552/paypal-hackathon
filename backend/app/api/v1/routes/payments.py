@@ -23,6 +23,7 @@ from backend.app.schemas.payment import (
 from backend.app.services.challenge_service import challenge_service
 from backend.app.services.entitlement_service import entitlement_service
 from backend.app.services.paypal_gateway import paypal_gateway
+from backend.app.db.mongodb import log_mongo_audit_event
 
 router = APIRouter(tags=["Payments"])
 
@@ -189,6 +190,14 @@ async def capture_payment_session(
     )
     session.add(audit)
     await session.commit()
+
+    log_mongo_audit_event("PAYPAL_CAPTURE_SUCCESS", {
+        "order_id": ps.paypal_order_id,
+        "capture_id": tx.paypal_capture_id,
+        "amount": float(ps.amount),
+        "agent_id": ps.agent_id,
+        "resource_slug": resource.slug if resource else "unknown"
+    })
 
     return CaptureResponse(
         status="CAPTURED",
