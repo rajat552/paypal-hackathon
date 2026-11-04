@@ -1,14 +1,16 @@
 import json
-from typing import Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.db.session import get_db
-from backend.app.models.entities import Resource, Offer, User
+from backend.app.models.entities import Offer, Resource, User
 from backend.app.schemas.publisher import (
-    ResourceCreateRequest, OfferCreateRequest,
-    ResourceResponse, OfferResponse
+    OfferCreateRequest,
+    OfferResponse,
+    ResourceCreateRequest,
+    ResourceResponse,
 )
 
 router = APIRouter(prefix="/publisher", tags=["Publisher"])
@@ -73,6 +75,9 @@ async def create_resource_offer(
     resource = res.scalars().first()
     if not resource:
         raise HTTPException(status_code=404, detail="Resource not found")
+
+    if request.currency.upper() not in {"USD", "EUR", "GBP"}:
+        raise HTTPException(status_code=400, detail=f"Currency '{request.currency}' is not allowed. Must be USD, EUR, or GBP.")
 
     offer = Offer(
         resource_id=resource.id,
