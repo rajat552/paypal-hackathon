@@ -135,6 +135,9 @@ export const AgentWorkspace: React.FC = () => {
         }),
       });
       const sessData = await sessRes.json();
+      if (!sessRes.ok) {
+        throw new Error(sessData.detail || 'Failed to initialize PayPal payment session');
+      }
       addLog('SUCCESS', `PayPal Sandbox Order Created: ${sessData.paypal_order_id}`, sessData);
 
       // 2. Server-side Capture
@@ -144,6 +147,9 @@ export const AgentWorkspace: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
       });
       const capData = await capRes.json();
+      if (!capRes.ok) {
+        throw new Error(capData.detail || 'PayPal server capture failed');
+      }
       addLog('SUCCESS', `PayPal Capture Verified: Status ${capData.status} (Capture ID: ${capData.paypal_capture_id})`, capData);
       
       setBearerToken(capData.access_token);
@@ -155,6 +161,9 @@ export const AgentWorkspace: React.FC = () => {
         headers: { Authorization: `Bearer ${capData.access_token}` },
       });
       const contentData = await contentRes.json();
+      if (!contentRes.ok) {
+        throw new Error(contentData.detail || 'Failed to unlock protected dataset');
+      }
       setUnlockedData(contentData);
       addLog('SUCCESS', 'HTTP 200 OK — Decrypted and unlocked protected intelligence data!', contentData);
       setStatus('COMPLETED');
