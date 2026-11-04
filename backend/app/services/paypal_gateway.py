@@ -1,15 +1,17 @@
-import uuid
 import time
+import uuid
+from typing import Any
+
 import httpx
-from datetime import datetime, timezone
-from typing import Dict, Any, Optional, Tuple
+
 from backend.app.core.config import settings
-from backend.app.core.logging import logger
 from backend.app.core.exceptions import PayPalApiException
+from backend.app.core.logging import logger
+
 
 class PayPalGateway:
     def __init__(self):
-        self._access_token: Optional[str] = None
+        self._access_token: str | None = None
         self._token_expires_at: float = 0.0
 
     @property
@@ -48,24 +50,25 @@ class PayPalGateway:
                     raise PayPalApiException(f"Failed to obtain OAuth token from PayPal: {resp.text}")
                 
                 data = resp.json()
-                self._access_token = data["access_token"]
+                token = str(data["access_token"])
+                self._access_token = token
                 expires_in = data.get("expires_in", 32400)
                 self._token_expires_at = now + expires_in
                 logger.info("Successfully fetched fresh PayPal Sandbox OAuth access token.")
-                return self._access_token
+                return token
         except Exception as e:
             if isinstance(e, PayPalApiException):
                 raise
-            raise PayPalApiException(f"Network error during PayPal OAuth: {str(e)}")
+            raise PayPalApiException(f"Network error during PayPal OAuth: {e!s}") from e
 
     async def create_order(
         self,
         amount: float,
         currency: str,
         session_id: str,
-        return_url: Optional[str] = None,
-        cancel_url: Optional[str] = None
-    ) -> Dict[str, Any]:
+        return_url: str | None = None,
+        cancel_url: str | None = None
+    ) -> dict[str, Any]:
         """Create a PayPal Sandbox order with intent: CAPTURE."""
         ret_url = return_url or f"{settings.FRONTEND_URL}/checkout/success?session_id={session_id}"
         cnc_url = cancel_url or f"{settings.FRONTEND_URL}/checkout/cancel?session_id={session_id}"
@@ -137,7 +140,7 @@ class PayPalGateway:
                 "approval_url": approval_url
             }
 
-    async def capture_order(self, paypal_order_id: str) -> Dict[str, Any]:
+    async def capture_order(self, paypal_order_id: str) -> dict[str, Any]:
         """Capture an approved PayPal order and verify COMPLETED status."""
         if not self.is_configured:
             # Deterministic sandbox simulation mode
