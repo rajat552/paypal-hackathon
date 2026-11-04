@@ -30,3 +30,4 @@ export const NeoCard: React.FC<NeoCardProps> = ({
     </div>
   );
 };
+
