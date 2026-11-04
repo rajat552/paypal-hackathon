@@ -11,7 +11,7 @@ export const PayMeshDemo: React.FC = () => {
   return (
     <div style={{ flex: 1, display: "flex", width: "100%", height: "100%" }}>
       {/* Scene 1: Kinetic Intro */}
-      <Sequence from={0} durationInFrames={150}>
+      <Sequence durationInFrames={150}>
         <IntroScene />
       </Sequence>
 

@@ -15,13 +15,13 @@ Programmatic, code-driven video creation and rendering using **Remotion**, React
 
 ## 🚀 Quick Start Commands
 
-Run these commands inside the `video/` directory:
+Run these commands inside the `remotion/` directory:
 
 ### 1. Interactive Preview Studio (GUI)
 Launch the interactive Remotion Studio in your browser to scrub the timeline, preview animations, and inspect frames:
 
 ```bash
-cd video
+cd remotion
 npm run dev
 # or: npm start
 ```
@@ -30,20 +30,20 @@ npm run dev
 ---
 
 ### 2. Render Full 60s Demo Video (MP4)
-Render the complete 1080p demo video to `video/out/paymesh-demo.mp4`:
+Render the complete 1080p demo video to `remotion/out/paymesh-demo.mp4`:
 
 ```bash
-cd video
+cd remotion
 npm run render
 ```
 
 ---
 
 ### 3. Render 15s Teaser Video (MP4)
-Render the 15-second teaser video to `video/out/paymesh-teaser.mp4`:
+Render the 15-second teaser video to `remotion/out/paymesh-teaser.mp4`:
 
 ```bash
-cd video
+cd remotion
 npm run render:teaser
 ```
 

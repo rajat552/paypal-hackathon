@@ -9,7 +9,7 @@ export const PayMeshTeaser: React.FC = () => {
   return (
     <div style={{ flex: 1, display: "flex", width: "100%", height: "100%" }}>
       {/* Scene 1: Quick Intro (3s) */}
-      <Sequence from={0} durationInFrames={90}>
+      <Sequence durationInFrames={90}>
         <IntroScene />
       </Sequence>
 
