@@ -65,3 +65,4 @@ export const OutroScene: React.FC = () => {
     </div>
   );
 };
+
