@@ -1,20 +1,20 @@
 import json
 import uuid
-from typing import Optional
+
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.db.session import get_db
 from backend.app.core.config import settings
-from backend.app.services.resource_service import resource_service
+from backend.app.db.session import get_db
+from backend.app.schemas.catalogue import OfferPublic, ResourcePublic
 from backend.app.services.challenge_service import challenge_service
 from backend.app.services.entitlement_service import entitlement_service
-from backend.app.schemas.catalogue import ResourcePublic, OfferPublic
+from backend.app.services.resource_service import resource_service
 
 router = APIRouter(prefix="/resources", tags=["Resources"])
 
-def extract_bearer_token(authorization: Optional[str] = Header(None)) -> Optional[str]:
+def extract_bearer_token(authorization: str | None = Header(None)) -> str | None:
     if authorization:
         parts = authorization.split()
         if len(parts) == 2 and parts[0].lower() == "bearer":
@@ -55,7 +55,7 @@ async def get_resource_details(slug: str, session: AsyncSession = Depends(get_db
 @router.get("/{slug}/content")
 async def get_resource_content(
     slug: str,
-    authorization: Optional[str] = Header(None),
+    authorization: str | None = Header(None),
     session: AsyncSession = Depends(get_db)
 ):
     resource = await resource_service.get_by_slug(session, slug)
