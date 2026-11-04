@@ -1,26 +1,25 @@
-import os
 import uuid
-from pathlib import Path
 from contextlib import asynccontextmanager
-from typing import Optional
+from pathlib import Path
 
-from fastapi import FastAPI, Request, Header, HTTPException, status
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, Header, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
-from backend.app.core.config import settings
-from backend.app.core.logging import logger
-from backend.app.core.exceptions import (
-    CrawlerPalException, InvalidChallengeException,
-    PolicyViolationException, PayPalApiException
-)
-from backend.app.db.session import init_db, AsyncSessionLocal
+from backend.app.api.v1.routes import api_router
 from backend.app.api.v1.routes.health import router as health_router
 from backend.app.api.v1.routes.payments import router as payments_router
-from backend.app.api.v1.routes import api_router
+from backend.app.core.config import settings
+from backend.app.core.exceptions import (
+    CrawlerPalException,
+    InvalidChallengeException,
+    PayPalApiException,
+    PolicyViolationException,
+)
+from backend.app.core.logging import logger
+from backend.app.db.session import AsyncSessionLocal, init_db
 from backend.app.scripts.seed_demo import seed_demo_data
-
-from fastapi.staticfiles import StaticFiles
 
 PORTAL_HTML_PATH = Path(__file__).parent / "templates" / "portal.html"
 FRONTEND_DIST_DIR = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
@@ -47,21 +46,34 @@ app = FastAPI(
 if (FRONTEND_DIST_DIR / "assets").exists():
     app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIST_DIR / "assets")), name="assets")
 
-# CORS configuration
+# CORS configuration: strict explicit origins without wildcard
+allowed_cors_origins = [
+    settings.FRONTEND_URL.rstrip("/"),
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        settings.FRONTEND_URL,
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-        "*"
-    ],
+    allow_origins=allowed_cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
+    return response
 
 # Mount Routers
 app.include_router(health_router)
@@ -97,7 +109,7 @@ async def generic_crawlerpal_handler(request: Request, exc: CrawlerPalException)
         content={"error": exc.code, "message": exc.message}
     )
 
-def is_browser(user_agent: Optional[str]) -> bool:
+def is_browser(user_agent: str | None) -> bool:
     if not user_agent:
         return False
     ua = user_agent.lower()
@@ -106,8 +118,8 @@ def is_browser(user_agent: Optional[str]) -> bool:
 @app.get("/", response_class=HTMLResponse)
 async def root_portal(
     request: Request,
-    user_agent: Optional[str] = Header(None),
-    authorization: Optional[str] = Header(None)
+    user_agent: str | None = Header(None),
+    authorization: str | None = Header(None)
 ):
     """Browser landing page and backward-compatible bot L402 challenge."""
     # Check if bot/CLI request
