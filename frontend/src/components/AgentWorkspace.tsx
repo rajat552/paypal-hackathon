@@ -42,6 +42,13 @@ export const AgentWorkspace: React.FC = () => {
   const [copiedToken, setCopiedToken] = useState(false);
   const [copiedLog, setCopiedLog] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [agentRunMeta, setAgentRunMeta] = useState<{
+    ai_mode?: string;
+    ai_provider?: string;
+    ai_model?: string;
+    interpreted_intent?: string;
+    comparison_reasoning?: string;
+  } | null>(null);
 
   const addLog = (type: LogEntry['type'], message: string, data?: any) => {
     setLogs((prev) => [
@@ -62,6 +69,7 @@ export const AgentWorkspace: React.FC = () => {
     setUnlockedData(null);
     setBearerToken(null);
     setShowCheckoutModal(false);
+    setAgentRunMeta(null);
     addLog('INFO', `Starting AI commerce orchestration for task: "${task}"`);
     addLog('INFO', `Enforcing strict spending policy limit: $${budget.toFixed(2)} USD`);
 
@@ -76,6 +84,26 @@ export const AgentWorkspace: React.FC = () => {
       if (data.recommendation) {
         setRecommendation(data.recommendation);
         setChallenge(data.challenge);
+        setAgentRunMeta({
+          ai_mode: data.ai_mode,
+          ai_provider: data.ai_provider,
+          ai_model: data.ai_model,
+          interpreted_intent: data.interpreted_intent,
+          comparison_reasoning: data.comparison_reasoning,
+        });
+
+        if (data.tool_calls_trace && Array.isArray(data.tool_calls_trace)) {
+          data.tool_calls_trace.forEach((tc: any) => {
+            addLog('INFO', `Tool Executed: ${tc.tool}`, tc.arguments);
+          });
+        }
+
+        if (data.ai_mode === 'live_llm') {
+          addLog('SUCCESS', `AI Reasoning: ${data.ai_provider} (${data.ai_model})`);
+        } else {
+          addLog('INFO', 'AI Engine: Deterministic Policy Gateway active (offline fallback mode)');
+        }
+
         addLog('L402', `HTTP 402 Payment Required issued for "${data.recommendation.resource_title}"`, data.challenge);
         addLog('INFO', `Deterministic policy gate: ${data.recommendation.policy_reason}`);
         setStatus('AWAITING_APPROVAL');
@@ -346,6 +374,22 @@ export const AgentWorkspace: React.FC = () => {
           {/* L402 Challenge & Payment Gate Card */}
           {recommendation && (
             <div className="p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-5 animate-in fade-in">
+              {agentRunMeta && (
+                <div className="flex items-center justify-between text-xs font-mono px-3.5 py-2 rounded-xl border-2 border-slate-900 bg-slate-100 shadow-neo-sm">
+                  <div className="flex items-center space-x-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${agentRunMeta.ai_mode === 'live_llm' ? 'bg-emerald-500 animate-pulse' : 'bg-blue-500'}`} />
+                    <span className="font-bold text-slate-900">
+                      {agentRunMeta.ai_mode === 'live_llm'
+                        ? `AI Model: ${agentRunMeta.ai_provider} (${agentRunMeta.ai_model})`
+                        : 'AI Gateway: Deterministic Procurement & Policy Engine'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider bg-white border border-slate-300 text-slate-700">
+                    {agentRunMeta.ai_mode === 'live_llm' ? 'Live Tool-Calling' : 'Deterministic Mode'}
+                  </span>
+                </div>
+              )}
+
               <div className="flex items-center justify-between pb-3 border-b-2 border-slate-100">
                 <div className="flex items-center space-x-2">
                   <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-amber-400 text-slate-950 border-2 border-slate-900 shadow-[1px_1px_0px_0px_rgba(15,23,42,1)]">
