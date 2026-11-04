@@ -123,3 +123,4 @@ export const ArchitectureScene: React.FC = () => {
     </div>
   );
 };
+
