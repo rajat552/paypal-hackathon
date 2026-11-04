@@ -1,6 +1,7 @@
-from datetime import datetime
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from typing import Any
+
+from pydantic import BaseModel
+
 
 class OfferPublic(BaseModel):
     id: str
@@ -11,7 +12,7 @@ class OfferPublic(BaseModel):
     currency: str
     pricing_model: str
     duration_seconds: int
-    scope: Dict[str, Any]
+    scope: dict[str, Any]
 
 class ResourcePublic(BaseModel):
     id: str
@@ -20,9 +21,9 @@ class ResourcePublic(BaseModel):
     description: str
     resource_type: str
     provider: str
-    publisher_name: Optional[str] = "PayMesh AI Verified Publisher"
-    offers: List[OfferPublic] = []
+    publisher_name: str | None = "PayMesh AI Verified Publisher"
+    offers: list[OfferPublic] = []
 
 class CatalogueResponse(BaseModel):
     total: int
-    resources: List[ResourcePublic]
+    resources: list[ResourcePublic]
