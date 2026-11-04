@@ -1,10 +1,12 @@
-from typing import Optional, Dict, Any
+from typing import Any
+
 from pydantic import BaseModel, Field
+
 
 class PaymentSessionCreateRequest(BaseModel):
     challenge_id: str
     offer_id: str
-    agent_id: Optional[str] = None
+    agent_id: str | None = None
     buyer_confirmed: bool = Field(..., description="Explicit buyer confirmation is mandatory")
 
 class PaymentSessionResponse(BaseModel):
@@ -25,7 +27,7 @@ class PaymentSessionStatusResponse(BaseModel):
     created_at: str
 
 class CaptureRequest(BaseModel):
-    paypal_order_id: Optional[str] = None
+    paypal_order_id: str | None = None
 
 class CaptureResponse(BaseModel):
     status: str
@@ -36,4 +38,4 @@ class CaptureResponse(BaseModel):
     token_type: str = "Bearer"
     expires_at: str
     resource_slug: str
-    scope: Dict[str, Any]
+    scope: dict[str, Any]
