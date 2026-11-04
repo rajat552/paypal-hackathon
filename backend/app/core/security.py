@@ -1,7 +1,9 @@
 import hashlib
 import hmac
 import secrets
+
 from backend.app.core.config import settings
+
 
 def hash_token(raw_token: str) -> str:
     """Compute HMAC-SHA256 hash of token using SECRET_KEY to prevent rainbow table attacks."""
@@ -47,6 +49,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
             100_000
         )
         return hmac.compare_digest(key.hex(), key_hex)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
