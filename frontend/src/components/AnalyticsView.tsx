@@ -19,6 +19,8 @@ interface TransactionRow {
   amount: number;
   currency: string;
   status: string;
+  environment?: string;
+  environment_label?: string;
   resource_title: string;
   resource_slug: string;
   captured_at: string;
@@ -99,6 +101,24 @@ export const AnalyticsView: React.FC = () => {
       filter: true,
       flex: 1,
       minWidth: 200,
+    },
+    {
+      headerName: 'Environment',
+      field: 'environment_label',
+      sortable: true,
+      filter: true,
+      width: 210,
+      cellRenderer: (params: any) => {
+        const isSim = params.data?.environment === 'simulated_sandbox';
+        return (
+          <span className={`inline-flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 rounded border font-semibold ${
+            isSim ? 'bg-amber-950/40 text-amber-300 border-amber-600/40' : 'bg-blue-950/40 text-blue-300 border-blue-600/40'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${isSim ? 'bg-amber-400' : 'bg-blue-400'}`} />
+            {params.value || 'PayPal Sandbox'}
+          </span>
+        );
+      },
     },
     {
       headerName: 'PayPal Order ID',
