@@ -1,19 +1,19 @@
 import json
-from typing import Dict, Any, List, Optional
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from typing import Any
 
-from backend.app.services.resource_service import resource_service
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.app.agent.policy import policy_engine
+from backend.app.models.entities import Offer
 from backend.app.services.challenge_service import challenge_service
 from backend.app.services.entitlement_service import entitlement_service
-from backend.app.services.paypal_gateway import paypal_gateway
-from backend.app.agent.policy import policy_engine
-from backend.app.models.entities import Offer, PaymentChallenge, PaymentSession
-from backend.app.core.exceptions import InvalidChallengeException, PolicyViolationException
+from backend.app.services.resource_service import resource_service
+
 
 class AgentTools:
     @staticmethod
-    async def discover_resources(session: AsyncSession, query: str = "", limit: int = 5) -> Dict[str, Any]:
+    async def discover_resources(session: AsyncSession, query: str = "", limit: int = 5) -> dict[str, Any]:
         """Search public resource catalog without exposing protected data."""
         resources = await resource_service.get_catalogue(session)
         q = query.lower().strip()
@@ -44,7 +44,7 @@ class AgentTools:
         return {"resources": matched[:limit], "count": len(matched[:limit])}
 
     @staticmethod
-    async def get_resource_offer(session: AsyncSession, resource_slug: str) -> Dict[str, Any]:
+    async def get_resource_offer(session: AsyncSession, resource_slug: str) -> dict[str, Any]:
         """Fetch server-owned offer details for a specific resource."""
         resource = await resource_service.get_by_slug(session, resource_slug)
         if not resource:
@@ -71,8 +71,8 @@ class AgentTools:
     async def request_access_challenge(
         session: AsyncSession,
         resource_slug: str,
-        offer_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+        offer_id: str | None = None
+    ) -> dict[str, Any]:
         """Request protected access to receive an authoritative L402 challenge."""
         resource = await resource_service.get_by_slug(session, resource_slug)
         if not resource:
@@ -94,7 +94,8 @@ class AgentTools:
         challenge = await challenge_service.create_challenge(session, resource, selected_offer)
         return {
             "status": 402,
-            "protocol": "crawlerpal-l402",
+            "protocol": "paymesh-l402",
+            "compatibility_protocol": "crawlerpal-l402",
             "challenge_id": challenge.id,
             "resource_slug": resource.slug,
             "offer_id": selected_offer.id,
@@ -110,7 +111,7 @@ class AgentTools:
         offer_id: str,
         budget_limit: float,
         currency: str = "USD"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute deterministic budget policy check."""
         stmt = select(Offer).where(Offer.id == offer_id)
         res = await session.execute(stmt)
@@ -118,14 +119,20 @@ class AgentTools:
         if not offer:
             return {"allowed": False, "reason": "Offer ID not found"}
 
-        allowed, reason = policy_engine.evaluate(offer, budget_limit, currency)
+        allowed, reason, metrics = await policy_engine.evaluate_with_rolling_budget(
+            session=session,
+            offer=offer,
+            budget_limit=budget_limit,
+            currency=currency
+        )
         return {
             "allowed": allowed,
             "offer_id": offer.id,
             "amount": float(offer.price_amount),
             "currency": offer.currency,
             "budget_limit": budget_limit,
-            "reason": reason
+            "reason": reason,
+            "policy_metrics": metrics
         }
 
     @staticmethod
@@ -133,7 +140,7 @@ class AgentTools:
         session: AsyncSession,
         resource_slug: str,
         bearer_token: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Retrieve protected content with verified entitlement token."""
         resource = await resource_service.get_by_slug(session, resource_slug)
         if not resource:
@@ -147,7 +154,7 @@ class AgentTools:
         return {"status": 200, "content": content}
 
     @staticmethod
-    def summarise_resource(retrieved_data: Dict[str, Any]) -> str:
+    def summarise_resource(retrieved_data: dict[str, Any]) -> str:
         """Summarise protected dataset without hallucinating external facts."""
         content = retrieved_data.get("content", {})
         data_block = content.get("data", {})
