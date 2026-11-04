@@ -1,7 +1,7 @@
 import json
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -250,4 +250,37 @@ async def legacy_payment_request(payload: dict, session: AsyncSession = Depends(
         "bearer_token": raw_bearer_token,
         "paypal_order_id": paypal_order["id"]
     }
+
+# --- PayPal Webhook Notification Endpoint ---
+@router.post("/api/v1/payments/webhook")
+async def paypal_webhook_handler(
+    request: Request,
+    session: AsyncSession = Depends(get_db)
+):
+    """Handle incoming asynchronous PayPal webhook events (e.g. captures, approvals, disputes)."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    event_type = body.get("event_type", "UNKNOWN")
+    event_id = body.get("id", "evt_unknown")
+    resource = body.get("resource", {})
+
+    # Record webhook audit event in MongoDB Atlas
+    log_mongo_audit_event("PAYPAL_WEBHOOK_RECEIVED", {
+        "event_id": event_id,
+        "event_type": event_type,
+        "summary": body.get("summary", ""),
+        "resource_id": resource.get("id"),
+        "resource_status": resource.get("status")
+    })
+
+    # Return 200 OK immediately as required by PayPal webhook guidelines
+    return {
+        "status": "received",
+        "event_type": event_type,
+        "event_id": event_id
+    }
+
 

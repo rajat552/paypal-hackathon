@@ -174,3 +174,21 @@ async def test_agent_orchestration_returns_ai_metadata(async_client: AsyncClient
     assert data["ai_mode"] in ("live_llm", "deterministic_fallback")
     assert data["tool_calls_trace"] is not None
     assert len(data["tool_calls_trace"]) >= 1
+
+@pytest.mark.asyncio
+async def test_paypal_webhook_handler(async_client: AsyncClient):
+    webhook_payload = {
+        "id": "WH-TEST-EVENT-001",
+        "event_type": "PAYMENT.CAPTURE.COMPLETED",
+        "summary": "Payment capture completed successfully",
+        "resource": {
+            "id": "CAP-TEST-12345",
+            "status": "COMPLETED",
+            "amount": {"value": "0.01", "currency_code": "USD"}
+        }
+    }
+    resp = await async_client.post("/api/v1/payments/webhook", json=webhook_payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "received"
+    assert data["event_type"] == "PAYMENT.CAPTURE.COMPLETED"
