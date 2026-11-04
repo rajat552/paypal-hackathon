@@ -30,3 +30,4 @@ export const PayMeshTeaser: React.FC = () => {
     </div>
   );
 };
+
