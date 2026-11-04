@@ -1,42 +1,140 @@
-.venv
-venv
-__pycache__ 
-server/__pycache__
-client/__pycache__
-backend/**/__pycache__
-*.pyc
-*.pyo
+# ==============================================================================
+# PayMesh AI — Repository .gitignore
+# Production, Development, CI/CD, and Build Artifact Optimizations
+# ==============================================================================
 
-# Environment files
+# ------------------------------------------------------------------------------
+# 1. Environment Variables & Sensitive Credentials
+# Never commit active secrets, API keys, PayPal tokens, or private certs.
+# ------------------------------------------------------------------------------
 .env
-.env.local
-server/.env
-backend/.env
+.env.*
+!.env.example
+*.env
+*.pem
+*.key
+*.cert
+*.pfx
+*.p12
 
-# Databases & local state
+# ------------------------------------------------------------------------------
+# 2. Python Caches, Bytecode & Build Artifacts
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Python Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ------------------------------------------------------------------------------
+# 3. Test, Coverage & Linter Caches
+# ------------------------------------------------------------------------------
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pytype/
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# ------------------------------------------------------------------------------
+# 4. Databases, Local State & SQLite WAL Files
+# Local persistence databases should not be checked into version control.
+# ------------------------------------------------------------------------------
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
 crawlerpal.db
+test_crawlerpal.db
 server/payments_db.json
 
-# Test & coverage
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Node & Next.js
+# ------------------------------------------------------------------------------
+# 5. Node.js & Frontend Build Outputs
+# ------------------------------------------------------------------------------
 node_modules/
 frontend/node_modules/
-dist/
+video/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Frontend build outputs & caches
 frontend/dist/
 frontend/.next/
 frontend/out/
+.eslintcache
+*.tsbuildinfo
+vite.config.ts.timestamp-*
 
-# Remotion Video
-video/node_modules/
-video/.remotion/
+# ------------------------------------------------------------------------------
+# 6. Remotion Video Generation & Media Renders
+# Exclude heavy output renders; keep source code and public assets tracked.
+# ------------------------------------------------------------------------------
 video/out/
+video/.remotion/
 *.mp4
+*.webm
+*.mov
+*.avi
+
+# ------------------------------------------------------------------------------
+# 7. Operating System & Editor Files
+# ------------------------------------------------------------------------------
+# macOS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+
+# Editors / IDEs
+.idea/
+*.swp
+*.swo
+*~
+.vscode/*.log
+
+# ------------------------------------------------------------------------------
+# 8. Internal Planning, Specs & Workflow Notes
+# ------------------------------------------------------------------------------
+understanding.md
+workflows.md
