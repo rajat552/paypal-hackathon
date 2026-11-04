@@ -1,14 +1,10 @@
-from typing import Dict, Any, List
-from sqlalchemy.ext.asyncio import AsyncSession
-from backend.app.agent.tools import agent_tools
-from backend.app.services.challenge_service import challenge_service
-from backend.app.services.paypal_gateway import paypal_gateway
-from backend.app.models.entities import PaymentSession, Offer, PaymentChallenge
-from backend.app.core.exceptions import InvalidChallengeException, PolicyViolationException
-from backend.app.agent.policy import policy_engine
-from sqlalchemy import select
+from typing import Any
 
-MCP_TOOLS_MANIFEST: List[Dict[str, Any]] = [
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.app.agent.tools import agent_tools
+
+MCP_TOOLS_MANIFEST: list[dict[str, Any]] = [
     {
         "name": "paymesh.discover_resources",
         "description": "Search the public PayMesh AI resource catalog for datasets and APIs.",
@@ -70,7 +66,7 @@ MCP_TOOLS_MANIFEST: List[Dict[str, Any]] = [
 ]
 
 class MCPServer:
-    def get_manifest(self) -> Dict[str, Any]:
+    def get_manifest(self) -> dict[str, Any]:
         return {
             "protocol": "mcp",
             "protocol_version": "2024-11-05",
@@ -82,8 +78,8 @@ class MCPServer:
         self,
         session: AsyncSession,
         tool_name: str,
-        arguments: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        arguments: dict[str, Any]
+    ) -> dict[str, Any]:
         # Support both paymesh.* and crawlerpal.* prefixes
         normalized = tool_name.replace("crawlerpal.", "paymesh.")
         
