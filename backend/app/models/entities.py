@@ -1,14 +1,15 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Optional
-from sqlalchemy import (
-    String, Text, Boolean, Integer, Numeric, DateTime, ForeignKey, Index
-)
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from backend.app.db.base import Base
 
+
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 def generate_uuid() -> str:
     return str(uuid.uuid4())
@@ -78,7 +79,7 @@ class PaymentChallenge(Base):
     __tablename__ = "payment_challenges"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True) # e.g. chl_...
-    agent_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    agent_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     resource_id: Mapped[str] = mapped_column(String(36), ForeignKey("resources.id"), nullable=False)
     offer_id: Mapped[str] = mapped_column(String(36), ForeignKey("offers.id"), nullable=False)
     amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
@@ -93,7 +94,7 @@ class PaymentSession(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
     challenge_id: Mapped[str] = mapped_column(String(64), ForeignKey("payment_challenges.id"), nullable=False)
-    agent_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    agent_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     paypal_order_id: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     paypal_request_id: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     approval_url: Mapped[str] = mapped_column(Text, nullable=False)
@@ -113,7 +114,7 @@ class Transaction(Base):
     gross_amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     currency: Mapped[str] = mapped_column(String(3), default="USD", nullable=False)
     payment_status: Mapped[str] = mapped_column(String(32), default="COMPLETED", nullable=False)
-    payer_reference_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    payer_reference_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     raw_summary_json: Mapped[str] = mapped_column(Text, default="{}")
 
@@ -121,14 +122,14 @@ class Entitlement(Base):
     __tablename__ = "entitlements"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    agent_id: Mapped[Optional[str]] = mapped_column(String(36), ForeignKey("agents.id"), nullable=True)
+    agent_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("agents.id"), nullable=True)
     resource_id: Mapped[str] = mapped_column(String(36), ForeignKey("resources.id"), nullable=False)
     offer_id: Mapped[str] = mapped_column(String(36), ForeignKey("offers.id"), nullable=False)
     token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     scope_json: Mapped[str] = mapped_column(Text, nullable=False)
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    revoked_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[str] = mapped_column(String(32), default="ACTIVE") # ACTIVE, EXPIRED, REVOKED
 
     agent: Mapped[Optional["Agent"]] = relationship("Agent", back_populates="entitlements")
@@ -138,7 +139,7 @@ class UsageEvent(Base):
     __tablename__ = "usage_events"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    agent_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    agent_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     resource_id: Mapped[str] = mapped_column(String(36), nullable=False)
     entitlement_id: Mapped[str] = mapped_column(String(36), nullable=False)
     event_type: Mapped[str] = mapped_column(String(32), default="read_content")
@@ -150,10 +151,10 @@ class AuditLog(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
     actor_type: Mapped[str] = mapped_column(String(32)) # system, agent, buyer, publisher
-    actor_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    actor_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     action: Mapped[str] = mapped_column(String(64), nullable=False)
     entity_type: Mapped[str] = mapped_column(String(64), nullable=False)
-    entity_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    entity_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     metadata_json: Mapped[str] = mapped_column(Text, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
