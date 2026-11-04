@@ -1,11 +1,27 @@
 from backend.app.models.entities import (
-    User, Agent, Resource, Offer, PaymentChallenge,
-    PaymentSession, Transaction, Entitlement, UsageEvent,
-    AuditLog, ProductSnapshot
+    Agent,
+    AuditLog,
+    Entitlement,
+    Offer,
+    PaymentChallenge,
+    PaymentSession,
+    ProductSnapshot,
+    Resource,
+    Transaction,
+    UsageEvent,
+    User,
 )
 
 __all__ = [
-    "User", "Agent", "Resource", "Offer", "PaymentChallenge",
-    "PaymentSession", "Transaction", "Entitlement", "UsageEvent",
-    "AuditLog", "ProductSnapshot"
+    "Agent",
+    "AuditLog",
+    "Entitlement",
+    "Offer",
+    "PaymentChallenge",
+    "PaymentSession",
+    "ProductSnapshot",
+    "Resource",
+    "Transaction",
+    "UsageEvent",
+    "User"
 ]
