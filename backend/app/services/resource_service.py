@@ -1,15 +1,16 @@
-import json
-from datetime import datetime, timezone
-from typing import List, Optional, Dict, Any
+from datetime import UTC, datetime
+from typing import Any
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from backend.app.models.entities import Resource, Offer, User
+from backend.app.models.entities import Resource
 from backend.app.services.channel3_client import channel3_client
 
+
 class ResourceService:
-    async def get_catalogue(self, session: AsyncSession) -> List[Resource]:
+    async def get_catalogue(self, session: AsyncSession) -> list[Resource]:
         stmt = (
             select(Resource)
             .where(Resource.status == "active")
@@ -19,7 +20,7 @@ class ResourceService:
         result = await session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_slug(self, session: AsyncSession, slug: str) -> Optional[Resource]:
+    async def get_by_slug(self, session: AsyncSession, slug: str) -> Resource | None:
         stmt = (
             select(Resource)
             .where(Resource.slug == slug)
@@ -28,7 +29,7 @@ class ResourceService:
         result = await session.execute(stmt)
         return result.scalars().first()
 
-    async def get_resource_content(self, session: AsyncSession, resource: Resource) -> Dict[str, Any]:
+    async def get_resource_content(self, session: AsyncSession, resource: Resource) -> dict[str, Any]:
         """Fetch protected structured dataset payload for verified access."""
         if resource.resource_type == "product_intelligence":
             product_data = await channel3_client.search_products(query="mechanical keyboards", limit=10)
@@ -37,7 +38,7 @@ class ResourceService:
                 "slug": resource.slug,
                 "title": resource.title,
                 "provider": resource.provider,
-                "retrieved_at": datetime.now(timezone.utc).isoformat(),
+                "retrieved_at": datetime.now(UTC).isoformat(),
                 "dataset_type": "deep_hardware_benchmark_comparison",
                 "attribution": product_data["source_attribution"],
                 "data": {
@@ -55,7 +56,7 @@ class ResourceService:
                 "resource_id": resource.id,
                 "slug": resource.slug,
                 "title": resource.title,
-                "retrieved_at": datetime.now(timezone.utc).isoformat(),
+                "retrieved_at": datetime.now(UTC).isoformat(),
                 "news": [
                     {
                         "headline": "Autonomous Agents Adopt PayMesh AI Machine-Readable L402 Commerce",
