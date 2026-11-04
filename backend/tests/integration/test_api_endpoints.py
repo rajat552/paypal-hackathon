@@ -1,6 +1,7 @@
 import pytest
 from httpx import AsyncClient
 
+
 @pytest.mark.asyncio
 async def test_health_endpoint(async_client: AsyncClient):
     resp = await async_client.get("/health")
@@ -132,3 +133,44 @@ async def test_legacy_bot_l402_and_payment_flow(async_client: AsyncClient):
     assert a_resp.status_code == 200
     a_data = a_resp.json()
     assert a_data["status"] == "authenticated"
+
+@pytest.mark.asyncio
+async def test_security_headers_enforced(async_client: AsyncClient):
+    resp = await async_client.get("/health")
+    assert resp.status_code == 200
+    assert resp.headers.get("x-content-type-options") == "nosniff"
+    assert resp.headers.get("x-frame-options") == "SAMEORIGIN"
+    assert "strict-origin-when-cross-origin" in resp.headers.get("referrer-policy", "")
+
+@pytest.mark.asyncio
+async def test_publisher_validation_rejects_invalid_currency(async_client: AsyncClient):
+    # Retrieve catalogue to get valid resource ID
+    cat_resp = await async_client.get("/api/v1/catalogue")
+    res_id = cat_resp.json()["resources"][0]["id"]
+
+    bad_payload = {
+        "offer_code": "bad_curr_offer",
+        "title": "Bad Currency Offer",
+        "description": "Offering in unsupported cryptocurrency",
+        "price_amount": 1.0,
+        "currency": "BTC",
+        "pricing_model": "one_time",
+        "duration_seconds": 3600
+    }
+    resp = await async_client.post(f"/api/v1/publisher/resources/{res_id}/offers", json=bad_payload)
+    assert resp.status_code == 400
+    assert "not allowed" in resp.json()["detail"]
+
+@pytest.mark.asyncio
+async def test_agent_orchestration_returns_ai_metadata(async_client: AsyncClient):
+    task_payload = {
+        "task": "Find low latency mechanical keyboards",
+        "budget_limit": 0.20,
+        "currency": "USD"
+    }
+    resp = await async_client.post("/api/v1/agent/runs", json=task_payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["ai_mode"] in ("live_llm", "deterministic_fallback")
+    assert data["tool_calls_trace"] is not None
+    assert len(data["tool_calls_trace"]) >= 1
