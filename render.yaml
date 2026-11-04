@@ -4,12 +4,14 @@ services:
     env: python
     region: oregon
     plan: free
-    buildCommand: pip install -r requirements.txt && cd frontend && npm install && npm run build && cd .. && alembic upgrade head
+    buildCommand: pip install -r requirements.txt && cd frontend && npm install && npm run build && cd ..
     startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: APP_ENV
         value: production
+      - key: SECRET_KEY
+        generateValue: true
       - key: DATABASE_URL
         fromDatabase:
           name: paymesh-postgres
@@ -19,6 +21,18 @@ services:
       - key: PAYPAL_CLIENT_ID
         sync: false
       - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: AI_PROVIDER
+        value: gemini
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: gemini-2.5-flash
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_AI_ENDPOINT
+        value: https://ai.mongodb.com
+      - key: MONGODB_MODEL_API_KEY
         sync: false
       - key: CHANNEL3_API_KEY
         sync: false
