@@ -1,5 +1,6 @@
-from typing import List, Optional, Dict, Any
+
 from pydantic import BaseModel
+
 
 class AnalyticsSummaryResponse(BaseModel):
     total_revenue_usd: float
@@ -16,13 +17,15 @@ class TransactionItemResponse(BaseModel):
     amount: float
     currency: str
     status: str
+    environment: str = "sandbox"
+    environment_label: str = "PayPal Sandbox"
     resource_title: str
     resource_slug: str
     captured_at: str
 
 class PaginatedTransactionsResponse(BaseModel):
     total: int
-    items: List[TransactionItemResponse]
+    items: list[TransactionItemResponse]
 
 class UsageItemResponse(BaseModel):
     id: str
@@ -33,4 +36,4 @@ class UsageItemResponse(BaseModel):
 
 class PaginatedUsageResponse(BaseModel):
     total: int
-    items: List[UsageItemResponse]
+    items: list[UsageItemResponse]
