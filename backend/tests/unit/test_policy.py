@@ -1,6 +1,6 @@
-import pytest
 from backend.app.agent.policy import policy_engine
 from backend.app.models.entities import Offer
+
 
 def test_policy_within_budget():
     offer = Offer(
@@ -61,3 +61,33 @@ def test_policy_inactive_offer():
     allowed, reason = policy_engine.evaluate(offer, budget_limit=0.10, currency="USD")
     assert allowed is False
     assert "inactive" in reason
+
+def test_policy_disallowed_currency():
+    offer = Offer(
+        id="test_offer",
+        resource_id="test_res",
+        offer_code="test_code",
+        title="Test",
+        description="Test",
+        price_amount=0.05,
+        currency="BTC",
+        active=True
+    )
+    allowed, reason = policy_engine.evaluate(offer, budget_limit=0.10, currency="BTC")
+    assert allowed is False
+    assert "not in allowed currency" in reason
+
+def test_policy_exceeds_platform_ceiling():
+    offer = Offer(
+        id="test_offer",
+        resource_id="test_res",
+        offer_code="test_code",
+        title="Test",
+        description="Test",
+        price_amount=50.00,
+        currency="USD",
+        active=True
+    )
+    allowed, reason = policy_engine.evaluate(offer, budget_limit=100.00, currency="USD")
+    assert allowed is False
+    assert "safety ceiling" in reason
