@@ -1,6 +1,7 @@
-from datetime import datetime
-from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
+from typing import Any
+
+from pydantic import BaseModel
+
 
 class ChallengeOfferItem(BaseModel):
     id: str
@@ -11,7 +12,7 @@ class ChallengeOfferItem(BaseModel):
     currency: str
     pricing_model: str
     duration_seconds: int
-    scope: Dict[str, Any]
+    scope: dict[str, Any]
     payment_method: str = "paypal"
 
 class L402ChallengeResponse(BaseModel):
@@ -19,8 +20,8 @@ class L402ChallengeResponse(BaseModel):
     protocol_version: str = "1.0"
     status: int = 402
     challenge_id: str
-    resource: Dict[str, str]
-    offers: List[ChallengeOfferItem]
+    resource: dict[str, str]
+    offers: list[ChallengeOfferItem]
     payment_endpoint: str
     expires_at: str
     correlation_id: str
