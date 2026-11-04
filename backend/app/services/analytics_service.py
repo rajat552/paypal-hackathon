@@ -1,10 +1,21 @@
-from typing import Dict, Any, List
-from sqlalchemy import select, func, desc
+import json
+from typing import Any
+
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.app.models.entities import Transaction, Entitlement, UsageEvent, PaymentSession, Resource
+
+from backend.app.models.entities import (
+    Entitlement,
+    PaymentChallenge,
+    PaymentSession,
+    Resource,
+    Transaction,
+    UsageEvent,
+)
+
 
 class AnalyticsService:
-    async def get_summary(self, session: AsyncSession) -> Dict[str, Any]:
+    async def get_summary(self, session: AsyncSession) -> dict[str, Any]:
         # Total revenue
         rev_stmt = select(func.coalesce(func.sum(Transaction.gross_amount), 0.0))
         rev_res = await session.execute(rev_stmt)
@@ -50,11 +61,12 @@ class AnalyticsService:
         session: AsyncSession,
         limit: int = 50,
         offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         stmt = (
             select(Transaction, PaymentSession, Resource)
             .join(PaymentSession, Transaction.payment_session_id == PaymentSession.id)
-            .join(Resource, Resource.id != None) # simplified join
+            .outerjoin(PaymentChallenge, PaymentSession.challenge_id == PaymentChallenge.id)
+            .outerjoin(Resource, PaymentChallenge.resource_id == Resource.id)
             .order_by(desc(Transaction.captured_at))
             .limit(limit)
             .offset(offset)
@@ -63,7 +75,17 @@ class AnalyticsService:
         rows = result.all()
         
         items = []
-        for tx, sess, res in rows:
+        for tx, _sess, res in rows:
+            is_sim = False
+            try:
+                raw = json.loads(tx.raw_summary_json) if tx.raw_summary_json else {}
+                is_sim = bool(raw.get("simulated", False)) or "SIM" in tx.paypal_order_id or "SANDBOX" in tx.paypal_order_id
+            except (json.JSONDecodeError, TypeError, KeyError):
+                is_sim = False
+
+            env_tag = "simulated_sandbox" if is_sim else "live_sandbox"
+            env_lbl = "Sandbox Simulation (Dry-Run)" if is_sim else "PayPal Sandbox (Live Verified)"
+
             items.append({
                 "id": tx.id,
                 "paypal_order_id": tx.paypal_order_id,
@@ -71,6 +93,8 @@ class AnalyticsService:
                 "amount": float(tx.gross_amount),
                 "currency": tx.currency,
                 "status": tx.payment_status,
+                "environment": env_tag,
+                "environment_label": env_lbl,
                 "resource_title": res.title if res else "Product Intelligence Report",
                 "resource_slug": res.slug if res else "product-intelligence-report",
                 "captured_at": tx.captured_at.isoformat()
@@ -82,7 +106,7 @@ class AnalyticsService:
         session: AsyncSession,
         limit: int = 50,
         offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         stmt = (
             select(UsageEvent)
             .order_by(desc(UsageEvent.created_at))
