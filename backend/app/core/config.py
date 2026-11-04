@@ -1,7 +1,6 @@
-import os
-from typing import Optional
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -25,15 +24,15 @@ class Settings(BaseSettings):
     PAYPAL_ENVIRONMENT: str = "sandbox"
     PAYPAL_CLIENT_ID: str = "sandbox_client_id_placeholder"
     PAYPAL_CLIENT_SECRET: str = "sandbox_client_secret_placeholder"
-    PAYPAL_WEBHOOK_ID: Optional[str] = None
+    PAYPAL_WEBHOOK_ID: str | None = None
 
     # AI Provider
     AI_PROVIDER: str = "openai"
-    AI_API_KEY: Optional[str] = None
+    AI_API_KEY: str | None = None
     AI_MODEL: str = "gpt-4o-mini"
 
     # Channel3 Data
-    CHANNEL3_API_KEY: Optional[str] = None
+    CHANNEL3_API_KEY: str | None = None
     DEMO_DATA_MODE: str = "live_or_fixture"
 
     @property
