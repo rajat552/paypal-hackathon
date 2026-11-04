@@ -1,7 +1,7 @@
 import logging
 import re
 import sys
-from typing import Any
+
 from backend.app.core.config import settings
 
 REDACT_PATTERNS = [
