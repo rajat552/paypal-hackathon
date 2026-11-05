@@ -112,7 +112,7 @@ paypal-hackathon/
 │   │   │   └── resources.py            # Resource details & HTTP 402 L402 paywall content gates
 │   │   ├── core/                       # Core Infrastructure
 │   │   │   ├── config.py               # Pydantic v2 Settings (env parsing, PayPal URLs, DB URLs)
-│   │   │   ├── exceptions.py           # Domain exceptions (CrawlerPalException, PolicyViolation, etc.)
+│   │   │   ├── exceptions.py           # Domain exceptions (PayMeshException, PolicyViolation, etc.)
 │   │   │   ├── logging.py              # Structured application logger with formatting
 │   │   │   └── security.py             # Cryptographic hashing (HMAC-SHA256), passwords & tokens
 │   │   ├── db/                         # Database Access Layer
@@ -322,6 +322,8 @@ PayMesh AI uses **SQLAlchemy 2.0 DeclarativeBase** with `mapped_column` syntax a
    - High-throughput operational metric tracking every API request, data fetch, and token validation.
 9. **`AuditLog` (`audit_logs` table):**
    - Relational audit trace logging actor actions, entity mutations, and metadata.
+10. **`PolicySetting` (`policy_settings` table):**
+    - Database-persisted spending policy rules (`max_per_transaction`, `daily_cap`, `allowed_currencies_json`, `auto_approve_under`, `enforce_prompt_sanitization`, `strict_scope_check`, `updated_at`). Ensures spending limits survive server restarts and scale consistently.
 
 ### 4.2 Entity-Relationship Diagram (ERD)
 
@@ -568,21 +570,31 @@ sequenceDiagram
     Gateway-->>PayPal: HTTP 200 OK
 ```
 
-### 10.1 Webhook Verification
-- Webhook ID: `70X74465B0704404B`
-- Endpoint: `https://paypal-hackathon-s0gq.onrender.com/api/v1/payments/webhook`
-- Events tracked: `All Events` (specifically `PAYMENT.CAPTURE.COMPLETED`, `CHECKOUT.ORDER.APPROVED`)
+### 10.1 Webhook Verification & Lifecycle Security
+- **Registered Webhook ID:** `70X74465B0704404B`
+- **Endpoint:** `https://paypal-hackathon-s0gq.onrender.com/api/v1/payments/webhook`
+- **Events Tracked:** All Events (specifically `PAYMENT.CAPTURE.COMPLETED`, `CHECKOUT.ORDER.APPROVED`)
+- **Cryptographic Signature Verification:** Every incoming request is verified via PayPal's `/v1/notifications/verify-webhook-signature` endpoint:
+  - Validates `PAYPAL-AUTH-ALGO`, `PAYPAL-CERT-URL`, `PAYPAL-TRANSMISSION-ID`, `PAYPAL-TRANSMISSION-SIG`, and `PAYPAL-TRANSMISSION-TIME`.
+  - Rejects untrusted, spoofed, or unauthenticated HTTP requests with `401 Unauthorized`.
+- **Idempotency & Replay Protection:** Webhook event IDs are deduplicated against the relational `AuditLog` table. Replayed events return `200 OK` with status `already_processed` without duplicate side-effects.
+- **State Reconciliation:** Upon receiving `CHECKOUT.ORDER.APPROVED` or `PAYMENT.CAPTURE.COMPLETED`, the handler reconciles and updates the associated `PaymentSession` state in both SQLite/Postgres and MongoDB Atlas.
 
 ---
 
 ## 11. AI Reasoning & Model Context Protocol (MCP)
 
 ### 11.1 Google Gemini AI Engine
-- **Primary Model:** `gemini-2.5-flash` (with `gemini-3.8-flash` fallback).
-- **Role:** Interprets ambiguous natural language procurement requests, extracts user constraints, evaluates dataset schemas, and synthesizes structured comparisons.
+- **Primary Model:** `gemini-2.5-flash` (with automated `gemini-1.5-flash` fallback).
+- **Architecture:** Pure asynchronous REST tool-calling loop using Google Generative Language API (`/v1beta/models/{model}:generateContent`).
+- **Function Declarations:**
+  1. `discover_resources`: Typed arguments (`query`, `limit`), searches verified publisher catalog.
+  2. `get_resource_offer`: Retrieves authoritative database price and scope for a resource slug.
+  3. `evaluate_purchase_policy`: Evaluates candidate offers against deterministic financial guardrails.
+- **Safety Invariant:** The model cannot create orders, execute captures, or modify policy limits; it acts purely as an intelligent procurement advisor.
 
 ### 11.2 Model Context Protocol (MCP) Server
-PayMesh AI exposes an Anthropic MCP server at `/api/v1/agent/mcp/manifest` exposing three standardized tools:
+PayMesh AI exposes an Anthropic MCP server at `/api/v1/agent/mcp/manifest` exposing standardized tools:
 1. `discover_resources`: Programmatically searches marketplace datasets by keyword or provider.
 2. `get_resource_offer`: Retrieves active pricing offers for a dataset.
 3. `evaluate_purchase_policy`: Evaluates whether a proposed purchase satisfies deterministic financial constraints.
@@ -664,7 +676,7 @@ ACCESS_TOKEN_TTL_MINUTES=60
 PAYMENT_CHALLENGE_TTL_MINUTES=10
 LOG_LEVEL=INFO
 
-DATABASE_URL=sqlite+aiosqlite:///./crawlerpal.db
+DATABASE_URL=sqlite+aiosqlite:///./paymesh.db
 
 PAYPAL_ENVIRONMENT=sandbox
 PAYPAL_CLIENT_ID=your-paypal-sandbox-client-id
