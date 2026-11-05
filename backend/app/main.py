@@ -12,9 +12,9 @@ from backend.app.api.v1.routes.health import router as health_router
 from backend.app.api.v1.routes.payments import router as payments_router
 from backend.app.core.config import settings
 from backend.app.core.exceptions import (
-    CrawlerPalException,
     InvalidChallengeException,
     PayPalApiException,
+    PayMeshException,
     PolicyViolationException,
 )
 from backend.app.core.logging import logger
@@ -103,8 +103,8 @@ async def paypal_api_handler(request: Request, exc: PayPalApiException):
         content={"error": exc.code, "message": exc.message}
     )
 
-@app.exception_handler(CrawlerPalException)
-async def generic_crawlerpal_handler(request: Request, exc: CrawlerPalException):
+@app.exception_handler(PayMeshException)
+async def generic_paymesh_handler(request: Request, exc: PayMeshException):
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"error": exc.code, "message": exc.message}
