@@ -1,5 +1,8 @@
+from unittest.mock import AsyncMock, patch
 import pytest
 from httpx import AsyncClient
+
+from backend.app.services.paypal_gateway import paypal_gateway
 
 
 @pytest.mark.asyncio
@@ -51,13 +54,25 @@ async def test_full_payment_capture_and_retrieval_flow(async_client: AsyncClient
     assert "paypal_order_id" in s_data
     assert "approval_url" in s_data
 
-    # 3. Capture PayPal Order
-    cap_resp = await async_client.post(f"/api/v1/payment-sessions/{session_id}/capture", json={})
-    assert cap_resp.status_code == 200
-    cap_data = cap_resp.json()
-    assert cap_data["status"] == "CAPTURED"
-    raw_token = cap_data["access_token"]
-    assert raw_token.startswith("pm_live_")
+    # 3a. Verify unapproved order capture fails honestly with 502
+    unapproved_resp = await async_client.post(f"/api/v1/payment-sessions/{session_id}/capture", json={})
+    assert unapproved_resp.status_code == 502
+    assert "ORDER_NOT_APPROVED" in unapproved_resp.json().get("error", "") or "not been approved" in unapproved_resp.json().get("message", "")
+
+    # 3b. Verify successful capture via controlled test fixture
+    with patch.object(paypal_gateway, "capture_order", new_callable=AsyncMock) as mock_capture:
+        mock_capture.return_value = {
+            "id": s_data["paypal_order_id"],
+            "status": "COMPLETED",
+            "capture_id": "CAP-TEST-FIXTURE-12345",
+            "raw_response": {"status": "COMPLETED", "fixture": True}
+        }
+        cap_resp = await async_client.post(f"/api/v1/payment-sessions/{session_id}/capture", json={})
+        assert cap_resp.status_code == 200
+        cap_data = cap_resp.json()
+        assert cap_data["status"] == "CAPTURED"
+        raw_token = cap_data["access_token"]
+        assert raw_token.startswith("pm_live_")
 
     # 4. Fetch protected content with newly issued Bearer token
     headers = {"Authorization": f"Bearer {raw_token}"}
@@ -116,16 +131,23 @@ async def test_legacy_bot_l402_and_payment_flow(async_client: AsyncClient):
     assert "payment_request_url" in data
     assert "payment_context_token" in data
 
-    # Call legacy payment route
+    # Call legacy payment route with controlled test fixture for capture
     pay_payload = {
         "payment_context_token": data["payment_context_token"],
         "offer_id": "all_categories"
     }
-    p_resp = await async_client.post("/l402/payment-request", json=pay_payload)
-    assert p_resp.status_code == 200
-    p_data = p_resp.json()
-    assert p_data["message"] == "Payment successful"
-    bearer_token = p_data["bearer_token"]
+    with patch.object(paypal_gateway, "capture_order", new_callable=AsyncMock) as mock_capture:
+        mock_capture.return_value = {
+            "id": "ORDER-LEGACY-MOCK",
+            "status": "COMPLETED",
+            "capture_id": "CAP-LEGACY-12345",
+            "raw_response": {"status": "COMPLETED", "fixture": True}
+        }
+        p_resp = await async_client.post("/l402/payment-request", json=pay_payload)
+        assert p_resp.status_code == 200
+        p_data = p_resp.json()
+        assert p_data["message"] == "Payment successful"
+        bearer_token = p_data["bearer_token"]
 
     # Authenticated bot request
     auth_headers = {"User-Agent": "python-requests/2.31.0", "Authorization": f"Bearer {bearer_token}"}
@@ -187,11 +209,32 @@ async def test_paypal_webhook_handler(async_client: AsyncClient):
             "amount": {"value": "0.01", "currency_code": "USD"}
         }
     }
-    resp = await async_client.post("/api/v1/payments/webhook", json=webhook_payload)
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["status"] == "received"
-    assert data["event_type"] == "PAYMENT.CAPTURE.COMPLETED"
+    valid_headers = {
+        "PAYPAL-TRANSMISSION-ID": "tx-webhook-123",
+        "PAYPAL-AUTH-ALGO": "SHA256withRSA",
+        "PAYPAL-CERT-URL": "https://api.sandbox.paypal.com/v1/notifications/certs/CERT-123",
+        "PAYPAL-TRANSMISSION-SIG": "mock_signature_data",
+        "PAYPAL-TRANSMISSION-TIME": "2026-11-05T10:00:00Z"
+    }
+
+    # 1. Unauthenticated webhook without transmission headers is rejected
+    unauth_resp = await async_client.post("/api/v1/payments/webhook", json=webhook_payload)
+    assert unauth_resp.status_code == 401
+
+    # 2. Verified webhook via controlled test fixture
+    with patch.object(paypal_gateway, "verify_webhook_signature", new_callable=AsyncMock) as mock_verify:
+        mock_verify.return_value = True
+        resp = await async_client.post("/api/v1/payments/webhook", json=webhook_payload, headers=valid_headers)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["status"] == "received"
+        assert data["event_type"] == "PAYMENT.CAPTURE.COMPLETED"
+
+        # Test duplicate webhook idempotency
+        dup_resp = await async_client.post("/api/v1/payments/webhook", json=webhook_payload, headers=valid_headers)
+        assert dup_resp.status_code == 200
+        dup_data = dup_resp.json()
+        assert dup_data["status"] == "already_processed"
 
 @pytest.mark.asyncio
 async def test_policy_config_get_and_update(async_client: AsyncClient):
