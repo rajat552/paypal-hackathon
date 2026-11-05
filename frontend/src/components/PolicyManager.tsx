@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ShieldCheck, Lock, Sliders, AlertCircle, CheckCircle2, History, RefreshCw, KeyRound, DollarSign, Check, Activity, Percent } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShieldCheck, Lock, Sliders, AlertCircle, CheckCircle2, History, RefreshCw, KeyRound, DollarSign, Check, Activity, Percent, Loader2 } from 'lucide-react';
 
 export const PolicyManager: React.FC = () => {
   const [maxPerTransaction, setMaxPerTransaction] = useState(0.50);
@@ -8,17 +8,79 @@ export const PolicyManager: React.FC = () => {
   const [autoApproveUnder, setAutoApproveUnder] = useState(0.00);
   const [enforcePromptSanitization, setEnforcePromptSanitization] = useState(true);
   const [strictScopeCheck, setStrictScopeCheck] = useState(true);
+  const [currentUtilized, setCurrentUtilized] = useState(0.00);
+  const [utilizedPct, setUtilizedPct] = useState(0);
+  
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3500);
+  const fetchPolicyConfig = async () => {
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const res = await fetch('/api/v1/agent/policy/config');
+      if (res.ok) {
+        const data = await res.json();
+        setMaxPerTransaction(data.max_per_transaction);
+        setDailyCap(data.daily_cap);
+        setAllowedCurrencies(data.allowed_currencies || ['USD']);
+        setAutoApproveUnder(data.auto_approve_under || 0.0);
+        setEnforcePromptSanitization(data.enforce_prompt_sanitization ?? true);
+        setStrictScopeCheck(data.strict_scope_check ?? true);
+        setCurrentUtilized(data.current_utilized_24h || 0.0);
+        setUtilizedPct(data.utilized_pct || 0);
+      }
+    } catch (err: any) {
+      console.error('Failed to load policy configuration:', err);
+      setErrorMsg('Could not fetch server policy. Using active local parameters.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Simulated utilized budget for visualization
-  const currentUtilized = 0.24;
-  const utilizedPct = Math.min(100, Math.round((currentUtilized / dailyCap) * 100));
+  useEffect(() => {
+    fetchPolicyConfig();
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch('/api/v1/agent/policy/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          max_per_transaction: maxPerTransaction,
+          daily_cap: dailyCap,
+          allowed_currencies: allowedCurrencies,
+          auto_approve_under: autoApproveUnder,
+          enforce_prompt_sanitization: enforcePromptSanitization,
+          strict_scope_check: strictScopeCheck
+        })
+      });
+
+      if (res.ok) {
+        const updated = await res.json();
+        setMaxPerTransaction(updated.max_per_transaction);
+        setDailyCap(updated.daily_cap);
+        setCurrentUtilized(updated.current_utilized_24h || 0.0);
+        setUtilizedPct(updated.utilized_pct || 0);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3500);
+      } else {
+        const errData = await res.json();
+        throw new Error(errData.detail || 'Server rejected policy update');
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to save policy');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -44,22 +106,31 @@ export const PolicyManager: React.FC = () => {
         <div className="flex items-center justify-between text-xs font-mono font-bold">
           <div className="flex items-center space-x-2 text-slate-800">
             <Activity className="w-4 h-4 text-brand-600" />
-            <span>24-Hour Rolling Budget Utilization</span>
+            <span>24-Hour Rolling Budget Utilization (Database-Verified)</span>
           </div>
-          <span className="text-slate-600">${currentUtilized.toFixed(2)} / ${dailyCap.toFixed(2)} USD ({utilizedPct}%)</span>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={fetchPolicyConfig}
+              className="p-1 rounded hover:bg-slate-100 text-slate-600"
+              title="Refresh live budget metrics"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <span className="text-slate-600">${currentUtilized.toFixed(2)} / ${dailyCap.toFixed(2)} USD ({utilizedPct}%)</span>
+          </div>
         </div>
 
         {/* Progress Bar Container */}
         <div className="w-full h-4 bg-slate-100 rounded-full border-2 border-slate-900 overflow-hidden p-0.5">
           <div 
             className="h-full bg-gradient-to-r from-emerald-500 to-amber-400 rounded-full transition-all duration-500 shadow-inner"
-            style={{ width: `${Math.max(5, utilizedPct)}%` }}
+            style={{ width: `${Math.max(4, Math.min(100, utilizedPct))}%` }}
           ></div>
         </div>
 
         <div className="flex justify-between text-[11px] font-mono text-slate-500 pt-1">
-          <span>$0.00</span>
-          <span>Threshold Limit: ${dailyCap.toFixed(2)} USD</span>
+          <span>$0.00 spent</span>
+          <span>Rolling Cap: ${dailyCap.toFixed(2)} USD</span>
         </div>
       </div>
 
@@ -84,7 +155,14 @@ export const PolicyManager: React.FC = () => {
             {saved && (
               <div className="p-3.5 rounded-xl bg-emerald-100 border-2 border-emerald-800 text-emerald-950 text-xs font-mono font-bold flex items-center space-x-2 shadow-neo-sm animate-in fade-in">
                 <CheckCircle2 className="w-4 h-4 text-emerald-700 flex-shrink-0" />
-                <span>Deterministic spending policy saved and propagated to PayPal Gateway.</span>
+                <span>Deterministic spending policy saved and active across all agent runs.</span>
+              </div>
+            )}
+
+            {errorMsg && (
+              <div className="p-3.5 rounded-xl bg-red-100 border-2 border-red-800 text-red-950 text-xs font-mono font-bold flex items-center space-x-2 shadow-neo-sm">
+                <AlertCircle className="w-4 h-4 text-red-700 flex-shrink-0" />
+                <span>{errorMsg}</span>
               </div>
             )}
 
@@ -158,10 +236,20 @@ export const PolicyManager: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full neo-button-amber py-3 px-6 flex items-center justify-center space-x-2 text-xs font-black uppercase tracking-wider"
+              disabled={saving}
+              className="w-full neo-button-amber py-3 px-6 flex items-center justify-center space-x-2 text-xs font-black uppercase tracking-wider disabled:opacity-50"
             >
-              <Check className="w-4 h-4 stroke-[2.5]" />
-              <span>Update Deterministic Policy Rules</span>
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Saving Policy to Server...</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 stroke-[2.5]" />
+                  <span>Update Deterministic Policy Rules</span>
+                </>
+              )}
             </button>
           </form>
         </div>
