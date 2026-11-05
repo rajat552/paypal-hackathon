@@ -1,15 +1,21 @@
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.agent.orchestrator import agent_orchestrator
+from backend.app.agent.policy import policy_engine
 from backend.app.agent.tools import agent_tools
 from backend.app.db.session import get_db
 from backend.app.mcp.server import mcp_server
+from backend.app.models.entities import Transaction
 from backend.app.schemas.agent import (
     AgentRunRequest,
     AgentRunResponse,
+    PolicyConfigResponse,
+    PolicyConfigUpdateRequest,
     PolicyEvaluateRequest,
     PolicyEvaluateResponse,
     ToolExecutionResponse,
@@ -37,6 +43,46 @@ async def evaluate_policy(
     )
     return PolicyEvaluateResponse(**result)
 
+@router.get("/policy/config", response_model=PolicyConfigResponse)
+async def get_policy_config(session: AsyncSession = Depends(get_db)):
+    """Retrieve active deterministic spending policy limits and 24-hour utilized budget."""
+    cutoff = datetime.now(UTC) - timedelta(hours=24)
+    stmt = select(func.coalesce(func.sum(Transaction.gross_amount), 0.0)).where(
+        Transaction.captured_at >= cutoff,
+        Transaction.payment_status == "COMPLETED"
+    )
+    res = await session.execute(stmt)
+    rolling_spent = float(res.scalar() or 0.0)
+
+    daily_cap = float(policy_engine.daily_cap)
+    pct = min(100, round((rolling_spent / daily_cap * 100))) if daily_cap > 0 else 0
+
+    return PolicyConfigResponse(
+        max_per_transaction=policy_engine.max_single_tx_limit,
+        daily_cap=daily_cap,
+        allowed_currencies=sorted(policy_engine.allowed_currencies),
+        auto_approve_under=policy_engine.auto_approve_under,
+        enforce_prompt_sanitization=policy_engine.enforce_prompt_sanitization,
+        strict_scope_check=policy_engine.strict_scope_check,
+        current_utilized_24h=round(rolling_spent, 2),
+        utilized_pct=pct
+    )
+
+@router.put("/policy/config", response_model=PolicyConfigResponse)
+async def update_policy_config(
+    request: PolicyConfigUpdateRequest,
+    session: AsyncSession = Depends(get_db)
+):
+    """Update active deterministic spending policy parameters in server memory."""
+    policy_engine.max_single_tx_limit = float(request.max_per_transaction)
+    policy_engine.daily_cap = float(request.daily_cap)
+    policy_engine.allowed_currencies = {c.upper().strip() for c in request.allowed_currencies if c.strip()}
+    policy_engine.auto_approve_under = float(request.auto_approve_under)
+    policy_engine.enforce_prompt_sanitization = bool(request.enforce_prompt_sanitization)
+    policy_engine.strict_scope_check = bool(request.strict_scope_check)
+
+    return await get_policy_config(session)
+
 @router.post("/tools/{tool_name}", response_model=ToolExecutionResponse)
 async def execute_tool(
     tool_name: str,
@@ -61,4 +107,3 @@ async def call_mcp_tool(
     tool_name = payload.get("tool_name", "")
     arguments = payload.get("arguments", {})
     return await mcp_server.execute_tool(session, tool_name, arguments)
-
