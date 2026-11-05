@@ -176,7 +176,7 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
                     className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl p-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
                   >
                     <option value="channel3">Channel3 Product Intelligence</option>
-                    <option value="crawlerpal_demo">CrawlerPal Demo Data</option>
+                    <option value="paymesh_wire">PayMesh Intelligence Wire</option>
                     <option value="custom_merchant">Custom Merchant API</option>
                   </select>
                 </div>
