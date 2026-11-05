@@ -7,7 +7,7 @@ from backend.app.db.session import get_db
 from backend.app.main import app
 from backend.app.scripts.seed_demo import seed_demo_data
 
-TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_crawlerpal.db"
+TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_paymesh.db"
 
 test_engine = create_async_engine(
     TEST_DATABASE_URL,
