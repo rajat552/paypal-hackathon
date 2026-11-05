@@ -1,4 +1,4 @@
-"""Initial schema migration for CrawlerPal 2.0
+"""Initial schema migration for PayMesh AI
 
 Revision ID: 001_initial_schema
 Revises: 
