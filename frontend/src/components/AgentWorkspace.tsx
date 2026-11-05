@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 interface LogEntry {
-  type: 'INFO' | 'L402' | 'SUCCESS' | 'ERROR';
+  type: 'INFO' | 'L402' | 'SUCCESS' | 'ERROR' | 'WARNING';
   time: string;
   message: string;
   data?: any;
@@ -47,6 +47,8 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
   const [copiedToken, setCopiedToken] = useState(false);
   const [copiedLog, setCopiedLog] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [activeSession, setActiveSession] = useState<{ session_id: string; approval_url: string; paypal_order_id: string } | null>(null);
+  const [needsBuyerApproval, setNeedsBuyerApproval] = useState(false);
   const [agentRunMeta, setAgentRunMeta] = useState<{
     ai_mode?: string;
     ai_provider?: string;
@@ -131,37 +133,58 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
 
   const handleConfirmAndCapture = async () => {
     if (!challenge) return;
-    setShowCheckoutModal(false);
     setStatus('PAYING');
     addLog('INFO', 'Initiating PayPal Sandbox checkout order (intent: CAPTURE)...');
 
     try {
-      // 1. Create Payment Session
-      const sessRes = await fetch('/api/v1/payment-sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          challenge_id: challenge.challenge_id,
-          offer_id: challenge.offer_id,
-          buyer_confirmed: true,
-        }),
-      });
-      const sessData = await sessRes.json();
-      if (!sessRes.ok) {
-        throw new Error(sessData.detail || 'Failed to initialize PayPal payment session');
+      // 1. Create or reuse Payment Session
+      let currentSession = activeSession;
+      if (!currentSession) {
+        const sessRes = await fetch('/api/v1/payment-sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            challenge_id: challenge.challenge_id,
+            offer_id: challenge.offer_id,
+            buyer_confirmed: true,
+          }),
+        });
+        const sessData = await sessRes.json();
+        if (!sessRes.ok) {
+          throw new Error(sessData.detail || 'Failed to initialize PayPal payment session');
+        }
+        currentSession = {
+          session_id: sessData.session_id,
+          approval_url: sessData.approval_url,
+          paypal_order_id: sessData.paypal_order_id,
+        };
+        setActiveSession(currentSession);
+        addLog('SUCCESS', `PayPal Sandbox Order Created: ${sessData.paypal_order_id}`, sessData);
       }
-      addLog('SUCCESS', `PayPal Sandbox Order Created: ${sessData.paypal_order_id}`, sessData);
 
       // 2. Server-side Capture
-      addLog('INFO', 'Buyer confirmed approval. Capturing PayPal Order via server credentials...');
-      const capRes = await fetch(`/api/v1/payment-sessions/${sessData.session_id}/capture`, {
+      addLog('INFO', `Attempting server-side PayPal capture for order ${currentSession.paypal_order_id}...`);
+      const capRes = await fetch(`/api/v1/payment-sessions/${currentSession.session_id}/capture`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
       const capData = await capRes.json();
       if (!capRes.ok) {
-        throw new Error(capData.detail || 'PayPal server capture failed');
+        const detailMsg = capData.detail || 'PayPal server capture failed';
+        if (detailMsg.includes('not been approved') || detailMsg.includes('ORDER_NOT_APPROVED')) {
+          setNeedsBuyerApproval(true);
+          setShowCheckoutModal(true);
+          addLog('WARNING', 'Order requires buyer approval at PayPal Sandbox. Click the approval link to authorize.', {
+            approval_url: currentSession.approval_url
+          });
+          setStatus('AWAITING_APPROVAL');
+          return;
+        }
+        throw new Error(detailMsg);
       }
+
+      setShowCheckoutModal(false);
+      setNeedsBuyerApproval(false);
       addLog('SUCCESS', `PayPal Capture Verified: Status ${capData.status} (Capture ID: ${capData.paypal_capture_id})`, capData);
       
       setBearerToken(capData.access_token);
@@ -289,10 +312,10 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
             </div>
           </div>
 
-          {/* Track 2: CrawlerPal News Feed */}
+          {/* Track 2: PayMesh Wire */}
           <div 
             onClick={() => {
-              setTask('Curated technology and economics news feed.');
+              setTask('Curated technology and AI market intelligence wire.');
               setBudget(0.05);
             }}
             className="group cursor-pointer p-4 bg-white border-2 border-slate-900 rounded-2xl shadow-neo hover:-translate-y-0.5 hover:shadow-neo-lg transition-all flex items-center justify-between gap-4"
@@ -307,7 +330,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
                     Economics &amp; Tech Intelligence
                   </span>
                   <span className="text-[10px] px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-mono font-bold">
-                    CrawlerPal
+                    PayMesh Wire
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 mt-0.5">
@@ -620,6 +643,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
                 let badgeStyle = 'bg-blue-900/60 text-blue-300 border-blue-600';
                 if (log.type === 'L402') badgeStyle = 'bg-amber-400 text-slate-950 font-black border-amber-300';
                 if (log.type === 'SUCCESS') badgeStyle = 'bg-emerald-500 text-slate-950 font-black border-emerald-400';
+                if (log.type === 'WARNING') badgeStyle = 'bg-amber-500 text-slate-950 font-black border-amber-400';
                 if (log.type === 'ERROR') badgeStyle = 'bg-red-500 text-white font-black border-red-400';
 
                 return (
@@ -686,6 +710,27 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
                 <span className="font-black text-base">${recommendation.amount.toFixed(2)} {recommendation.currency}</span>
               </div>
 
+              {needsBuyerApproval && activeSession && (
+                <div className="p-3 bg-amber-50 rounded-xl border-2 border-amber-600 text-amber-950 text-xs font-mono space-y-2">
+                  <div className="font-bold flex items-center space-x-1.5 text-amber-900">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <span>Buyer Approval Required:</span>
+                  </div>
+                  <p className="font-sans text-[11px] text-slate-700 leading-snug">
+                    PayPal Sandbox requires buyer authorization. Open the approval page, sign in and approve, then click &quot;Verify &amp; Capture&quot;.
+                  </p>
+                  <a
+                    href={activeSession.approval_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 border-2 border-slate-900 text-slate-950 font-bold text-xs shadow-neo-sm"
+                  >
+                    <span>Open PayPal Sandbox Approval</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              )}
+
               <div className="text-[11px] text-slate-500 leading-relaxed font-sans">
                 🔒 <strong>Server-Side Capture:</strong> Authorizing will dispatch an OAuth 2.0 capture request directly to PayPal Sandbox Orders v2. Upon capture, a scoped cryptographic Bearer token will be granted immediately.
               </div>
@@ -694,7 +739,10 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
             <div className="flex items-center space-x-3 pt-2">
               <button
                 type="button"
-                onClick={() => setShowCheckoutModal(false)}
+                onClick={() => {
+                  setShowCheckoutModal(false);
+                  setNeedsBuyerApproval(false);
+                }}
                 className="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-900 text-xs font-mono font-bold text-slate-800 transition"
               >
                 Cancel
@@ -704,7 +752,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
                 onClick={handleConfirmAndCapture}
                 className="flex-1 neo-button-amber py-2.5 px-4 text-xs font-black uppercase tracking-wider flex items-center justify-center space-x-1.5"
               >
-                <span>Authorize &amp; Pay</span>
+                <span>{needsBuyerApproval ? 'Verify & Capture' : 'Authorize & Pay'}</span>
                 <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
               </button>
             </div>
