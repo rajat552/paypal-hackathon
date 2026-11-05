@@ -1,10 +1,11 @@
+import json
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.entities import Offer, Transaction
+from backend.app.models.entities import Offer, PolicySetting, Transaction
 
 DEFAULT_ALLOWED_CURRENCIES = {"USD", "EUR", "GBP"}
 DEFAULT_DAILY_CAP = 50.0
@@ -19,6 +20,84 @@ class PolicyEngine:
         self.auto_approve_under: float = 0.00
         self.enforce_prompt_sanitization: bool = True
         self.strict_scope_check: bool = True
+
+    async def sync_from_db(self, session: AsyncSession) -> PolicySetting:
+        """Load persistent policy limits from database, seeding defaults if needed."""
+        stmt = select(PolicySetting).where(PolicySetting.id == "global")
+        res = await session.execute(stmt)
+        record = res.scalars().first()
+
+        if not record:
+            record = PolicySetting(
+                id="global",
+                max_per_transaction=self.max_single_tx_limit,
+                daily_cap=self.daily_cap,
+                allowed_currencies_json=json.dumps(sorted(self.allowed_currencies)),
+                auto_approve_under=self.auto_approve_under,
+                enforce_prompt_sanitization=self.enforce_prompt_sanitization,
+                strict_scope_check=self.strict_scope_check
+            )
+            session.add(record)
+            await session.commit()
+            await session.refresh(record)
+
+        self.max_single_tx_limit = float(record.max_per_transaction)
+        self.daily_cap = float(record.daily_cap)
+        try:
+            self.allowed_currencies = set(json.loads(record.allowed_currencies_json))
+        except Exception:
+            self.allowed_currencies = set(DEFAULT_ALLOWED_CURRENCIES)
+        self.auto_approve_under = float(record.auto_approve_under)
+        self.enforce_prompt_sanitization = bool(record.enforce_prompt_sanitization)
+        self.strict_scope_check = bool(record.strict_scope_check)
+        return record
+
+    async def save_to_db(
+        self,
+        session: AsyncSession,
+        max_per_transaction: float,
+        daily_cap: float,
+        allowed_currencies: list[str],
+        auto_approve_under: float = 0.0,
+        enforce_prompt_sanitization: bool = True,
+        strict_scope_check: bool = True
+    ) -> PolicySetting:
+        """Persist updated spending policy configuration in the database."""
+        stmt = select(PolicySetting).where(PolicySetting.id == "global")
+        res = await session.execute(stmt)
+        record = res.scalars().first()
+
+        clean_currencies = sorted(list({c.upper().strip() for c in allowed_currencies if c.strip()}))
+        if not record:
+            record = PolicySetting(
+                id="global",
+                max_per_transaction=max_per_transaction,
+                daily_cap=daily_cap,
+                allowed_currencies_json=json.dumps(clean_currencies),
+                auto_approve_under=auto_approve_under,
+                enforce_prompt_sanitization=enforce_prompt_sanitization,
+                strict_scope_check=strict_scope_check
+            )
+            session.add(record)
+        else:
+            record.max_per_transaction = max_per_transaction
+            record.daily_cap = daily_cap
+            record.allowed_currencies_json = json.dumps(clean_currencies)
+            record.auto_approve_under = auto_approve_under
+            record.enforce_prompt_sanitization = enforce_prompt_sanitization
+            record.strict_scope_check = strict_scope_check
+
+        await session.commit()
+        await session.refresh(record)
+
+        # Update in-memory state
+        self.max_single_tx_limit = float(record.max_per_transaction)
+        self.daily_cap = float(record.daily_cap)
+        self.allowed_currencies = set(clean_currencies)
+        self.auto_approve_under = float(record.auto_approve_under)
+        self.enforce_prompt_sanitization = bool(record.enforce_prompt_sanitization)
+        self.strict_scope_check = bool(record.strict_scope_check)
+        return record
 
     def evaluate(
         self,
@@ -60,6 +139,12 @@ class PolicyEngine:
         daily_cap: float | None = None
     ) -> tuple[bool, str, dict[str, Any]]:
         """Evaluate spending policy including 24-hour rolling cumulative spend."""
+        # Ensure fresh policy limits from database
+        try:
+            await self.sync_from_db(session)
+        except Exception:
+            pass  # Fall back to in-memory defaults if table not yet initialized in early migration
+
         cap_to_use = daily_cap if daily_cap is not None else self.daily_cap
         allowed, reason = self.evaluate(offer, budget_limit, currency)
         if not allowed:
