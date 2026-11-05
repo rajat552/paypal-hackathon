@@ -99,7 +99,7 @@ async def seed_demo_data(session: AsyncSession):
         await session.commit()
         logger.info("Seeded primary demo resource: product-intelligence-report with 2 offers.")
 
-    # 4. Seed legacy news resource for backward compatibility
+    # 4. Seed tech intelligence wire resource
     stmt_legacy = select(Resource).where(Resource.slug == "legacy-news-feed")
     res_legacy = await session.execute(stmt_legacy)
     legacy_resource = res_legacy.scalars().first()
@@ -108,10 +108,10 @@ async def seed_demo_data(session: AsyncSession):
         legacy_resource = Resource(
             publisher_id=publisher.id,
             slug="legacy-news-feed",
-            title="CrawlerPal Curated News Feed",
-            description="Curated international, technology, and economic news data feed.",
+            title="PayMesh Curated Tech Intelligence Wire",
+            description="Curated international technology, AI research, and market data feed.",
             resource_type="news",
-            provider="crawlerpal_demo",
+            provider="paymesh_wire",
             metadata_json=json.dumps({"category": "general_news"})
         )
         session.add(legacy_resource)
