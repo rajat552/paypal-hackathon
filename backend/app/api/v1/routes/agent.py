@@ -46,6 +46,11 @@ async def evaluate_policy(
 @router.get("/policy/config", response_model=PolicyConfigResponse)
 async def get_policy_config(session: AsyncSession = Depends(get_db)):
     """Retrieve active deterministic spending policy limits and 24-hour utilized budget."""
+    try:
+        await policy_engine.sync_from_db(session)
+    except Exception:
+        pass
+
     cutoff = datetime.now(UTC) - timedelta(hours=24)
     stmt = select(func.coalesce(func.sum(Transaction.gross_amount), 0.0)).where(
         Transaction.captured_at >= cutoff,
@@ -73,13 +78,16 @@ async def update_policy_config(
     request: PolicyConfigUpdateRequest,
     session: AsyncSession = Depends(get_db)
 ):
-    """Update active deterministic spending policy parameters in server memory."""
-    policy_engine.max_single_tx_limit = float(request.max_per_transaction)
-    policy_engine.daily_cap = float(request.daily_cap)
-    policy_engine.allowed_currencies = {c.upper().strip() for c in request.allowed_currencies if c.strip()}
-    policy_engine.auto_approve_under = float(request.auto_approve_under)
-    policy_engine.enforce_prompt_sanitization = bool(request.enforce_prompt_sanitization)
-    policy_engine.strict_scope_check = bool(request.strict_scope_check)
+    """Persist active deterministic spending policy parameters to database."""
+    await policy_engine.save_to_db(
+        session=session,
+        max_per_transaction=float(request.max_per_transaction),
+        daily_cap=float(request.daily_cap),
+        allowed_currencies=request.allowed_currencies,
+        auto_approve_under=float(request.auto_approve_under),
+        enforce_prompt_sanitization=bool(request.enforce_prompt_sanitization),
+        strict_scope_check=bool(request.strict_scope_check)
+    )
 
     return await get_policy_config(session)
 
