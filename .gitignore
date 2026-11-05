@@ -76,6 +76,8 @@ htmlcov/
 *.sqlite3
 crawlerpal.db
 test_crawlerpal.db
+paymesh.db
+test_paymesh.db
 server/payments_db.json
 
 # ------------------------------------------------------------------------------
