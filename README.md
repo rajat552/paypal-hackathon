@@ -351,7 +351,7 @@ The application is configured through environment variables:
 | `APP_BASE_URL` | Base URL of the backend API | Yes | `http://localhost:8000` |
 | `FRONTEND_URL` | Allowed origin for frontend CORS | Yes | `http://localhost:3000` |
 | `SECRET_KEY` | HMAC secret for hashing tokens and challenges | Yes | `min-32-chars-secret-key` |
-| `DATABASE_URL` | SQLAlchemy relational database connection | Yes | `sqlite+aiosqlite:///./crawlerpal.db` |
+| `DATABASE_URL` | SQLAlchemy relational database connection | Yes | `sqlite+aiosqlite:///./paymesh.db` |
 | `PAYPAL_ENVIRONMENT` | PayPal environment (`sandbox` or `production`) | Yes | `sandbox` |
 | `PAYPAL_CLIENT_ID` | PayPal REST API client identifier | Yes | `AVFKxXTJ...` |
 | `PAYPAL_CLIENT_SECRET` | PayPal REST API secret key | Yes | `EBlgIsi4...` |
