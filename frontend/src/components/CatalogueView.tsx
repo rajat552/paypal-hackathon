@@ -49,7 +49,7 @@ export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void
   const categories = [
     { id: 'all', label: 'All Products' },
     { id: 'channel3', label: 'Channel3 Hardware' },
-    { id: 'crawlerpal_demo', label: 'News Feeds' },
+    { id: 'paymesh_wire', label: 'PayMesh Wire & Feeds' },
   ];
 
   const filteredResources = resources.filter(r => {
@@ -60,7 +60,9 @@ export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void
       r.slug.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesCategory = 
-      selectedCategory === 'all' || r.provider.toLowerCase() === selectedCategory.toLowerCase();
+      selectedCategory === 'all' || 
+      r.provider.toLowerCase() === selectedCategory.toLowerCase() ||
+      (selectedCategory === 'paymesh_wire' && (r.provider.toLowerCase() === 'paymesh_wire' || r.provider.toLowerCase() === 'crawlerpal_demo'));
 
     return matchesSearch && matchesCategory;
   });
