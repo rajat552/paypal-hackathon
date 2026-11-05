@@ -30,7 +30,12 @@ interface LogEntry {
   data?: any;
 }
 
-export const AgentWorkspace: React.FC = () => {
+interface AgentWorkspaceProps {
+  targetResourceSlug?: string | null;
+  onClearTarget?: () => void;
+}
+
+export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSlug, onClearTarget }) => {
   const [task, setTask] = useState('Compare high-performance mechanical keyboards with ultra-low latency under budget.');
   const [budget, setBudget] = useState(0.10);
   const [status, setStatus] = useState<'IDLE' | 'DISCOVERING' | 'AWAITING_APPROVAL' | 'PAYING' | 'COMPLETED'>('IDLE');
@@ -49,6 +54,13 @@ export const AgentWorkspace: React.FC = () => {
     interpreted_intent?: string;
     comparison_reasoning?: string;
   } | null>(null);
+
+  React.useEffect(() => {
+    if (targetResourceSlug) {
+      setTask(`Procure and analyze verified dataset: ${targetResourceSlug}`);
+      if (onClearTarget) onClearTarget();
+    }
+  }, [targetResourceSlug, onClearTarget]);
 
   const addLog = (type: LogEntry['type'], message: string, data?: any) => {
     setLogs((prev) => [
