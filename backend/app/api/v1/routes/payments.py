@@ -257,28 +257,94 @@ async def paypal_webhook_handler(
     request: Request,
     session: AsyncSession = Depends(get_db)
 ):
-    """Handle incoming asynchronous PayPal webhook events (e.g. captures, approvals, disputes)."""
+    """Handle incoming asynchronous PayPal webhook events with signature verification & reconciliation."""
     try:
         body = await request.json()
     except Exception:
         body = {}
 
+    headers = dict(request.headers)
     event_type = body.get("event_type", "UNKNOWN")
     event_id = body.get("id", "evt_unknown")
-    resource = body.get("resource", {})
+    resource_data = body.get("resource", {})
 
-    # Record webhook audit event in MongoDB Atlas
-    log_mongo_audit_event("PAYPAL_WEBHOOK_RECEIVED", {
+    # 1. Verify PayPal webhook signature
+    is_valid_sig = await paypal_gateway.verify_webhook_signature(headers, body)
+    if not is_valid_sig:
+        log_mongo_audit_event("PAYPAL_WEBHOOK_REJECTED", {
+            "event_id": event_id,
+            "event_type": event_type,
+            "reason": "Invalid or missing PayPal webhook signature"
+        })
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="PayPal webhook signature verification failed."
+        )
+
+    # 2. Idempotency: Deduplicate events by event_id in audit log
+    stmt_dup = select(AuditLog).where(
+        AuditLog.action == "PAYPAL_WEBHOOK_PROCESSED",
+        AuditLog.entity_id == event_id
+    )
+    dup_res = await session.execute(stmt_dup)
+    if dup_res.scalars().first():
+        return {
+            "status": "already_processed",
+            "event_type": event_type,
+            "event_id": event_id
+        }
+
+    # 3. Reconcile transaction or payment session state
+    reconciled_session_id = None
+    if event_type == "CHECKOUT.ORDER.APPROVED":
+        order_id = resource_data.get("id")
+        if order_id:
+            stmt_ps = select(PaymentSession).where(PaymentSession.paypal_order_id == order_id)
+            ps_res = await session.execute(stmt_ps)
+            ps = ps_res.scalars().first()
+            if ps and ps.status == "CREATED":
+                ps.status = "APPROVED"
+                reconciled_session_id = ps.id
+                await session.commit()
+
+    elif event_type == "PAYMENT.CAPTURE.COMPLETED":
+        # Check associated custom_id or invoice_id
+        custom_id = resource_data.get("custom_id")
+        if custom_id:
+            stmt_ps = select(PaymentSession).where(PaymentSession.id == custom_id)
+            ps_res = await session.execute(stmt_ps)
+            ps = ps_res.scalars().first()
+            if ps:
+                reconciled_session_id = ps.id
+
+    # 4. Record audit logs in both SQL and MongoDB
+    audit = AuditLog(
+        actor_type="paypal_webhook",
+        actor_id=headers.get("paypal-transmission-id", "webhook_transmission"),
+        action="PAYPAL_WEBHOOK_PROCESSED",
+        entity_type="webhook_event",
+        entity_id=event_id,
+        metadata_json=json.dumps({
+            "event_type": event_type,
+            "summary": body.get("summary", ""),
+            "reconciled_session_id": reconciled_session_id
+        })
+    )
+    session.add(audit)
+    await session.commit()
+
+    log_mongo_audit_event("PAYPAL_WEBHOOK_PROCESSED", {
         "event_id": event_id,
         "event_type": event_type,
         "summary": body.get("summary", ""),
-        "resource_id": resource.get("id"),
-        "resource_status": resource.get("status")
+        "resource_id": resource_data.get("id"),
+        "resource_status": resource_data.get("status"),
+        "reconciled_session_id": reconciled_session_id
     })
 
-    # Return 200 OK immediately as required by PayPal webhook guidelines
     return {
         "status": "received",
+        "verified": True,
         "event_type": event_type,
         "event_id": event_id
     }
