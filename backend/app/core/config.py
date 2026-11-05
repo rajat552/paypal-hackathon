@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     # Database
-    DATABASE_URL: str = "sqlite+aiosqlite:///./crawlerpal.db"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./paymesh.db"
 
     # PayPal Developer Sandbox
     PAYPAL_ENVIRONMENT: str = "sandbox"
@@ -27,9 +27,9 @@ class Settings(BaseSettings):
     PAYPAL_WEBHOOK_ID: str | None = None
 
     # AI Provider
-    AI_PROVIDER: str = "openai"
+    AI_PROVIDER: str = "gemini"
     AI_API_KEY: str | None = None
-    AI_MODEL: str = "gpt-4o-mini"
+    AI_MODEL: str = "gemini-2.5-flash"
 
     # Channel3 Data
     CHANNEL3_API_KEY: str | None = None
