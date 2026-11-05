@@ -1,7 +1,6 @@
-"""CrawlerPal 2.0 Server Entry Point
+"""PayMesh AI Server Entry Point
 
-Evolved from positiveblue/CrawlerPal 1.0 monolithic server into the
-modular, enterprise-ready CrawlerPal 2.0 architecture with PostgreSQL/SQLite,
+Enterprise-ready PayMesh AI architecture with PostgreSQL/SQLite,
 L402 protocol, PayPal Sandbox Orders v2 capture lifecycle, AI Agent & MCP engine.
 """
 
