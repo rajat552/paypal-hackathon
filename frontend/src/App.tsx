@@ -20,15 +20,26 @@ import {
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('workspace');
+  const [targetResourceSlug, setTargetResourceSlug] = useState<string | null>(null);
+
+  const handleSelectResource = (slug: string) => {
+    setTargetResourceSlug(slug);
+    setActiveTab('workspace');
+  };
 
   return (
     <div className="min-h-screen bg-blueprint-grid text-slate-900 flex flex-col font-sans selection:bg-amber-300 selection:text-slate-950">
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 sm:py-10 w-full">
-        {activeTab === 'workspace' && <AgentWorkspace />}
+        {activeTab === 'workspace' && (
+          <AgentWorkspace 
+            targetResourceSlug={targetResourceSlug} 
+            onClearTarget={() => setTargetResourceSlug(null)} 
+          />
+        )}
         {activeTab === 'policy' && <PolicyManager />}
-        {activeTab === 'catalogue' && <CatalogueView onSelectResource={() => setActiveTab('workspace')} />}
+        {activeTab === 'catalogue' && <CatalogueView onSelectResource={handleSelectResource} />}
         {activeTab === 'analytics' && <AnalyticsView />}
         {activeTab === 'publisher' && <PublisherConsole onNavigateToCatalogue={() => setActiveTab('catalogue')} />}
       </main>
