@@ -17,6 +17,24 @@ class PolicyEvaluateResponse(BaseModel):
     budget_limit: float
     reason: str
 
+class PolicyConfigResponse(BaseModel):
+    max_per_transaction: float
+    daily_cap: float
+    allowed_currencies: list[str]
+    auto_approve_under: float
+    enforce_prompt_sanitization: bool
+    strict_scope_check: bool
+    current_utilized_24h: float
+    utilized_pct: int
+
+class PolicyConfigUpdateRequest(BaseModel):
+    max_per_transaction: float = Field(0.50, gt=0)
+    daily_cap: float = Field(5.00, gt=0)
+    allowed_currencies: list[str] = ["USD"]
+    auto_approve_under: float = 0.0
+    enforce_prompt_sanitization: bool = True
+    strict_scope_check: bool = True
+
 class AgentRunRequest(BaseModel):
     task: str = Field(..., description="Natural language search or data research request")
     budget_limit: float = Field(0.10, description="Maximum amount the buyer is willing to spend")
