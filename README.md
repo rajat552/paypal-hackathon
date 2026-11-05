@@ -22,7 +22,7 @@
 [![AG Grid](https://img.shields.io/badge/Financial%20Ledger-AG%20Grid%20v32-E0234E.svg?logo=aggrid&logoColor=white)](https://www.ag-grid.com)
 [![Protocol](https://img.shields.io/badge/Protocol-L402%20HTTP%20402-F5A623.svg)](https://L402.org)
 [![MCP Standard](https://img.shields.io/badge/Standard-Anthropic%20MCP-6366F1.svg)](https://modelcontextprotocol.io/)
-[![Tests](https://img.shields.io/badge/Tests-27%20Passed%20%7C%20100%25-10B981.svg)](backend/tests/)
+[![Tests](https://img.shields.io/badge/Tests-28%20Passed%20%7C%20100%25-10B981.svg)](backend/tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 [🌐 Live Frontend](https://paypal-hackathon-mu.vercel.app/) • [⚡ Live Backend](https://paypal-hackathon-s0gq.onrender.com) • [📸 Visual Showcase](#-dashboard-screenshots--visual-showcase) • [💡 Overview](#-overview) • [⚡ Key Features](#-key-features) • [🛠 Tech Stack](#-technology-stack) • [🏛 Architecture](#-system-architecture) • [🔄 Workflows](#-end-to-end-workflows) • [🚀 Quick Start](#-installation--setup) • [🔐 Environment Variables](#-environment-variables) • [📡 API Docs](#-api-documentation) • [🧪 Testing](#-testing--quality-checks) • [🏆 Hackathon Tracks](#-hackathon-prize-track-alignment)
@@ -159,7 +159,7 @@ The world is transitioning to autonomous software agents capable of conducting r
 | **Remotion Video** | Programmatic React-based video generation engine rendering 1080p MP4 marketing pitches. | [`remotion/`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/remotion/) |
 | **Model Context Protocol (MCP)** | Anthropic open protocol standard for programmatic LLM tool execution and catalog discovery. | [`backend/app/mcp/server.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/mcp/server.py) |
 | **Channel3 API Client** | Hardware latency benchmarks and verified retailer product links integration. | [`backend/app/services/channel3_client.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/services/channel3_client.py) |
-| **Pytest Suite** | 26 automated unit and integration tests verifying 100% of the API, policy engine, and PayPal flow. | [`backend/tests/`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/tests/) |
+| **Pytest Suite** | 28 automated unit and integration tests verifying 100% of the API, policy engine, and PayPal flow. | [`backend/tests/`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/tests/) |
 
 ---
 
@@ -260,7 +260,7 @@ paypal-hackathon/
 │   │   ├── schemas/                # Pydantic v2 validation models
 │   │   ├── services/               # PayPal Orders v2 gateway, L402 challenge service, Channel3
 │   │   └── main.py                 # FastAPI application root, lifespan, and CORS middleware
-│   ├── tests/                      # Automated unit and integration test suite (26 passing tests)
+│   ├── tests/                      # Automated unit and integration test suite (28 passing tests)
 │   │   ├── conftest.py             # Asynchronous test client and database fixtures
 │   │   ├── integration/            # API, L402, PayPal, Webhook, and MCP integration tests
 │   │   └── unit/                   # Policy engine, token hashing, and config unit tests
@@ -392,7 +392,7 @@ Interactive Swagger OpenAPI documentation is available at:
 
 ## 🧪 Testing & Quality Checks
 
-PayMesh AI is backed by an automated test suite with **26 passing unit and integration tests**:
+PayMesh AI is backed by an automated test suite with **28 passing unit and integration tests**:
 
 ```bash
 python -m pytest backend/tests -v
@@ -402,32 +402,34 @@ python -m pytest backend/tests -v
 ```text
 backend/tests/integration/test_api_endpoints.py::test_health_endpoint PASSED              [  3%]
 backend/tests/integration/test_api_endpoints.py::test_catalogue_endpoint PASSED           [  7%]
-backend/tests/integration/test_api_endpoints.py::test_protected_resource_returns_402_challenge PASSED [ 11%]
-backend/tests/integration/test_api_endpoints.py::test_full_payment_capture_and_retrieval_flow PASSED [ 15%]
-backend/tests/integration/test_api_endpoints.py::test_agent_run_orchestration PASSED      [ 19%]
-backend/tests/integration/test_api_endpoints.py::test_mcp_manifest_and_tool_execution PASSED [ 23%]
-backend/tests/integration/test_api_endpoints.py::test_legacy_bot_l402_and_payment_flow PASSED [ 26%]
-backend/tests/integration/test_api_endpoints.py::test_security_headers_enforced PASSED   [ 30%]
-backend/tests/integration/test_api_endpoints.py::test_publisher_validation_rejects_invalid_currency PASSED [ 34%]
-backend/tests/integration/test_api_endpoints.py::test_agent_orchestration_returns_ai_metadata PASSED [ 38%]
-backend/tests/integration/test_api_endpoints.py::test_paypal_webhook_handler PASSED      [ 42%]
+backend/tests/integration/test_api_endpoints.py::test_protected_resource_returns_402_challenge PASSED [ 10%]
+backend/tests/integration/test_api_endpoints.py::test_full_payment_capture_and_retrieval_flow PASSED [ 14%]
+backend/tests/integration/test_api_endpoints.py::test_agent_run_orchestration PASSED      [ 17%]
+backend/tests/integration/test_api_endpoints.py::test_mcp_manifest_and_tool_execution PASSED [ 21%]
+backend/tests/integration/test_api_endpoints.py::test_legacy_bot_l402_and_payment_flow PASSED [ 25%]
+backend/tests/integration/test_api_endpoints.py::test_security_headers_enforced PASSED   [ 28%]
+backend/tests/integration/test_api_endpoints.py::test_publisher_validation_rejects_invalid_currency PASSED [ 32%]
+backend/tests/integration/test_api_endpoints.py::test_agent_orchestration_returns_ai_metadata PASSED [ 35%]
+backend/tests/integration/test_api_endpoints.py::test_paypal_webhook_handler PASSED      [ 39%]
+backend/tests/integration/test_api_endpoints.py::test_policy_config_get_and_update PASSED [ 42%]
 backend/tests/unit/test_ai_agent.py::test_discover_resources_args_validation PASSED       [ 46%]
 backend/tests/unit/test_ai_agent.py::test_get_resource_offer_args_validation PASSED       [ 50%]
 backend/tests/unit/test_ai_agent.py::test_evaluate_purchase_policy_args_validation PASSED [ 53%]
 backend/tests/unit/test_ai_agent.py::test_llm_client_unconfigured_by_default PASSED      [ 57%]
-backend/tests/unit/test_ai_agent.py::test_llm_client_execute_unknown_tool PASSED         [ 61%]
-backend/tests/unit/test_ai_agent.py::test_orchestrator_returns_structured_trace PASSED   [ 65%]
-backend/tests/unit/test_config_and_security.py::test_settings_properties PASSED          [ 69%]
-backend/tests/unit/test_config_and_security.py::test_token_hashing_and_verification PASSED [ 73%]
-backend/tests/unit/test_config_and_security.py::test_challenge_id_format PASSED          [ 76%]
-backend/tests/unit/test_config_and_security.py::test_password_hashing PASSED             [ 80%]
-backend/tests/unit/test_policy.py::test_policy_within_budget PASSED                       [ 84%]
-backend/tests/unit/test_policy.py::test_policy_exceeds_budget PASSED                      [ 88%]
-backend/tests/unit/test_policy.py::test_policy_currency_mismatch PASSED                   [ 92%]
-backend/tests/unit/test_policy.py::test_policy_inactive_offer PASSED                      [ 96%]
+backend/tests/unit/test_ai_agent.py::test_llm_client_execute_unknown_tool PASSED         [ 60%]
+backend/tests/unit/test_ai_agent.py::test_orchestrator_returns_structured_trace PASSED   [ 64%]
+backend/tests/unit/test_config_and_security.py::test_settings_properties PASSED          [ 67%]
+backend/tests/unit/test_config_and_security.py::test_token_hashing_and_verification PASSED [ 71%]
+backend/tests/unit/test_config_and_security.py::test_challenge_id_format PASSED          [ 75%]
+backend/tests/unit/test_config_and_security.py::test_password_hashing PASSED             [ 78%]
+backend/tests/unit/test_policy.py::test_policy_within_budget PASSED                       [ 82%]
+backend/tests/unit/test_policy.py::test_policy_exceeds_budget PASSED                      [ 85%]
+backend/tests/unit/test_policy.py::test_policy_currency_mismatch PASSED                   [ 89%]
+backend/tests/unit/test_policy.py::test_policy_inactive_offer PASSED                      [ 92%]
+backend/tests/unit/test_policy.py::test_policy_disallowed_currency PASSED                 [ 96%]
 backend/tests/unit/test_policy.py::test_policy_exceeds_platform_ceiling PASSED            [100%]
 
-============================= 26 passed in 12.45s =============================
+============================= 28 passed in 45.73s =============================
 ```
 
 ### Live Smoke Test
