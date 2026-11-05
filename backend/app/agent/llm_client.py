@@ -92,6 +92,67 @@ AGENT_TOOLS_SPEC = [
     }
 ]
 
+GEMINI_TOOLS_SPEC = [
+    {
+        "function_declarations": [
+            {
+                "name": "discover_resources",
+                "description": "Search the verified publisher catalogue for paid datasets, APIs, and micro-intelligence resources.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "query": {
+                            "type": "STRING",
+                            "description": "Search query describing what the user wants to research or purchase."
+                        },
+                        "limit": {
+                            "type": "INTEGER",
+                            "description": "Max results to return (default 5)."
+                        }
+                    },
+                    "required": ["query"]
+                }
+            },
+            {
+                "name": "get_resource_offer",
+                "description": "Retrieve official pricing offers, terms, and scope for a specific resource slug from the database.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "resource_slug": {
+                            "type": "STRING",
+                            "description": "The exact resource slug identifier."
+                        }
+                    },
+                    "required": ["resource_slug"]
+                }
+            },
+            {
+                "name": "evaluate_purchase_policy",
+                "description": "Check if a candidate offer satisfies the buyer's spending limits and currency policies before proposing purchase.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "offer_id": {
+                            "type": "STRING",
+                            "description": "The unique server offer ID."
+                        },
+                        "budget_limit": {
+                            "type": "NUMBER",
+                            "description": "Buyer spending budget limit."
+                        },
+                        "currency": {
+                            "type": "STRING",
+                            "description": "Currency code e.g. USD."
+                        }
+                    },
+                    "required": ["offer_id", "budget_limit"]
+                }
+            }
+        ]
+    }
+]
+
 SYSTEM_PROMPT = """You are PayMesh AI Agent Advisor — an intelligent procurement and research assistant for autonomous commerce.
 
 Your responsibility:
@@ -298,9 +359,128 @@ class LLMClient:
         budget_limit: float,
         currency: str
     ) -> LLMExecutionResult | None:
-        # Google Generative AI fallback implementation
-        logger.info("Gemini provider selected; executing tool-calling loop.")
-        return None
+        """Run genuine tool-calling loop using Google Gemini Flash REST API."""
+        import httpx
+
+        api_key = settings.AI_API_KEY
+        if not api_key:
+            return None
+
+        model_name = settings.AI_MODEL or "gemini-2.5-flash"
+        clean_model = model_name.replace("models/", "")
+        endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={api_key}"
+
+        user_content = (
+            f"User Research Query: \"{task}\"\n"
+            f"Budget Limit: ${budget_limit:.2f} {currency}\n"
+            f"Please discover relevant resources, inspect official offers, verify purchase policy, and provide a recommendation."
+        )
+
+        contents: list[dict[str, Any]] = [
+            {
+                "role": "user",
+                "parts": [{"text": user_content}]
+            }
+        ]
+
+        tool_calls_trace = []
+        max_iterations = 4
+
+        async with httpx.AsyncClient(timeout=25.0) as client:
+            for _ in range(max_iterations):
+                request_body = {
+                    "system_instruction": {
+                        "parts": [{"text": SYSTEM_PROMPT}]
+                    },
+                    "contents": contents,
+                    "tools": GEMINI_TOOLS_SPEC,
+                    "generationConfig": {
+                        "temperature": 0.2
+                    }
+                }
+
+                try:
+                    resp = await client.post(endpoint, json=request_body)
+                    if resp.status_code != 200:
+                        logger.error(f"Gemini API returned HTTP {resp.status_code}: {resp.text}")
+                        # Fallback to gemini-1.5-flash if 2.5-flash is not available on key tier
+                        if clean_model != "gemini-1.5-flash" and resp.status_code in (404, 400):
+                            clean_model = "gemini-1.5-flash"
+                            endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={api_key}"
+                            continue
+                        return None
+                    data = resp.json()
+                except Exception as e:
+                    logger.error(f"Gemini API network error: {e!s}")
+                    return None
+
+                candidates = data.get("candidates", [])
+                if not candidates:
+                    return None
+
+                first_candidate = candidates[0]
+                content = first_candidate.get("content", {})
+                parts = content.get("parts", [])
+
+                function_calls = []
+                text_parts = []
+                for p in parts:
+                    if "functionCall" in p:
+                        function_calls.append(p["functionCall"])
+                    if "text" in p:
+                        text_parts.append(p["text"])
+
+                if not function_calls:
+                    # Model produced final answer
+                    final_text = " ".join(text_parts)
+                    return self._synthesize_final_result(
+                        content_text=final_text,
+                        tool_calls_trace=tool_calls_trace,
+                        provider="gemini",
+                        model=clean_model,
+                        task=task,
+                        budget_limit=budget_limit,
+                        currency=currency
+                    )
+
+                # Append model's turn to conversation history
+                contents.append(content)
+
+                # Execute all function calls requested by model
+                function_response_parts = []
+                for fc in function_calls:
+                    fn_name = fc.get("name")
+                    fn_args = fc.get("args", {})
+                    result, success, error_msg = await self.execute_tool(session, fn_name, fn_args)
+
+                    tool_calls_trace.append({
+                        "tool": fn_name,
+                        "arguments": json.dumps(fn_args),
+                        "success": success,
+                        "result_summary": result if success else {"error": error_msg}
+                    })
+
+                    function_response_parts.append({
+                        "functionResponse": {
+                            "name": fn_name,
+                            "response": {"name": fn_name, "content": result}
+                        }
+                    })
+
+                contents.append({
+                    "role": "function",
+                    "parts": function_response_parts
+                })
+
+        return self._synthesize_final_result(
+            content_text="Completed multi-step discovery and policy verification via Google Gemini.",
+            tool_calls_trace=tool_calls_trace,
+            provider="gemini",
+            model=clean_model,
+            task=task,
+            budget_limit=budget_limit,
+            currency=currency
+        )
 
     def _synthesize_final_result(
         self,
