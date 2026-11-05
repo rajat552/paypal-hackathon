@@ -192,3 +192,29 @@ async def test_paypal_webhook_handler(async_client: AsyncClient):
     data = resp.json()
     assert data["status"] == "received"
     assert data["event_type"] == "PAYMENT.CAPTURE.COMPLETED"
+
+@pytest.mark.asyncio
+async def test_policy_config_get_and_update(async_client: AsyncClient):
+    # Test GET
+    get_resp = await async_client.get("/api/v1/agent/policy/config")
+    assert get_resp.status_code == 200
+    cfg = get_resp.json()
+    assert "max_per_transaction" in cfg
+    assert "daily_cap" in cfg
+    assert "current_utilized_24h" in cfg
+
+    # Test PUT update
+    update_payload = {
+        "max_per_transaction": 1.25,
+        "daily_cap": 10.00,
+        "allowed_currencies": ["USD", "EUR"],
+        "auto_approve_under": 0.05,
+        "enforce_prompt_sanitization": True,
+        "strict_scope_check": True
+    }
+    put_resp = await async_client.put("/api/v1/agent/policy/config", json=update_payload)
+    assert put_resp.status_code == 200
+    updated_cfg = put_resp.json()
+    assert updated_cfg["max_per_transaction"] == 1.25
+    assert updated_cfg["daily_cap"] == 10.00
+    assert "USD" in updated_cfg["allowed_currencies"]
