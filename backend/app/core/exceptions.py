@@ -3,12 +3,15 @@ from typing import Any
 from fastapi import HTTPException, status
 
 
-class CrawlerPalException(Exception):
+class PayMeshException(Exception):
     def __init__(self, message: str, code: str = "INTERNAL_ERROR", details: Any | None = None):
         super().__init__(message)
         self.message = message
         self.code = code
         self.details = details
+
+# Backwards-compatibility alias for legacy code
+CrawlerPalException = PayMeshException
 
 class PaymentRequiredException(HTTPException):
     def __init__(self, challenge_payload: dict):
@@ -17,15 +20,15 @@ class PaymentRequiredException(HTTPException):
             detail=challenge_payload
         )
 
-class PolicyViolationException(CrawlerPalException):
+class PolicyViolationException(PayMeshException):
     def __init__(self, reason: str, details: Any | None = None):
         super().__init__(message=f"Purchase policy violation: {reason}", code="POLICY_VIOLATION", details=details)
 
-class InvalidChallengeException(CrawlerPalException):
+class InvalidChallengeException(PayMeshException):
     def __init__(self, reason: str):
         super().__init__(message=f"Invalid or expired challenge: {reason}", code="INVALID_CHALLENGE")
 
-class PayPalApiException(CrawlerPalException):
+class PayPalApiException(PayMeshException):
     def __init__(self, message: str, details: Any | None = None):
         super().__init__(message=f"PayPal API error: {message}", code="PAYPAL_API_ERROR", details=details)
 
