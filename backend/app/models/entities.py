@@ -48,7 +48,7 @@ class Resource(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     resource_type: Mapped[str] = mapped_column(String(64), default="product_intelligence") # news, product_intelligence, dataset
-    provider: Mapped[str] = mapped_column(String(64), default="channel3") # channel3, crawlerpal_demo
+    provider: Mapped[str] = mapped_column(String(64), default="channel3") # channel3, paymesh_wire, dataset
     status: Mapped[str] = mapped_column(String(32), default="active")
     metadata_json: Mapped[str] = mapped_column(Text, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
@@ -168,3 +168,15 @@ class ProductSnapshot(Base):
     payload_json: Mapped[str] = mapped_column(Text, nullable=False)
     fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+class PolicySetting(Base):
+    __tablename__ = "policy_settings"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default="global")
+    max_per_transaction: Mapped[float] = mapped_column(Numeric(10, 2), default=0.50, nullable=False)
+    daily_cap: Mapped[float] = mapped_column(Numeric(10, 2), default=5.00, nullable=False)
+    allowed_currencies_json: Mapped[str] = mapped_column(Text, default='["USD", "EUR", "GBP"]', nullable=False)
+    auto_approve_under: Mapped[float] = mapped_column(Numeric(10, 2), default=0.00, nullable=False)
+    enforce_prompt_sanitization: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    strict_scope_check: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
