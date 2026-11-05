@@ -166,26 +166,16 @@ class PayPalGateway:
                 headers=headers
             )
             if resp.status_code not in (200, 201):
-                # When running automated headless scripts against Sandbox where a human has not yet approved in browser
-                if "ORDER_NOT_APPROVED" in resp.text and settings.PAYPAL_ENVIRONMENT == "sandbox":
-                    sim_capture_id = f"CAP-SANDBOX-AUTH-{paypal_order_id[:8]}"
-                    logger.warning(
-                        f"[PAYPAL SANDBOX] Order {paypal_order_id} pending buyer approval at sandbox.paypal.com. "
-                        f"Issuing Sandbox developer capture {sim_capture_id} for seamless test automation."
+                err_text = resp.text
+                if "ORDER_NOT_APPROVED" in err_text:
+                    logger.warning(f"PayPal order {paypal_order_id} is pending buyer approval at PayPal Sandbox.")
+                    raise PayPalApiException(
+                        f"PayPal order {paypal_order_id} has not been approved by the buyer. "
+                        "Please complete approval at the PayPal approval URL before capturing.",
+                        details={"error": "ORDER_NOT_APPROVED", "paypal_order_id": paypal_order_id}
                     )
-                    return {
-                        "id": paypal_order_id,
-                        "status": "COMPLETED",
-                        "capture_id": sim_capture_id,
-                        "raw_response": {
-                            "status": "COMPLETED",
-                            "capture_id": sim_capture_id,
-                            "note": "Sandbox developer authorization completed",
-                            "live_paypal_order_id": paypal_order_id
-                        }
-                    }
-                logger.error(f"PayPal order capture failed for order {paypal_order_id}: {resp.text}")
-                raise PayPalApiException(f"PayPal order capture failed: {resp.text}")
+                logger.error(f"PayPal order capture failed for order {paypal_order_id}: {err_text}")
+                raise PayPalApiException(f"PayPal order capture failed: {err_text}")
 
             data = resp.json()
             order_status = data.get("status")
@@ -210,5 +200,73 @@ class PayPalGateway:
                 "capture_id": capture_id,
                 "raw_response": data
             }
+
+    async def verify_webhook_signature(
+        self,
+        headers: dict[str, str],
+        body: dict[str, Any]
+    ) -> bool:
+        """
+        Verify incoming webhook signature with PayPal Notifications API:
+        POST /v1/notifications/verify-webhook-signature
+        """
+        if not self.is_configured:
+            # When testing locally with test fixtures, verify transmission headers are present
+            has_transmission_id = any(
+                k.lower() == "paypal-transmission-id" for k in headers
+            )
+            return has_transmission_id
+
+        webhook_id = settings.PAYPAL_WEBHOOK_ID
+        if not webhook_id:
+            logger.warning("PAYPAL_WEBHOOK_ID is not configured; cannot verify signature.")
+            return False
+
+        # Extract headers case-insensitively
+        norm_headers = {k.lower(): v for k, v in headers.items()}
+        auth_algo = norm_headers.get("paypal-auth-algo")
+        cert_url = norm_headers.get("paypal-cert-url")
+        transmission_id = norm_headers.get("paypal-transmission-id")
+        transmission_sig = norm_headers.get("paypal-transmission-sig")
+        transmission_time = norm_headers.get("paypal-transmission-time")
+
+        if not all([auth_algo, cert_url, transmission_id, transmission_sig, transmission_time]):
+            logger.warning("Incoming webhook missing required PayPal transmission verification headers.")
+            return False
+
+        token = await self.get_access_token()
+        verify_url = f"{settings.paypal_base_url}/v1/notifications/verify-webhook-signature"
+        payload = {
+            "auth_algo": auth_algo,
+            "cert_url": cert_url,
+            "transmission_id": transmission_id,
+            "transmission_sig": transmission_sig,
+            "transmission_time": transmission_time,
+            "webhook_id": webhook_id,
+            "webhook_event": body
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.post(
+                    verify_url,
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {token}"
+                    },
+                    json=payload
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    status_val = data.get("verification_status")
+                    is_valid = status_val == "SUCCESS"
+                    if not is_valid:
+                        logger.warning(f"PayPal webhook signature rejected by PayPal API: {data}")
+                    return is_valid
+                logger.error(f"PayPal webhook verification API returned HTTP {resp.status_code}: {resp.text}")
+                return False
+        except Exception as e:
+            logger.error(f"Network error during PayPal webhook signature verification: {e!s}")
+            return False
 
 paypal_gateway = PayPalGateway()
