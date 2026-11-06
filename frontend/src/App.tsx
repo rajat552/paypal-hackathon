@@ -23,7 +23,8 @@ import {
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('workspace');
   const [targetResourceSlug, setTargetResourceSlug] = useState<string | null>(null);
-  const [isTourOpen, setIsTourOpen] = useState(false);
+  // Launch tour directly whenever anyone visits or reloads the URL
+  const [isTourOpen, setIsTourOpen] = useState(true);
 
   const handleSelectResource = (slug: string) => {
     setTargetResourceSlug(slug);
