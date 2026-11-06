@@ -124,8 +124,21 @@ async def run_tour_verification():
         assert await reopened_step1.is_visible(), "Replayed tour did not restart at Step 1!"
         print("PASS: Tour reopened at Step 1 via Navbar button.")
 
-        # 6. Test Keyboard Navigation (ArrowRight to advance, ArrowLeft to go back, Escape to close)
-        print("\n[Phase 3] Testing Keyboard Navigation...")
+        # 6. Test Exit Tour Button from Action Bar
+        print("\n[Phase 3] Testing 'Exit Tour' button in footer...")
+        exit_btn = tour_dialog.locator("button:has-text('Exit Tour')")
+        assert await exit_btn.is_visible(), "'Exit Tour' button was not visible in tour footer!"
+        await exit_btn.click()
+        await page.wait_for_timeout(400)
+        assert not await tour_dialog.is_visible(), "Clicking 'Exit Tour' failed to close tour!"
+        print("PASS: 'Exit Tour' button closed tour successfully.")
+
+        # Reopen for keyboard test
+        await tour_guide_btn.first.click()
+        await page.wait_for_timeout(400)
+
+        # 7. Test Keyboard Navigation (ArrowRight to advance, ArrowLeft to go back, Escape to close)
+        print("\n[Phase 4] Testing Keyboard Navigation...")
         await page.keyboard.press("ArrowRight")
         await page.wait_for_timeout(300)
         assert await tour_dialog.locator("text='2 / 15'").is_visible(), "ArrowRight failed to advance to Step 2!"
