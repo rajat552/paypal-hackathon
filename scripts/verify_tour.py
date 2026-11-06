@@ -44,26 +44,37 @@ async def run_tour_verification():
         context = await browser.new_context(viewport={"width": 1440, "height": 900})
         page = await context.new_page()
 
-        # 1. First Visit: Load page with empty localStorage
-        print("\n[Phase 1] Navigating to http://localhost:3000 (First Visit Experience)...")
+        # 1. URL Click Visit: Load page and verify tour dialog opens immediately
+        print("\n[Phase 1] Navigating to http://localhost:3000 (URL Click Experience)...")
         await page.goto("http://localhost:3000", wait_until="networkidle")
-        await page.wait_for_timeout(1500)
+        await page.wait_for_timeout(1000)
 
-        welcome_prompt = page.locator("aside[aria-label='Welcome Tour Invitation']")
-        await welcome_prompt.wait_for(timeout=4000)
-        assert await welcome_prompt.is_visible(), "Welcome Tour Prompt was not displayed on first visit!"
-        print("PASS: First-visit welcome prompt displayed successfully.")
-        await page.screenshot(path=str(screenshots_dir / "00_welcome_prompt.png"))
-
-        # 2. Click "Start Tour"
-        start_btn = welcome_prompt.locator("button:has-text('Start Tour')")
-        await start_btn.click()
-        await page.wait_for_timeout(500)
-        print("PASS: Clicked 'Start Tour'. Tour overlay is now active.")
-
-        # 3. Step through all 15 steps sequentially
         tour_dialog = page.locator("div[role='dialog'][aria-label*='Onboarding Tour']")
         await tour_dialog.wait_for(timeout=4000)
+        assert await tour_dialog.is_visible(), "Tour dialog was not displayed immediately on clicking/visiting URL!"
+        print("PASS: Tour dialog automatically displayed first on visiting URL.")
+        await page.screenshot(path=str(screenshots_dir / "00_url_click_tour_first.png"))
+
+        # 2. Verify Step 1 is active right away
+        step1_active = tour_dialog.locator("text='1 / 15'")
+        assert await step1_active.is_visible(), "Step 1 of 15 was not active on URL load!"
+        print("PASS: Tour is at Step 1 ('Welcome to PayMesh AI') immediately upon URL access.")
+
+        # 3. Test Exit and URL reload (tour displays every time URL is clicked)
+        exit_btn = tour_dialog.locator("button:has-text('Exit Tour')")
+        await exit_btn.click()
+        await page.wait_for_timeout(400)
+        assert not await tour_dialog.is_visible(), "Clicking 'Exit Tour' failed to close tour!"
+        print("PASS: Clicked 'Exit Tour' — tour closed cleanly.")
+
+        # Re-click / reload URL
+        print("\n[Phase 2] Re-clicking / reloading URL to verify tour displays again every time...")
+        await page.goto("http://localhost:3000", wait_until="networkidle")
+        await page.wait_for_timeout(1000)
+        assert await tour_dialog.is_visible(), "Tour failed to display first after clicking URL again!"
+        print("PASS: Tour displays first every time URL is accessed.")
+
+        # 4. Step through all 15 steps sequentially
 
         for step in EXPECTED_STEPS:
             idx = step["index"]
@@ -114,7 +125,7 @@ async def run_tour_verification():
         print("PASS: Tour completion successfully persisted in localStorage ('paymesh_tour_completed': 'true').")
 
         # 5. Replay Tour via Navbar "Tour Guide" button
-        print("\n[Phase 2] Testing Tour Replay via Header 'Tour Guide' button...")
+        print("\n[Phase 3] Testing Tour Replay via Header 'Tour Guide' button...")
         tour_guide_btn = page.locator("header button:has-text('Tour Guide')")
         await tour_guide_btn.first.click()
         await page.wait_for_timeout(500)
@@ -125,7 +136,7 @@ async def run_tour_verification():
         print("PASS: Tour reopened at Step 1 via Navbar button.")
 
         # 6. Test Exit Tour Button from Action Bar
-        print("\n[Phase 3] Testing 'Exit Tour' button in footer...")
+        print("\n[Phase 4] Testing 'Exit Tour' button in footer...")
         exit_btn = tour_dialog.locator("button:has-text('Exit Tour')")
         assert await exit_btn.is_visible(), "'Exit Tour' button was not visible in tour footer!"
         await exit_btn.click()
@@ -138,7 +149,7 @@ async def run_tour_verification():
         await page.wait_for_timeout(400)
 
         # 7. Test Keyboard Navigation (ArrowRight to advance, ArrowLeft to go back, Escape to close)
-        print("\n[Phase 4] Testing Keyboard Navigation...")
+        print("\n[Phase 5] Testing Keyboard Navigation...")
         await page.keyboard.press("ArrowRight")
         await page.wait_for_timeout(300)
         assert await tour_dialog.locator("text='2 / 15'").is_visible(), "ArrowRight failed to advance to Step 2!"
