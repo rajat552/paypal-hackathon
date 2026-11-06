@@ -70,7 +70,7 @@ export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void
   return (
     <div className="space-y-8">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b-2 border-slate-900">
+      <div data-tour="catalogue-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b-2 border-slate-900">
         <div>
           <div className="inline-flex items-center space-x-2 px-3 py-0.5 rounded-full bg-blue-100 text-blue-900 border-2 border-slate-900 font-mono text-xs font-bold shadow-neo-sm mb-2">
             <Database className="w-3.5 h-3.5 text-brand-600" />
@@ -222,6 +222,7 @@ export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void
 
                   {onSelectResource && (
                     <button
+                      data-tour="catalogue-run-agent"
                       onClick={() => onSelectResource(res.slug)}
                       className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 border-2 border-slate-900 text-xs font-display font-black text-slate-950 shadow-neo-sm transition-all"
                     >
