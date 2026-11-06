@@ -268,7 +268,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
       </div>
 
       {/* Preset Track Cards */}
-      <div className="space-y-3">
+      <div data-tour="scenario-selector" className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Layers className="w-4 h-4 text-slate-700" />
@@ -351,7 +351,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
         {/* Left Column: Interactive Agent Studio */}
         <div className="lg:col-span-7 space-y-6">
           {/* Agent Goal Input Card */}
-          <div className="p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-5">
+          <div data-tour="agent-input-form" className="p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-5">
             <div className="flex items-center justify-between pb-3 border-b-2 border-slate-100">
               <div className="flex items-center space-x-2.5">
                 <div className="p-1.5 bg-brand-50 border-2 border-slate-900 rounded-lg text-brand-600 shadow-neo-sm">
@@ -361,7 +361,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
                   AI Commerce Agent Studio
                 </h2>
               </div>
-              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
+              <span data-tour="l402-challenge-section" className="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
                 L402 Protocol Active
               </span>
             </div>
@@ -399,6 +399,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
 
                 <div className="sm:col-span-5 flex items-end">
                   <button
+                    data-tour="dispatch-button"
                     onClick={handleRunTask}
                     disabled={status === 'DISCOVERING' || status === 'PAYING'}
                     className="w-full neo-button-amber py-2.5 px-4 flex items-center justify-center space-x-2 text-xs font-black uppercase tracking-wider disabled:opacity-50"
@@ -593,7 +594,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
         </div>
 
         {/* Right Column: Dark Protocol Terminal Inspector */}
-        <div className="lg:col-span-5 space-y-3">
+        <div data-tour="protocol-inspector" className="lg:col-span-5 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Terminal className="w-4 h-4 text-slate-900" />
