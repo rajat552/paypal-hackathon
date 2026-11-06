@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Bot, Database, BarChart3, ShieldCheck, ShoppingBag, Terminal, Cpu, Menu, X } from 'lucide-react';
+import { Bot, Database, BarChart3, ShieldCheck, ShoppingBag, Terminal, Cpu, Menu, X, Compass } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  onStartTour?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onStartTour }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const tabs = [
@@ -27,6 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
       <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
         {/* Brand Logo & Tagline */}
         <div 
+          data-tour="brand-header"
           className="flex items-center space-x-3.5 cursor-pointer group"
           onClick={() => handleTabClick('workspace')}
         >
@@ -56,7 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
         </div>
 
         {/* Desktop Navigation Tabs */}
-        <nav className="hidden lg:flex items-center space-x-2">
+        <nav data-tour="nav-tabs" className="hidden lg:flex items-center space-x-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -79,7 +81,19 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
 
         {/* Sandbox Status & Developer Links */}
         <div className="flex items-center space-x-3">
+          {onStartTour && (
+            <button
+              onClick={onStartTour}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 border-2 border-slate-900 text-xs font-mono font-bold text-slate-950 shadow-neo-sm hover:-translate-y-0.5 transition-all"
+              title="Start 15-Step Guided Tour"
+            >
+              <Compass className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Tour Guide</span>
+            </button>
+          )}
+
           <div 
+            data-tour="sandbox-status-badge"
             className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-emerald-50 border-2 border-emerald-800 text-emerald-950 text-xs font-mono font-bold shadow-[2px_2px_0px_0px_rgba(6,78,59,1)] cursor-help"
             title="Active PayPal Sandbox environment utilizing OAuth 2.0 and Orders v2 server capture"
           >
@@ -134,6 +148,18 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
               </button>
             );
           })}
+          {onStartTour && (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onStartTour();
+              }}
+              className="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-amber-400 text-slate-950 border-2 border-slate-900 shadow-neo-sm"
+            >
+              <Compass className="w-4 h-4 text-slate-950" />
+              <span>Take Interactive Tour (15 Steps)</span>
+            </button>
+          )}
           <div className="pt-2 border-t border-slate-200 flex justify-between">
             <a
               href="/docs"
