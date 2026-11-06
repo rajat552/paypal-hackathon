@@ -89,14 +89,14 @@ export const PolicyManager: React.FC = () => {
         <div className="relative z-10 max-w-3xl space-y-2">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-950 text-white font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(255,255,255,0.8)]">
             <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-            <span>DETERMINISTIC TRUST ENGINE</span>
+            <span>POLICY &amp; TRUST ENGINE</span>
           </div>
 
           <h2 className="font-display font-black text-2xl sm:text-4xl tracking-tight text-slate-950">
             Autonomous Spending Guardrails &amp; Policy
           </h2>
           <p className="text-xs sm:text-sm font-medium text-slate-900 max-w-2xl">
-            Large Language Models are probabilistic and susceptible to prompt injection. PayMesh AI removes payment authorization from the LLM entirely: deterministic rules run on the server before any PayPal Sandbox Order is created.
+            AI agents should not have direct authorization to charge funds. PayMesh AI evaluates spending policies on the server before any PayPal Sandbox Order is created, preventing unauthorized transactions.
           </p>
         </div>
       </div>
@@ -155,7 +155,7 @@ export const PolicyManager: React.FC = () => {
             {saved && (
               <div className="p-3.5 rounded-xl bg-emerald-100 border-2 border-emerald-800 text-emerald-950 text-xs font-mono font-bold flex items-center space-x-2 shadow-neo-sm animate-in fade-in">
                 <CheckCircle2 className="w-4 h-4 text-emerald-700 flex-shrink-0" />
-                <span>Deterministic spending policy saved and active across all agent runs.</span>
+                <span>Spending policy rules saved and active across all agent runs.</span>
               </div>
             )}
 
@@ -222,8 +222,8 @@ export const PolicyManager: React.FC = () => {
 
               <label className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border-2 border-slate-900 cursor-pointer shadow-neo-sm hover:bg-amber-50 transition-colors">
                 <div className="text-xs pr-4">
-                  <div className="font-bold text-slate-900">Strict Resource Scope Invariants</div>
-                  <div className="text-[11px] text-slate-600 mt-0.5">Enforce cryptographic binding between Bearer token and purchased dataset.</div>
+                  <div className="font-bold text-slate-900">Strict Resource Scope Enforcement</div>
+                  <div className="text-[11px] text-slate-600 mt-0.5">Ensure issued access tokens are strictly bound to their purchased dataset.</div>
                 </div>
                 <input
                   type="checkbox"
@@ -247,7 +247,7 @@ export const PolicyManager: React.FC = () => {
               ) : (
                 <>
                   <Check className="w-4 h-4 stroke-[2.5]" />
-                  <span>Update Deterministic Policy Rules</span>
+                  <span>Save Spending Policy</span>
                 </>
               )}
             </button>
@@ -262,7 +262,7 @@ export const PolicyManager: React.FC = () => {
                 <Lock className="w-4 h-4" />
               </div>
               <h3 className="font-display font-extrabold text-sm text-slate-900 uppercase tracking-wider">
-                Cryptographic Security Invariants
+                Security Principles &amp; Protections
               </h3>
             </div>
 
@@ -270,22 +270,22 @@ export const PolicyManager: React.FC = () => {
               <li className="flex items-start space-x-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-slate-900 block font-bold">No LLM Payment Authority</strong>
-                  <span className="text-[11px] text-slate-600">The model only suggests tasks; server-side code evaluates spending limits and approves PayPal checkout.</span>
+                  <strong className="text-slate-900 block font-bold">No Direct LLM Payment Authority</strong>
+                  <span className="text-[11px] text-slate-600">The AI model cannot initiate payments independently; server-side policies verify limits before any checkout step.</span>
                 </div>
               </li>
               <li className="flex items-start space-x-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-slate-900 block font-bold">Server-Calculated Purchase Units</strong>
-                  <span className="text-[11px] text-slate-600">Pricing is looked up directly in the database. Agent prompt parameters cannot tamper with transaction price.</span>
+                  <span className="text-[11px] text-slate-600">Pricing is looked up directly in the verified database. Agent prompt parameters cannot tamper with transaction price.</span>
                 </div>
               </li>
               <li className="flex items-start space-x-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-slate-900 block font-bold">Token &amp; Order ID Separation</strong>
-                  <span className="text-[11px] text-slate-600">Challenge ID (`chl_...`), PayPal Order ID, and Bearer token (`pm_live_...`) are distinct and cryptographically hashed.</span>
+                  <span className="text-[11px] text-slate-600">Challenge IDs, PayPal Order IDs, and Bearer access tokens are kept distinct and validated independently.</span>
                 </div>
               </li>
               <li className="flex items-start space-x-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
