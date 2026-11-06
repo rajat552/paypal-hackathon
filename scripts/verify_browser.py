@@ -70,10 +70,10 @@ async def run_browser_verification():
         print("PASS: Policy Manager loaded with 24-Hour Rolling Budget Utilization.")
 
         # Test updating policy
-        update_btn = page.locator("button:has-text('Update Deterministic Policy Rules')")
+        update_btn = page.locator("button:has-text('Save Spending Policy'), button:has-text('Update Deterministic Policy Rules')")
         await update_btn.first.click()
         await page.wait_for_timeout(1000)
-        print("PASS: Clicked 'Update Deterministic Policy Rules' and saved configuration.")
+        print("PASS: Clicked 'Save Spending Policy' and saved configuration.")
         await page.screenshot(path=str(screenshots_dir / "04_policy_manager.png"))
 
         # 5. Navigate to Data Catalogue
