@@ -74,13 +74,13 @@ export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void
         <div>
           <div className="inline-flex items-center space-x-2 px-3 py-0.5 rounded-full bg-blue-100 text-blue-900 border-2 border-slate-900 font-mono text-xs font-bold shadow-neo-sm mb-2">
             <Database className="w-3.5 h-3.5 text-brand-600" />
-            <span>PAYMESH DATA REGISTRY</span>
+            <span>RESOURCE &amp; DATA REGISTRY</span>
           </div>
           <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 tracking-tight">
             API &amp; Data Product Marketplace
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 font-medium">
-            Discover publisher datasets, hardware latency feeds, and machine-readable pricing contracts protected by L402.
+            Browse verified data feeds, benchmark datasets, and resources protected by L402 paywalls.
           </p>
         </div>
 
@@ -134,7 +134,7 @@ export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void
 
       {loading ? (
         <div className="p-16 text-center text-slate-500 font-mono text-sm bg-white border-2 border-slate-900 rounded-2xl shadow-neo">
-          // Loading data catalog from PostgreSQL / SQLite...
+          // Loading resource catalogue...
         </div>
       ) : filteredResources.length === 0 ? (
         <div className="p-16 text-center bg-white border-2 border-slate-900 rounded-2xl shadow-neo space-y-3">
@@ -183,7 +183,7 @@ export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void
                 {/* Available Offers / Plans */}
                 <div className="space-y-2.5 mb-5">
                   <span className="text-[11px] font-mono font-bold text-slate-500 uppercase tracking-wider block">
-                    Pre-negotiated Pricing Offers:
+                    Available Pricing Offers:
                   </span>
                   {res.offers.map((offer) => (
                     <div 
@@ -225,7 +225,7 @@ export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void
                       onClick={() => onSelectResource(res.slug)}
                       className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 border-2 border-slate-900 text-xs font-display font-black text-slate-950 shadow-neo-sm transition-all"
                     >
-                      <span>Dispatch Agent</span>
+                      <span>Run Agent</span>
                       <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                     </button>
                   )}
