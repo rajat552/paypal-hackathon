@@ -277,7 +277,7 @@ export const AnalyticsView: React.FC = () => {
       </div>
 
       {/* AG Grid Transaction Table Neo-Card */}
-      <div className="p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-4">
+      <div data-tour="settlement-ledger" className="p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-4">
         <div className="flex items-center justify-between pb-3 border-b-2 border-slate-100">
           <div className="flex items-center space-x-2">
             <span className="font-display font-extrabold text-base text-slate-900">
