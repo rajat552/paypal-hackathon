@@ -242,7 +242,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
           </h1>
 
           <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed max-w-2xl">
-            AI agents shouldn't hold credit cards. PayMesh AI empowers programmatic clients to negotiate machine-readable <strong>L402 payment challenges</strong>, enforce strict spending guardrails, and execute verified <strong>PayPal Sandbox Orders v2</strong> server captures.
+            Autonomous agents should not hold sensitive card credentials. PayMesh AI enables programmatic clients to negotiate machine-readable <strong>L402 payment challenges</strong>, apply server-enforced spending limits, and execute verified <strong>PayPal Sandbox Orders v2</strong> captures.
           </p>
 
           {/* Quick Metrics Bar */}
@@ -261,7 +261,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
             </div>
             <div className="p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
               <div className="font-display font-black text-xl text-indigo-600">L402 / MCP</div>
-              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Open Protocol</div>
+              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Open Protocols</div>
             </div>
           </div>
         </div>
@@ -273,10 +273,10 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
           <div className="flex items-center space-x-2">
             <Layers className="w-4 h-4 text-slate-700" />
             <h3 className="font-display font-bold text-sm text-slate-900 uppercase tracking-wider">
-              Select an AI Agent Mission Track
+              Select an AI Agent Scenario
             </h3>
           </div>
-          <span className="text-xs font-mono text-slate-500">Click track to auto-load prompt and policy</span>
+          <span className="text-xs font-mono text-slate-500">Click a scenario to load a sample prompt and spending limit</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -302,7 +302,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  Micro-purchase switch latency &amp; retail profiles ($0.05 / session)
+                  Micro-purchase switch latency &amp; retail profiles ($0.05 / query)
                 </p>
               </div>
             </div>
@@ -327,14 +327,14 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
               <div>
                 <div className="flex items-center space-x-2">
                   <span className="font-display font-extrabold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors">
-                    Economics &amp; Tech Intelligence
+                    Technology &amp; Market Intelligence
                   </span>
                   <span className="text-[10px] px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-mono font-bold">
                     PayMesh Wire
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  Pay-per-query machine access to real-time articles ($0.01 / request)
+                  Pay-per-query programmatic access to curated market intelligence ($0.01 / request)
                 </p>
               </div>
             </div>
@@ -376,7 +376,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
                   value={task}
                   onChange={(e) => setTask(e.target.value)}
                   className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl p-3.5 text-sm text-slate-900 font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
-                  placeholder="Describe data or intelligence requirement..."
+                  placeholder="Describe the data or market intelligence you want the agent to purchase..."
                 />
               </div>
 
@@ -474,7 +474,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
                 <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t-2 border-slate-100">
                   <div className="text-xs text-slate-600 font-mono flex items-center space-x-1.5">
                     <Lock className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Protected access locked until PayPal Sandbox capture</span>
+                    <span>Resource access is locked until payment is verified via PayPal Sandbox</span>
                   </div>
 
                   {recommendation.policy_allowed && (
@@ -484,7 +484,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
                       className="neo-button-blue py-2.5 px-5 flex items-center justify-center space-x-2 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
                     >
                       <CreditCard className="w-4 h-4" />
-                      <span>{status === 'PAYING' ? 'Capturing PayPal Order...' : 'Approve & Pay via PayPal Sandbox'}</span>
+                      <span>{status === 'PAYING' ? 'Capturing PayPal Order...' : 'Approve & Pay with PayPal Sandbox'}</span>
                       <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                     </button>
                   )}
@@ -634,9 +634,9 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
               <div className="text-slate-500 italic pt-6 text-center">
                 // Ready for execution.
                 <br />
-                // Select a preset mission or enter a prompt, then click "Dispatch Agent"
+                // Select a scenario or enter a prompt, then click "Dispatch Agent"
                 <br />
-                // to observe the live HTTP 402 handshake and PayPal capture.
+                // to observe the live HTTP 402 negotiation and PayPal Sandbox capture.
               </div>
             ) : (
               logs.map((log, idx) => {
@@ -732,7 +732,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
               )}
 
               <div className="text-[11px] text-slate-500 leading-relaxed font-sans">
-                🔒 <strong>Server-Side Capture:</strong> Authorizing will dispatch an OAuth 2.0 capture request directly to PayPal Sandbox Orders v2. Upon capture, a scoped cryptographic Bearer token will be granted immediately.
+                🔒 <strong>Server-Side Capture:</strong> Authorizing executes an OAuth 2.0 capture request directly against the PayPal Sandbox Orders v2 API. Once captured, a scoped Bearer token is issued to access the paid resource.
               </div>
             </div>
 
