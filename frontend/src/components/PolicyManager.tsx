@@ -85,7 +85,7 @@ export const PolicyManager: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Top Banner with warm gradient */}
-      <div className="relative overflow-hidden rounded-3xl border-2 border-slate-900 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 p-6 sm:p-8 shadow-neo text-slate-950">
+      <div data-tour="policy-header" className="relative overflow-hidden rounded-3xl border-2 border-slate-900 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 p-6 sm:p-8 shadow-neo text-slate-950">
         <div className="relative z-10 max-w-3xl space-y-2">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-950 text-white font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(255,255,255,0.8)]">
             <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
@@ -102,7 +102,7 @@ export const PolicyManager: React.FC = () => {
       </div>
 
       {/* Visual Budget Utilization Meter Card */}
-      <div className="p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-3">
+      <div data-tour="budget-gauge" className="p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-3">
         <div className="flex items-center justify-between text-xs font-mono font-bold">
           <div className="flex items-center space-x-2 text-slate-800">
             <Activity className="w-4 h-4 text-brand-600" />
@@ -136,7 +136,7 @@ export const PolicyManager: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Controls Form */}
-        <div className="lg:col-span-7 space-y-6">
+        <div data-tour="policy-form" className="lg:col-span-7 space-y-6">
           <form onSubmit={handleSave} className="p-6 sm:p-8 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-6">
             <div className="flex items-center justify-between pb-4 border-b-2 border-slate-100">
               <div className="flex items-center space-x-2.5">
