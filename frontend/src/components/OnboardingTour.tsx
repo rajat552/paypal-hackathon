@@ -404,11 +404,11 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   const progressPct = Math.round(((currentStepIndex + 1) / TOUR_STEPS.length) * 100);
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-auto">
+    <div className="fixed inset-0 pointer-events-auto" style={{ zIndex: 99990 }}>
       {/* 1. Backdrop Overlay with Spotlight Cutout */}
       <svg 
         className="absolute inset-0 w-full h-full pointer-events-none transition-all duration-300"
-        style={{ zIndex: 51 }}
+        style={{ zIndex: 99991 }}
       >
         <defs>
           <mask id="tour-spotlight-mask">
@@ -441,7 +441,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
         <div
           className="fixed pointer-events-none rounded-2xl border-2 border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.6)] transition-all duration-300"
           style={{
-            zIndex: 52,
+            zIndex: 99992,
             top: targetRect.top - 6,
             left: targetRect.left - 6,
             width: targetRect.width + 12,
@@ -450,13 +450,14 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
         />
       )}
 
-      {/* 2. Interactive Tour Popover Card */}
+      {/* 2. Interactive Tour Popover Card - Elevated with zIndex 99999 so it is 100% bright and highlighted above the backdrop */}
       <div
         ref={popoverRef}
         role="dialog"
         aria-label={`Onboarding Tour - Step ${currentStepIndex + 1} of ${TOUR_STEPS.length}`}
-        className="fixed z-53 w-full max-w-[420px] bg-white border-2 border-slate-900 rounded-3xl p-5 sm:p-6 shadow-neo-lg animate-neo-pop space-y-4"
+        className="fixed w-full max-w-[430px] bg-white border-2 border-slate-900 rounded-3xl p-5 sm:p-6 shadow-neo-lg animate-neo-pop space-y-4"
         style={{
+          zIndex: 99999,
           top: `${popoverPos.top}px`,
           left: `${popoverPos.left}px`,
         }}
@@ -476,9 +477,9 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
             <button
               onClick={handleSkip}
               className="px-2 py-0.5 rounded text-[11px] font-mono font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
-              title="Skip Tour"
+              title="Exit Tour"
             >
-              Skip
+              Exit
             </button>
             <button
               onClick={handleSkip}
@@ -514,18 +515,29 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
           </div>
         </div>
 
-        {/* Footer Navigation Buttons */}
+        {/* Footer Navigation Buttons: Exit Tour on Left, Back & Next on Right */}
         <div className="flex items-center justify-between pt-2 border-t-2 border-slate-100 gap-2">
           <button
-            onClick={handlePrev}
-            disabled={currentStepIndex === 0}
-            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-900 text-xs font-mono font-bold text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center space-x-1 shadow-neo-sm transition"
+            onClick={handleSkip}
+            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-700 hover:border-red-600 border-2 border-slate-900 text-xs font-mono font-bold text-slate-700 flex items-center space-x-1.5 shadow-neo-sm transition"
+            title="Exit Tour Anytime"
           >
-            <ChevronLeft className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Back</span>
+            <X className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>Exit Tour</span>
           </button>
 
           <div className="flex items-center space-x-2">
+            {currentStepIndex > 0 && (
+              <button
+                onClick={handlePrev}
+                className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-900 text-xs font-mono font-bold text-slate-800 flex items-center space-x-1 shadow-neo-sm transition"
+                title="Go Back to Previous Step"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Back</span>
+              </button>
+            )}
+
             <button
               onClick={handleNext}
               className="neo-button-amber py-2 px-4 text-xs font-black uppercase tracking-wider flex items-center space-x-1.5"
