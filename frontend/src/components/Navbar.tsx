@@ -47,9 +47,6 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onStart
               <span className="font-display font-black text-xl tracking-tight text-slate-900 group-hover:text-brand-600 transition-colors">
                 PayMesh<span className="text-amber-500">.AI</span>
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-300 text-slate-950 border-2 border-slate-900 font-mono font-bold shadow-[1px_1px_0px_0px_rgba(15,23,42,1)]">
-                PAYPAL AI 2026
-              </span>
             </div>
             <span className="text-xs text-slate-600 font-medium hidden sm:inline-block">
               A Trust &amp; Payment Infrastructure for Autonomous AI Commerce
