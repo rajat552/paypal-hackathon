@@ -89,13 +89,13 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
       <div className="pb-4 border-b-2 border-slate-900">
         <div className="inline-flex items-center space-x-2 px-3 py-0.5 rounded-full bg-amber-100 text-amber-950 border-2 border-slate-900 font-mono text-xs font-bold shadow-neo-sm mb-2">
           <ShoppingBag className="w-3.5 h-3.5 text-amber-600" />
-          <span>MERCHANT PUBLISHING STUDIO</span>
+          <span>MERCHANT STUDIO</span>
         </div>
         <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 tracking-tight">
-          Publish Data &amp; Configure L402 Offers
+          Publish Dataset or API
         </h2>
         <p className="text-xs sm:text-sm text-slate-600 font-medium">
-          Monetize proprietary datasets and APIs for autonomous AI agents via automated PayPal Sandbox micro-payments.
+          Monetize APIs and datasets for AI agents with automated PayPal Sandbox payments and L402 access tokens.
         </p>
       </div>
 
@@ -268,7 +268,7 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
                 className="w-full neo-button-amber py-3 px-6 flex items-center justify-center space-x-2 text-xs font-black uppercase tracking-wider disabled:opacity-50"
               >
                 <PlusCircle className="w-4 h-4 stroke-[2.5]" />
-                <span>{loading ? 'Publishing to Mesh...' : 'Publish Product & Activate L402 Paywall'}</span>
+                <span>{loading ? 'Publishing...' : 'Publish Resource & Activate L402 Offer'}</span>
               </button>
             </form>
           </div>
@@ -280,7 +280,7 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
             <div className="flex items-center space-x-2 pb-3 border-b-2 border-slate-100">
               <Eye className="w-4 h-4 text-slate-700" />
               <h3 className="font-display font-extrabold text-xs text-slate-900 uppercase tracking-wider">
-                Live AI Agent Card Preview
+                Catalogue Preview
               </h3>
             </div>
 
@@ -311,7 +311,7 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
             </div>
 
             <div className="text-[11px] font-mono text-slate-500 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
-              💡 <strong>Instant Activation:</strong> Once published, this resource immediately appears in the catalogue, generates machine-readable L402 challenge envelopes on access, and supports PayPal Sandbox checkout.
+              💡 <strong>Activation:</strong> Once published, this resource immediately appears in the catalogue, generates machine-readable L402 challenge envelopes on access, and supports PayPal Sandbox checkout.
             </div>
           </div>
         </div>
