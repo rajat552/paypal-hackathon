@@ -176,22 +176,9 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [popoverPos, setPopoverPos] = useState<{ top: number; left: number }>({ top: 100, left: 100 });
-  const [showWelcomePrompt, setShowWelcomePrompt] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
   const currentStep = TOUR_STEPS[currentStepIndex];
-
-  // 1. Check for first-time visitor on mount
-  useEffect(() => {
-    const tourCompleted = localStorage.getItem('paymesh_tour_completed');
-    const tourDismissed = localStorage.getItem('paymesh_tour_dismissed');
-    if (!tourCompleted && !tourDismissed && !isOpen) {
-      const timer = setTimeout(() => {
-        setShowWelcomePrompt(true);
-      }, 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
 
   // Reset to step 0 whenever tour is opened
   useEffect(() => {
@@ -327,77 +314,13 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
 
   const handleFinish = () => {
     localStorage.setItem('paymesh_tour_completed', 'true');
-    setShowWelcomePrompt(false);
     onClose();
   };
 
   const handleSkip = () => {
     localStorage.setItem('paymesh_tour_dismissed', 'true');
-    setShowWelcomePrompt(false);
     onClose();
   };
-
-  const handleStartFromPrompt = () => {
-    setShowWelcomePrompt(false);
-    setCurrentStepIndex(0);
-    onStartTour();
-  };
-
-  const handleDismissPrompt = () => {
-    localStorage.setItem('paymesh_tour_dismissed', 'true');
-    setShowWelcomePrompt(false);
-  };
-
-  // Render First-Visit Prompt Banner
-  if (showWelcomePrompt && !isOpen) {
-    return (
-      <aside 
-        aria-label="Welcome Tour Invitation"
-        className="fixed bottom-6 right-6 z-50 max-w-sm bg-white border-2 border-slate-900 rounded-2xl p-4 shadow-neo-lg animate-neo-pop space-y-3"
-      >
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="p-1.5 bg-amber-300 border-2 border-slate-900 rounded-lg text-slate-950 shadow-neo-sm">
-              <Compass className="w-4 h-4 animate-spin-slow" />
-            </div>
-            <div>
-              <h4 className="font-display font-extrabold text-sm text-slate-900">
-                New to PayMesh AI?
-              </h4>
-              <p className="text-[11px] text-slate-500 font-mono">15-Step Interactive Guided Tour</p>
-            </div>
-          </div>
-          <button
-            onClick={handleDismissPrompt}
-            className="p-1 text-slate-400 hover:text-slate-800 rounded"
-            aria-label="Dismiss tour prompt"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <p className="text-xs text-slate-600 leading-relaxed font-sans">
-          Take a 2-minute walkthrough exploring autonomous AI commerce, L402 payment challenges, server spending policies, and PayPal Sandbox settlement.
-        </p>
-
-        <div className="flex items-center space-x-2 pt-1">
-          <button
-            onClick={handleStartFromPrompt}
-            className="flex-1 neo-button-amber py-2 px-3 text-xs font-black uppercase tracking-wider flex items-center justify-center space-x-1.5"
-          >
-            <span>Start Tour</span>
-            <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
-          </button>
-          <button
-            onClick={handleDismissPrompt}
-            className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-900 text-xs font-mono font-bold text-slate-700 transition"
-          >
-            Skip
-          </button>
-        </div>
-      </aside>
-    );
-  }
 
   if (!isOpen || !currentStep) return null;
 
