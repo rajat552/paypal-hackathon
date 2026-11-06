@@ -50,13 +50,13 @@ export const App: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center pb-8 border-b-2 border-slate-100">
             <div className="md:col-span-7 space-y-2">
               <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-md bg-amber-300 text-slate-950 border-2 border-slate-900 font-mono text-[11px] font-bold shadow-neo-sm">
-                <span>CONNECTING THE AUTONOMOUS TECH ECOSYSTEM</span>
+                <span>DEVELOPER PLATFORM &amp; STANDARDS</span>
               </div>
               <h3 className="font-display font-black text-xl sm:text-2xl text-slate-900 tracking-tight">
-                Built for Developers, AI Agents &amp; Real Payments
+                Built for Developers, AI Agents &amp; Verified Payments
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-xl leading-relaxed">
-                PayMesh AI merges HTTP 402 challenge negotiation with real PayPal Sandbox Orders v2 capture, deterministic spending policy invariants, and the Model Context Protocol (MCP) standard.
+                PayMesh AI connects HTTP 402 challenge negotiation with PayPal Sandbox Orders v2 capture, server-enforced spending policies, and the Model Context Protocol (MCP) standard.
               </p>
             </div>
 
