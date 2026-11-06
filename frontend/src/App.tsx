@@ -5,6 +5,7 @@ import { CatalogueView } from './components/CatalogueView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { PublisherConsole } from './components/PublisherConsole';
 import { PolicyManager } from './components/PolicyManager';
+import { OnboardingTour } from './components/OnboardingTour';
 import { 
   Terminal, 
   Database, 
@@ -15,21 +16,31 @@ import {
   ShieldCheck, 
   CreditCard,
   FileCode,
-  BookOpen
+  BookOpen,
+  Compass
 } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('workspace');
   const [targetResourceSlug, setTargetResourceSlug] = useState<string | null>(null);
+  const [isTourOpen, setIsTourOpen] = useState(false);
 
   const handleSelectResource = (slug: string) => {
     setTargetResourceSlug(slug);
     setActiveTab('workspace');
   };
 
+  const handleStartTour = () => {
+    setIsTourOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-blueprint-grid text-slate-900 flex flex-col font-sans selection:bg-amber-300 selection:text-slate-950">
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Navbar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        onStartTour={handleStartTour}
+      />
       
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 sm:py-10 w-full">
         {activeTab === 'workspace' && (
@@ -43,6 +54,14 @@ export const App: React.FC = () => {
         {activeTab === 'analytics' && <AnalyticsView />}
         {activeTab === 'publisher' && <PublisherConsole onNavigateToCatalogue={() => setActiveTab('catalogue')} />}
       </main>
+
+      <OnboardingTour
+        activeTab={activeTab}
+        onNavigateTab={setActiveTab}
+        isOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
+        onStartTour={handleStartTour}
+      />
 
       {/* Developer Ecosystem Footer inspired by MLH Reference Screenshot 3 */}
       <footer className="border-t-2 border-slate-900 bg-white py-12 text-slate-800 mt-16 shadow-inner">
@@ -105,6 +124,15 @@ export const App: React.FC = () => {
                 <CreditCard className="w-4 h-4 text-brand-500" />
                 <span>PayPal Sandbox</span>
               </a>
+
+              <button
+                onClick={handleStartTour}
+                className="h-11 px-3 bg-amber-400 hover:bg-amber-300 border-2 border-slate-900 rounded-xl shadow-neo-sm flex items-center space-x-2 text-xs font-mono font-bold text-slate-950 hover:-translate-y-0.5 transition-all cursor-pointer"
+                title="Start 15-Step Guided Tour"
+              >
+                <Compass className="w-4 h-4" />
+                <span>Tour Guide</span>
+              </button>
             </div>
           </div>
 
