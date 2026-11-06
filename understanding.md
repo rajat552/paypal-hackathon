@@ -422,25 +422,25 @@ The frontend is an ultra-responsive, single-page application built on **React 18
 | **`AgentWorkspace`** | Quick Goal Chip (Wooting) | `onClick` | Pre-fills task and budget | None | `task = ...`, `budget = 0.10` |
 | **`AgentWorkspace`** | Quick Goal Chip (Actuation) | `onClick` | Pre-fills task and budget | None | `task = ...`, `budget = 0.15` |
 | **`AgentWorkspace`** | Quick Goal Chip (Budget) | `onClick` | Pre-fills task and budget | None | `task = ...`, `budget = 0.08` |
-| **`AgentWorkspace`** | "Dispatch Agent" Button | `onClick` | Initiates autonomous run | `POST /api/v1/agent/runs` | `status = 'DISCOVERING' -> 'AWAITING_APPROVAL'` |
-| **`AgentWorkspace`** | "Authorize Payment" Button | `onClick` | Opens PayPal checkout modal | None | `showCheckoutModal = true` |
-| **`AgentWorkspace`** | "Reject & Abort" Button | `onClick` | Cancels pending transaction | None | `status = 'IDLE'` |
-| **`AgentWorkspace`** | "Confirm & Capture with PayPal" | `onClick` | Executes PayPal Order capture & unlocks content | `POST /api/v1/payment-sessions`<br>`POST /.../capture`<br>`GET /.../content` | `status = 'PAYING' -> 'COMPLETED'`, `bearerToken`, `unlockedData` |
+| **`AgentWorkspace`** | "Dispatch Agent" / "Run Agent" | `onClick` | Initiates autonomous run | `POST /api/v1/agent/runs` | `status = 'DISCOVERING' -> 'AWAITING_APPROVAL'` |
+| **`AgentWorkspace`** | "Approve & Pay with PayPal Sandbox" | `onClick` | Opens PayPal checkout modal | None | `showCheckoutModal = true` |
+| **`AgentWorkspace`** | "Cancel" Button | `onClick` | Closes modal | None | `showCheckoutModal = false` |
+| **`AgentWorkspace`** | "Authorize & Pay" / "Verify & Capture" | `onClick` | Executes PayPal Order capture & unlocks content | `POST /api/v1/payment-sessions`<br>`POST /.../capture`<br>`GET /.../content` | `status = 'PAYING' -> 'COMPLETED'`, `bearerToken`, `unlockedData` |
 | **`AgentWorkspace`** | Modal "Cancel" Button | `onClick` | Closes modal | None | `showCheckoutModal = false` |
 | **`AgentWorkspace`** | "Copy Token" Button | `onClick` | Copies Bearer token to clipboard | None (Clipboard API) | `copiedToken = true` |
-| **`AgentWorkspace`** | "Copy Audit Trace" Button | `onClick` | Copies terminal log to clipboard | None (Clipboard API) | `copiedLog = true` |
+| **`AgentWorkspace`** | "Copy All Log Entries" Button | `onClick` | Copies terminal log to clipboard | None (Clipboard API) | `copiedLog = true` |
 | **`AgentWorkspace`** | "Clear Terminal" Button | `onClick` | Clears all log entries | None | `logs = []` |
 | **`PolicyManager`** | Budget Refresh Button | `onClick` | Re-fetches 24h spend metrics | `GET /api/v1/agent/policy/config` | `currentUtilized`, `utilizedPct` |
-| **`PolicyManager`** | "Update Policy Rules" Button | `onSubmit` | Persists spending limits | `PUT /api/v1/agent/policy/config` | `saved = true`, updates engine |
+| **`PolicyManager`** | "Save Spending Policy" Button | `onSubmit` | Persists spending limits | `PUT /api/v1/agent/policy/config` | `saved = true`, updates engine |
 | **`CatalogueView`** | Category Filter Chips | `onClick` | Filters list by provider | None | `selectedCategory = <id>` |
 | **`CatalogueView`** | Search Input Clear (X) | `onClick` | Clears search input | None | `searchTerm = ''` |
 | **`CatalogueView`** | Catalogue Refresh Button | `onClick` | Re-fetches marketplace items | `GET /api/v1/catalogue` | `resources = [...]` |
 | **`CatalogueView`** | "HTTP 402" Link | `onClick` | Opens raw challenge endpoint | Browser GET | None |
-| **`CatalogueView`** | "Dispatch Agent" Button | `onClick` | Sends slug to workspace | None | `targetResourceSlug = slug`, `activeTab = 'workspace'` |
+| **`CatalogueView`** | "Run Agent" Button | `onClick` | Sends slug to workspace | None | `targetResourceSlug = slug`, `activeTab = 'workspace'` |
 | **`AnalyticsView`** | "Export CSV" Button | `onClick` | Generates & downloads CSV | None (Browser Blob) | `exported = true` |
 | **`AnalyticsView`** | Analytics Refresh Button | `onClick` | Refreshes KPI and ledger | `GET /publisher/analytics/summary`<br>`GET /publisher/analytics/transactions` | `summary`, `transactions` |
 | **`PublisherConsole`**| "Auto Slug" Button | `onClick` | Formats title into valid slug | None | `slug = formatted` |
-| **`PublisherConsole`**| "Publish Data Product" Button| `onSubmit` | Creates resource & offer | `POST /api/v1/publisher/resources`<br>`POST /.../offers` | `message = success`, resets form |
+| **`PublisherConsole`**| "Publish Resource & Activate L402 Offer" | `onSubmit` | Creates resource & offer | `POST /api/v1/publisher/resources`<br>`POST /.../offers` | `message = success`, resets form |
 | **`PublisherConsole`**| "View in Catalogue" Link | `onClick` | Navigates to catalogue view | None | `activeTab = 'catalogue'` |
 
 ---
