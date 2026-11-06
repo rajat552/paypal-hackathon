@@ -177,13 +177,13 @@ export const AnalyticsView: React.FC = () => {
         <div>
           <div className="inline-flex items-center space-x-2 px-3 py-0.5 rounded-full bg-emerald-100 text-emerald-950 border-2 border-slate-900 font-mono text-xs font-bold shadow-neo-sm mb-2">
             <BarChart3 className="w-3.5 h-3.5 text-emerald-700" />
-            <span>AG GRID ENTERPRISE INTEGRATION</span>
+            <span>SETTLEMENT LEDGER</span>
           </div>
           <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 tracking-tight">
             Financial Ledger &amp; Conversion Analytics
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 font-medium">
-            Immutable audit record of executed PayPal Sandbox Orders v2 captures and machine usage events.
+            Audit record of executed PayPal Sandbox Orders v2 captures and agent usage events.
           </p>
         </div>
 
@@ -228,7 +228,7 @@ export const AnalyticsView: React.FC = () => {
           <div className="text-2xl font-black text-slate-900 font-mono">
             {summary ? summary.captured_transactions_count : 0}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">PayPal Verified</div>
+          <div className="text-[10px] text-slate-500 font-mono mt-1">Captured Orders</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border-2 border-slate-900 shadow-neo">
@@ -239,7 +239,7 @@ export const AnalyticsView: React.FC = () => {
           <div className="text-2xl font-black text-slate-900 font-mono">
             {summary ? summary.active_entitlements_count : 0}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">Active Bearer Tokens</div>
+          <div className="text-[10px] text-slate-500 font-mono mt-1">Active Tokens</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border-2 border-slate-900 shadow-neo">
@@ -250,7 +250,7 @@ export const AnalyticsView: React.FC = () => {
           <div className="text-2xl font-black text-slate-900 font-mono">
             {summary ? summary.unique_agents_count : 0}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">Autonomous Buyers</div>
+          <div className="text-[10px] text-slate-500 font-mono mt-1">Unique Agents</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border-2 border-slate-900 shadow-neo">
@@ -261,7 +261,7 @@ export const AnalyticsView: React.FC = () => {
           <div className="text-2xl font-black text-slate-900 font-mono">
             {summary ? summary.conversion_rate_pct : 100}%
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">Challenge to Capture</div>
+          <div className="text-[10px] text-slate-500 font-mono mt-1">Challenge Conversion</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border-2 border-slate-900 shadow-neo">
@@ -272,7 +272,7 @@ export const AnalyticsView: React.FC = () => {
           <div className="text-2xl font-black text-slate-900 font-mono">
             {summary ? summary.total_usage_events : 0}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">Protected Exchanges</div>
+          <div className="text-[10px] text-slate-500 font-mono mt-1">Resource Requests</div>
         </div>
       </div>
 
@@ -281,10 +281,10 @@ export const AnalyticsView: React.FC = () => {
         <div className="flex items-center justify-between pb-3 border-b-2 border-slate-100">
           <div className="flex items-center space-x-2">
             <span className="font-display font-extrabold text-base text-slate-900">
-              Verified PayPal Sandbox Financial Ledger
+              PayPal Sandbox Settlement Ledger
             </span>
             <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
-              Real-Time Sync
+              Live Database
             </span>
           </div>
           <span className="text-xs text-slate-600 font-mono font-bold">
