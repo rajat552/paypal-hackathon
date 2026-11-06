@@ -99,7 +99,7 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+      <div data-tour="publisher-form" className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         {/* Form Column */}
         <div className="md:col-span-7">
           <div className="p-6 sm:p-8 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-6">
