@@ -199,7 +199,7 @@ export const PolicyManager: React.FC = () => {
                     className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl pl-8 pr-3.5 py-2.5 text-sm text-slate-900 font-mono font-bold focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
                   />
                 </div>
-                <span className="text-[11px] text-slate-500 mt-1.5 block font-medium">24-hour rolling expenditure quota.</span>
+                <span className="text-[11px] text-slate-500 mt-1.5 block font-medium">24-hour rolling expenditure quota across all agent transactions.</span>
               </div>
             </div>
 
@@ -210,8 +210,8 @@ export const PolicyManager: React.FC = () => {
               
               <label className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border-2 border-slate-900 cursor-pointer shadow-neo-sm hover:bg-amber-50 transition-colors">
                 <div className="text-xs pr-4">
-                  <div className="font-bold text-slate-900">Prompt-Injection Sanitization</div>
-                  <div className="text-[11px] text-slate-600 mt-0.5">Treat external data provider payloads as untrusted strings.</div>
+                  <div className="font-bold text-slate-900">Prompt-Injection Defense &amp; Sanitization</div>
+                  <div className="text-[11px] text-slate-600 mt-0.5">Inspect and sanitize external publisher payloads before passing them to the AI agent.</div>
                 </div>
                 <input
                   type="checkbox"
@@ -223,8 +223,8 @@ export const PolicyManager: React.FC = () => {
 
               <label className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border-2 border-slate-900 cursor-pointer shadow-neo-sm hover:bg-amber-50 transition-colors">
                 <div className="text-xs pr-4">
-                  <div className="font-bold text-slate-900">Strict Resource Scope Enforcement</div>
-                  <div className="text-[11px] text-slate-600 mt-0.5">Ensure issued access tokens are strictly bound to their purchased dataset.</div>
+                  <div className="font-bold text-slate-900">Strict Resource Scope Binding</div>
+                  <div className="text-[11px] text-slate-600 mt-0.5">Ensure issued Bearer tokens are cryptographically bound to their specific purchased dataset.</div>
                 </div>
                 <input
                   type="checkbox"
