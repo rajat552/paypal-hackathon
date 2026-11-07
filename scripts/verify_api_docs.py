@@ -45,8 +45,8 @@ def verify_api_docs_click():
         print("PASS: Tour dialog is NOT present on the API docs tab.")
 
         # Take screenshot of the Swagger UI tab
-        new_page.screenshot(path="docs/assets/screenshots/api_docs_swagger_ui.png")
-        print("Saved screenshot to docs/assets/screenshots/api_docs_swagger_ui.png")
+        new_page.screenshot(path="assets/screenshots/api_docs_swagger_ui.png")
+        print("Saved screenshot to assets/screenshots/api_docs_swagger_ui.png")
 
         browser.close()
         print("ALL API DOCS CHECKS PASSED!")
