@@ -389,7 +389,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
         ref={popoverRef}
         role="dialog"
         aria-label={`Onboarding Tour - Step ${currentStepIndex + 1} of ${TOUR_STEPS.length}`}
-        className="fixed w-full max-w-[430px] bg-white border-2 border-slate-900 rounded-3xl p-5 sm:p-6 shadow-neo-lg animate-neo-pop space-y-4"
+        className="fixed w-[calc(100vw-32px)] sm:w-full max-w-[430px] bg-white border-2 border-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-neo-lg animate-neo-pop space-y-3.5 sm:space-y-4"
         style={{
           zIndex: 99999,
           top: `${popoverPos.top}px`,
