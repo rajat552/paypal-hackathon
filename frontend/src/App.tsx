@@ -6,6 +6,7 @@ import { AnalyticsView } from './components/AnalyticsView';
 import { PublisherConsole } from './components/PublisherConsole';
 import { PolicyManager } from './components/PolicyManager';
 import { OnboardingTour } from './components/OnboardingTour';
+import { NotFound } from './components/NotFound';
 import { 
   Terminal, 
   Database, 
@@ -22,17 +23,59 @@ import {
 
 const VALID_TABS = ['workspace', 'policy', 'catalogue', 'analytics', 'publisher'];
 
+// Helper to check if current pathname or hash is an invalid route (404)
+const isRouteNotFound = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  const pathname = window.location.pathname.replace(/\/+$/, '') || '/';
+  const hash = window.location.hash.replace(/^#/, '').toLowerCase();
+
+  // Explicit /404 path or #404 hash
+  if (pathname === '/404' || hash === '404') {
+    return true;
+  }
+
+  // Root path or index.html
+  if (pathname === '/' || pathname === '/index.html') {
+    // If there is a non-empty hash, it must be in VALID_TABS
+    if (hash && !VALID_TABS.includes(hash)) {
+      return true;
+    }
+    return false;
+  }
+
+  // If path directly matches one of our valid tabs (e.g. /workspace, /policy)
+  const directTab = pathname.replace(/^\//, '').toLowerCase();
+  if (VALID_TABS.includes(directTab)) {
+    return false;
+  }
+
+  // Any other unknown path is a 404
+  return true;
+};
+
 export const App: React.FC = () => {
-  // Read initial tab from URL hash (e.g. #publisher) or localStorage, defaulting to 'workspace'
+  // Read initial tab from URL hash (e.g. #publisher), direct pathname, or localStorage
   const getInitialTab = (): string => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.replace('#', '').toLowerCase();
       if (VALID_TABS.includes(hash)) return hash;
+
+      const directTab = window.location.pathname.replace(/^\//, '').toLowerCase();
+      if (VALID_TABS.includes(directTab)) return directTab;
+
       const saved = localStorage.getItem('paymesh_active_tab');
       if (saved && VALID_TABS.includes(saved)) return saved;
     }
     return 'workspace';
   };
+
+  const [isNotFound, setIsNotFound] = useState<boolean>(isRouteNotFound);
+  const [currentPath, setCurrentPath] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.pathname}${window.location.hash}`;
+    }
+    return '/';
+  });
 
   const [activeTab, setActiveTabState] = useState<string>(getInitialTab);
   const [targetResource, setTargetResource] = useState<TargetResourcePayload | null>(null);
@@ -48,26 +91,77 @@ export const App: React.FC = () => {
   });
 
   const setActiveTab = (tab: string) => {
+    setIsNotFound(false);
     setActiveTabState(tab);
     if (typeof window !== 'undefined') {
       localStorage.setItem('paymesh_active_tab', tab);
-      if (window.location.hash !== `#${tab}`) {
+      if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+        window.history.pushState(null, '', `/#${tab}`);
+        setCurrentPath(`/#${tab}`);
+      } else if (window.location.hash !== `#${tab}`) {
         window.location.hash = tab;
+        setCurrentPath(`/#${tab}`);
       }
     }
   };
 
-  // Sync tab with browser back/forward history navigation
+  const handleBackToHome = () => {
+    setIsNotFound(false);
+    setActiveTab('workspace');
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', '/#workspace');
+      setCurrentPath('/#workspace');
+    }
+  };
+
+  const handleGoBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+      setTimeout(() => {
+        if (isRouteNotFound()) {
+          handleBackToHome();
+        } else {
+          setIsNotFound(false);
+        }
+      }, 150);
+    } else {
+      handleBackToHome();
+    }
+  };
+
+  const handleNavigateTab = (tab: string) => {
+    setIsNotFound(false);
+    setActiveTab(tab);
+  };
+
+  // Sync tab with browser back/forward history navigation and hash changes
   React.useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (VALID_TABS.includes(hash)) {
-        setActiveTabState(hash);
-        localStorage.setItem('paymesh_active_tab', hash);
+    const handleLocationChange = () => {
+      const notFound = isRouteNotFound();
+      setIsNotFound(notFound);
+      setCurrentPath(`${window.location.pathname}${window.location.hash}`);
+
+      if (!notFound) {
+        const hash = window.location.hash.replace('#', '').toLowerCase();
+        if (VALID_TABS.includes(hash)) {
+          setActiveTabState(hash);
+          localStorage.setItem('paymesh_active_tab', hash);
+        } else {
+          const directTab = window.location.pathname.replace(/^\//, '').toLowerCase();
+          if (VALID_TABS.includes(directTab)) {
+            setActiveTabState(directTab);
+            localStorage.setItem('paymesh_active_tab', directTab);
+          }
+        }
       }
     };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
   }, []);
 
   const handleSelectResource = (target: TargetResourcePayload) => {
@@ -80,24 +174,35 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blueprint-grid text-slate-900 flex flex-col font-sans selection:bg-amber-300 selection:text-slate-950">
+    <div className="min-h-screen bg-blueprint-grid text-slate-900 flex flex-col font-sans selection:bg-amber-300 selection:text-slate-950 overflow-x-hidden w-full">
       <Navbar 
-        activeTab={activeTab} 
+        activeTab={isNotFound ? '' : activeTab} 
         setActiveTab={setActiveTab} 
         onStartTour={handleStartTour}
       />
       
-      <main className="flex-1 max-w-7xl mx-auto px-4 py-8 sm:py-10 w-full">
-        {activeTab === 'workspace' && (
-          <AgentWorkspace 
-            targetResource={targetResource} 
-            onClearTarget={() => setTargetResource(null)} 
+      <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-10 w-full">
+        {isNotFound ? (
+          <NotFound 
+            onNavigateHome={handleBackToHome}
+            onGoBack={handleGoBack}
+            onNavigateTab={handleNavigateTab}
+            currentPath={currentPath}
           />
+        ) : (
+          <>
+            {activeTab === 'workspace' && (
+              <AgentWorkspace 
+                targetResource={targetResource} 
+                onClearTarget={() => setTargetResource(null)} 
+              />
+            )}
+            {activeTab === 'policy' && <PolicyManager />}
+            {activeTab === 'catalogue' && <CatalogueView onSelectResource={handleSelectResource} />}
+            {activeTab === 'analytics' && <AnalyticsView />}
+            {activeTab === 'publisher' && <PublisherConsole onNavigateToCatalogue={() => setActiveTab('catalogue')} />}
+          </>
         )}
-        {activeTab === 'policy' && <PolicyManager />}
-        {activeTab === 'catalogue' && <CatalogueView onSelectResource={handleSelectResource} />}
-        {activeTab === 'analytics' && <AnalyticsView />}
-        {activeTab === 'publisher' && <PublisherConsole onNavigateToCatalogue={() => setActiveTab('catalogue')} />}
       </main>
 
       <OnboardingTour
