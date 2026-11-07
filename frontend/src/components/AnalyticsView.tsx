@@ -211,7 +211,7 @@ export const AnalyticsView: React.FC = () => {
             Financial Ledger &amp; Conversion Analytics
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 font-medium">
-            Audit record of executed PayPal Sandbox Orders v2 captures and agent usage events.
+            Real-time audit record of executed PayPal Sandbox Orders v2 captures and verified access events.
           </p>
         </div>
 
@@ -284,7 +284,7 @@ export const AnalyticsView: React.FC = () => {
           <div className="text-2xl font-black text-slate-900 font-mono">
             {summary ? summary.unique_agents_count : 0}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">Unique Agents</div>
+          <div className="text-[10px] text-slate-500 font-mono mt-1">Registered Agents</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border-2 border-slate-900 shadow-neo">
@@ -295,18 +295,18 @@ export const AnalyticsView: React.FC = () => {
           <div className="text-2xl font-black text-slate-900 font-mono">
             {summary ? summary.conversion_rate_pct : 100}%
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">Challenge Conversion</div>
+          <div className="text-[10px] text-slate-500 font-mono mt-1">Payment Conversion</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border-2 border-slate-900 shadow-neo">
           <div className="flex items-center space-x-1.5 text-slate-600 text-xs mb-1 font-mono font-bold">
             <Activity className="w-4 h-4 text-purple-600" />
-            <span>API Calls</span>
+            <span>Protected APIs</span>
           </div>
           <div className="text-2xl font-black text-slate-900 font-mono">
             {summary ? summary.total_usage_events : 0}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">Resource Requests</div>
+          <div className="text-[10px] text-slate-500 font-mono mt-1">Protected API Requests</div>
         </div>
       </div>
 
