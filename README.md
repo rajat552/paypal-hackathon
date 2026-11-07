@@ -52,7 +52,7 @@ Every screenshot below reflects the genuine running application in its authentic
 ### 1. AI Commerce Agent Studio & Mission Control
 The unified interface where developers and autonomous buyer agents formulate tasks, enforce spending policies, review tool trace logs, and inspect protocol state transitions in real time.
 
-![AI Commerce Agent Workspace](docs/assets/screenshots/01-agent-workspace.png)
+![AI Commerce Agent Workspace](assets/screenshots/01-agent-workspace.png)
 *Figure 1: PayMesh AI workspace with research goal formulate input, spending policy ceilings, and the live Protocol Inspector terminal.*
 
 ---
@@ -60,7 +60,7 @@ The unified interface where developers and autonomous buyer agents formulate tas
 ### 2. Machine-Readable L402 Challenge & PayPal Gateway
 When an agent accesses monetized datasets without credentials, the gateway issues an authoritative `HTTP 402 Payment Required` challenge. The agent's deterministic spending engine evaluates the pre-negotiated offer and triggers the PayPal Sandbox Orders v2 checkout lifecycle.
 
-![L402 Challenge and PayPal Gateway](docs/assets/screenshots/02-l402-challenge.png)
+![L402 Challenge and PayPal Gateway](assets/screenshots/02-l402-challenge.png)
 *Figure 2: Real-time HTTP 402 Challenge card presenting the verified offer, deterministic policy clearance, and the PayPal Sandbox approval action.*
 
 ---
@@ -68,7 +68,7 @@ When an agent accesses monetized datasets without credentials, the gateway issue
 ### 3. Decrypted Intelligence & Channel3 Product Data
 Upon server-side capture of the PayPal transaction, a cryptographic scoped Bearer token (`pm_live_...`) is minted, unlocking normalized Channel3 hardware latency benchmarks with direct retailer links.
 
-![Unlocked Channel3 Hardware Intelligence](docs/assets/screenshots/03-unlocked-intelligence.png)
+![Unlocked Channel3 Hardware Intelligence](assets/screenshots/03-unlocked-intelligence.png)
 *Figure 3: Unlocked dataset presentation displaying measured switch latencies, retail pricing, AI market synthesis, and Bearer token copy utility.*
 
 ---
@@ -76,7 +76,7 @@ Upon server-side capture of the PayPal transaction, a cryptographic scoped Beare
 ### 4. Deterministic Trust & Spending Policy Engine
 Guardrails that prevent probabilistic LLM agents from runaway spending or falling victim to prompt injection. Server-enforced financial limits evaluate database records independently of the model.
 
-![Deterministic Policy Manager](docs/assets/screenshots/04-spending-policy.png)
+![Deterministic Policy Manager](assets/screenshots/04-spending-policy.png)
 *Figure 4: Spending Policy Engine showing per-transaction ceilings, 24-hour daily rolling caps, prompt-injection sanitization, and security invariants.*
 
 ---
@@ -84,7 +84,7 @@ Guardrails that prevent probabilistic LLM agents from runaway spending or fallin
 ### 5. API & Data Marketplace Catalogue
 A machine-readable registry where data providers list intelligence datasets, hardware benchmarks, and pricing offers for programmatic discovery.
 
-![API and Data Catalogue](docs/assets/screenshots/05-marketplace-catalogue.png)
+![API and Data Catalogue](assets/screenshots/05-marketplace-catalogue.png)
 *Figure 5: Dataset marketplace featuring live search, pricing tier summaries, raw HTTP 402 endpoint testing, and one-click agent dispatch.*
 
 ---
@@ -92,7 +92,7 @@ A machine-readable registry where data providers list intelligence datasets, har
 ### 6. AG Grid Financial Ledger & KPI Analytics
 Enterprise-grade financial analytics tracking captured transaction volume, active entitlements, conversion rates, and immutable PayPal capture IDs.
 
-![AG Grid Financial Ledger](docs/assets/screenshots/06-financial-ledger.png)
+![AG Grid Financial Ledger](assets/screenshots/06-financial-ledger.png)
 *Figure 6: Interactive AG Grid financial ledger with sorting, filtering, CSV export, and real-time PayPal Sandbox capture verification.*
 
 ---
@@ -100,7 +100,7 @@ Enterprise-grade financial analytics tracking captured transaction volume, activ
 ### 7. Merchant Publishing Studio
 A self-service portal for third-party data providers to register new datasets, set pricing tiers, and generate live AI agent card previews.
 
-![Merchant Studio](docs/assets/screenshots/07-merchant-studio.png)
+![Merchant Studio](assets/screenshots/07-merchant-studio.png)
 *Figure 7: Merchant publishing interface with custom slug generator, provider selector, offer pricing models, and instant live card preview.*
 
 ---
@@ -122,7 +122,7 @@ The world is transitioning to autonomous software agents capable of conducting r
 - **Dual Persistence Architecture**: Relational models (PostgreSQL/SQLite) manage transactional session states, while **MongoDB Atlas** provides immutable audit logging and document storage.
 - **Cryptographic Token Separation**: Challenge IDs, PayPal Order IDs, and Bearer Tokens are strictly separated. Only salted HMAC-SHA256 hashes of `pm_live_...` tokens are stored.
 - **Model Context Protocol (MCP)**: Native integration enabling Claude Desktop and MCP-compliant autonomous runtimes to discover, negotiate, and unlock paid data natively.
-- **Remotion Pitch Composition**: Full 60s 1080p programmatic video pitch rendered natively via Remotion React code in `remotion/`.
+- **Interactive Onboarding Walkthrough**: A guided 15-step interactive tour greeting users on first launch, covering end-to-end workflows from agent goal prompt to PayPal Sandbox capture.
 
 ---
 
@@ -130,16 +130,16 @@ The world is transitioning to autonomous software agents capable of conducting r
 
 | Feature | Description | Architecture / Implementation |
 | :--- | :--- | :--- |
-| **PayMesh L402 Protocol** | Returns standardized `HTTP 402 Payment Required` envelopes with challenge IDs, resource metadata, server-derived pricing offers, and settlement endpoints. | [`backend/app/services/challenge_service.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/services/challenge_service.py) |
-| **PayPal Orders v2 Capture** | Genuine PayPal Sandbox integration: OAuth 2.0 token acquisition, purchase unit creation, approval flow, and server-side capture verification. | [`backend/app/services/paypal_gateway.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/services/paypal_gateway.py) |
-| **PayPal Webhook Receiver** | Dedicated webhook handler receiving real-time asynchronous PayPal events (`PAYMENT.CAPTURE.COMPLETED`), acknowledging `200 OK`, and logging to MongoDB. | [`backend/app/api/v1/routes/payments.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/api/v1/routes/payments.py) |
-| **Deterministic Spending Engine** | Enforces hard ceilings per transaction, rolling 24-hour budgets, and currency matching. The LLM cannot alter amounts or bypass rules. | [`backend/app/agent/policy.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/agent/policy.py) |
-| **Google Gemini & Multi-LLM** | Native Google Gemini 2.5 Flash / 3.8 Flash live integration (`AI_PROVIDER=gemini`) alongside OpenAI GPT-4o-mini and Claude fallback. | [`backend/app/agent/llm_client.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/agent/llm_client.py) |
-| **MongoDB Atlas Audit Ledger** | Persistent document and event tracking in MongoDB Atlas `cohesora` cluster (`auditevents` collection) with TLS `certifi` verification. | [`backend/app/db/mongodb.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/db/mongodb.py) |
-| **Model Context Protocol (MCP)** | Standardized server exposed at `/api/v1/agent/mcp/manifest` allowing any MCP-compliant agent to discover and purchase datasets programmatically. | [`backend/app/mcp/server.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/mcp/server.py) |
-| **Channel3 Intelligence** | Integrated product data provider offering retail hardware switch profiles, latency benchmarks, and verified retailer links. | [`backend/app/services/channel3_client.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/services/channel3_client.py) |
-| **AG Grid Financial Ledger** | Enterprise AG Grid Community table providing financial auditing, real-time KPI aggregations, and PayPal capture tracking with CSV export. | [`frontend/src/components/AnalyticsView.tsx`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/frontend/src/components/AnalyticsView.tsx) |
-| **Remotion Programmatic Video** | 60-second 1080p full video pitch demo rendered completely via Remotion React components in `remotion/`. | [`remotion/src/PayMeshDemo.tsx`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/remotion/src/PayMeshDemo.tsx) |
+| **PayMesh L402 Protocol** | Returns standardized `HTTP 402 Payment Required` envelopes with challenge IDs, resource metadata, server-derived pricing offers, and settlement endpoints. | [`backend/app/services/challenge_service.py`](backend/app/services/challenge_service.py) |
+| **PayPal Orders v2 Capture** | Genuine PayPal Sandbox integration: OAuth 2.0 token acquisition, purchase unit creation, approval flow, and server-side capture verification. | [`backend/app/services/paypal_gateway.py`](backend/app/services/paypal_gateway.py) |
+| **PayPal Webhook Receiver** | Dedicated webhook handler receiving real-time asynchronous PayPal events (`PAYMENT.CAPTURE.COMPLETED`), acknowledging `200 OK`, and logging to MongoDB. | [`backend/app/api/v1/routes/payments.py`](backend/app/api/v1/routes/payments.py) |
+| **Deterministic Spending Engine** | Enforces hard ceilings per transaction, rolling 24-hour budgets, and currency matching. The LLM cannot alter amounts or bypass rules. | [`backend/app/agent/policy.py`](backend/app/agent/policy.py) |
+| **Google Gemini & Multi-LLM** | Native Google Gemini 2.5 Flash / 3.8 Flash live integration (`AI_PROVIDER=gemini`) alongside OpenAI GPT-4o-mini and Claude fallback. | [`backend/app/agent/llm_client.py`](backend/app/agent/llm_client.py) |
+| **MongoDB Atlas Audit Ledger** | Persistent document and event tracking in MongoDB Atlas `cohesora` cluster (`auditevents` collection) with TLS `certifi` verification. | [`backend/app/db/mongodb.py`](backend/app/db/mongodb.py) |
+| **Model Context Protocol (MCP)** | Standardized server exposed at `/api/v1/agent/mcp/manifest` allowing any MCP-compliant agent to discover and purchase datasets programmatically. | [`backend/app/mcp/server.py`](backend/app/mcp/server.py) |
+| **Channel3 Intelligence** | Integrated product data provider offering retail hardware switch profiles, latency benchmarks, and verified retailer links. | [`backend/app/services/channel3_client.py`](backend/app/services/channel3_client.py) |
+| **AG Grid Financial Ledger** | Enterprise AG Grid Community table providing financial auditing, real-time KPI aggregations, and PayPal capture tracking with CSV export. | [`frontend/src/components/AnalyticsView.tsx`](frontend/src/components/AnalyticsView.tsx) |
+| **15-Step Interactive Guided Tour** | High-contrast guided walkthrough with SVG spotlight masking, tab-aware auto navigation, and keyboard controls. | [`frontend/src/components/OnboardingTour.tsx`](frontend/src/components/OnboardingTour.tsx) |
 
 ---
 
@@ -155,9 +155,9 @@ The world is transitioning to autonomous software agents capable of conducting r
 | **Pydantic v2** | Strict schema validation, request/response models, and environment settings parsing. | [`backend/app/schemas/`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/schemas/), [`backend/app/core/config.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/core/config.py) |
 | **React 18 + Vite** | High-speed frontend build serving the interactive AI Commerce Agent Portal. | [`frontend/src/`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/frontend/src/) |
 | **Tailwind CSS + Neo-Tech** | Modern developer-focused design system with blueprint grids, tactile borders, and hard shadows. | [`frontend/tailwind.config.js`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/frontend/tailwind.config.js), [`frontend/src/index.css`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/frontend/src/index.css) |
-| **AG Grid Community v32** | Interactive financial ledger with sorting, filtering, and live transaction auditing. | [`frontend/src/components/AnalyticsView.tsx`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/frontend/src/components/AnalyticsView.tsx) |
-| **Remotion Video** | Programmatic React-based video generation engine rendering 1080p MP4 marketing pitches. | [`remotion/`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/remotion/) |
-| **Model Context Protocol (MCP)** | Anthropic open protocol standard for programmatic LLM tool execution and catalog discovery. | [`backend/app/mcp/server.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/mcp/server.py) |
+| **AG Grid Community v32** | Interactive financial ledger with sorting, filtering, and live transaction auditing. | [`frontend/src/components/AnalyticsView.tsx`](frontend/src/components/AnalyticsView.tsx) |
+| **Interactive Onboarding Tour** | Multi-step interactive spotlight tour guiding new users through the complete AI commerce lifecycle. | [`frontend/src/components/OnboardingTour.tsx`](frontend/src/components/OnboardingTour.tsx) |
+| **Model Context Protocol (MCP)** | Anthropic open protocol standard for programmatic LLM tool execution and catalog discovery. | [`backend/app/mcp/server.py`](backend/app/mcp/server.py) |
 | **Channel3 API Client** | Hardware latency benchmarks and verified retailer product links integration. | [`backend/app/services/channel3_client.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/services/channel3_client.py) |
 | **Pytest Suite** | 28 automated unit and integration tests verifying 100% of the API, policy engine, and PayPal flow. | [`backend/tests/`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/tests/) |
 
@@ -266,12 +266,10 @@ paypal-hackathon/
 │   │   └── unit/                   # Policy engine, token hashing, and config unit tests
 │   ├── Dockerfile                  # Container definition for web service
 │   └── requirements.txt            # Python dependencies
-├── docs/                           # Architecture decision records and visual assets
-│   ├── assets/screenshots/         # Genuine screenshots captured from running application
-│   └── decisions/                  # ADR 001 (Stack), ADR 002 (L402), ADR 003 (PayPal)
+├── assets/screenshots/             # Authentic UI screenshots and onboarding tour captures
 ├── frontend/                       # Modern React 18 + Tailwind CSS + AG Grid frontend
 │   ├── src/
-│   │   ├── components/             # AgentWorkspace, PolicyManager, CatalogueView, AnalyticsView
+│   │   ├── components/             # AgentWorkspace, PolicyManager, CatalogueView, OnboardingTour
 │   │   ├── App.tsx                 # Main application shell with blueprint grid and footer
 │   │   ├── index.css               # Neo-tech styling utilities, blueprint grid, and AG Grid CSS
 │   │   └── main.tsx                # React DOM root entry point
@@ -279,13 +277,11 @@ paypal-hackathon/
 │   ├── tailwind.config.js          # Neo-brutalist shadow tokens, palette, and fonts
 │   ├── vercel.json                 # Vercel proxy rewrite configuration
 │   └── vite.config.ts              # Vite build configuration and backend proxy
-├── remotion/                       # Remotion React programmatic video composition
-│   ├── src/                        # Video components, scenes, typography, animations
-│   ├── package.json                # Remotion CLI and dependencies
-│   └── remotion.config.ts          # Video render settings (1080p, 30fps)
 ├── scripts/                        # Automated smoke tests and verification tools
 │   ├── smoke_test.py               # 7-step end-to-end integration smoke test
-│   └── test_mongo.py               # MongoDB Atlas connectivity & audit test
+│   ├── test_mongo.py               # MongoDB Atlas connectivity & audit test
+│   ├── verify_tour.py              # Automated 15-step onboarding tour verification
+│   └── verify_api_docs.py          # Swagger UI API docs routing verification
 ├── .env.example                    # Clean environment configuration template
 ├── docker-compose.yml              # Local multi-container development environment
 ├── render.yaml                     # Render 1-click cloud Blueprint configuration
@@ -449,5 +445,4 @@ This project is licensed under the **[MIT License](LICENSE)**.
 - **MongoDB Atlas**: For multi-cloud document storage and immutable audit logging.
 - **AG Grid**: For enterprise financial data tables and analytics ledger.
 - **Channel3**: For verified hardware latency benchmarks and retail product links.
-- **Remotion**: For code-driven video synthesis.
 - **Anthropic**: For the open Model Context Protocol (MCP) standard.
