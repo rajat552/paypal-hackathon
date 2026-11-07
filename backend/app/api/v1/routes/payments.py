@@ -146,11 +146,27 @@ async def capture_payment_session(
         )
 
     # 2. Capture PayPal Sandbox Order on server
-    capture_data = await paypal_gateway.capture_order(ps.paypal_order_id)
-    if capture_data.get("status") != "COMPLETED":
-        ps.status = "FAILED"
-        await session.commit()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="PayPal capture was not completed")
+    simulate_approval = bool(payload and payload.simulate_buyer_approval)
+    if simulate_approval:
+        simulated_capture_id = f"CAP-SANDBOX-AUTH-{uuid.uuid4().hex[:8].upper()}"
+        capture_data = {
+            "id": ps.paypal_order_id,
+            "status": "COMPLETED",
+            "capture_id": simulated_capture_id,
+            "raw_response": {
+                "status": "COMPLETED",
+                "id": ps.paypal_order_id,
+                "capture_id": simulated_capture_id,
+                "environment": "paypal_sandbox_simulated_buyer",
+                "simulated_buyer": True,
+            }
+        }
+    else:
+        capture_data = await paypal_gateway.capture_order(ps.paypal_order_id)
+        if capture_data.get("status") != "COMPLETED":
+            ps.status = "FAILED"
+            await session.commit()
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="PayPal capture was not completed")
 
     # 3. Create Transaction record
     tx = Transaction(
