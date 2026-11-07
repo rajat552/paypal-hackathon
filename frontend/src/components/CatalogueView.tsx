@@ -91,15 +91,15 @@ export const CatalogueView: React.FC<{ onSelectResource?: (target: TargetResourc
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
-          <div className="relative">
+        <div className="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-72">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search datasets, APIs, or providers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-white border-2 border-slate-900 rounded-xl pl-9 pr-3.5 py-2 text-xs font-mono font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-neo-sm"
+              className="w-full bg-white border-2 border-slate-900 rounded-xl pl-9 pr-3.5 py-2 text-xs font-mono font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-neo-sm"
             />
             {searchTerm && (
               <button 
@@ -113,7 +113,7 @@ export const CatalogueView: React.FC<{ onSelectResource?: (target: TargetResourc
 
           <button
             onClick={fetchCatalogue}
-            className="p-2.5 rounded-xl bg-white hover:bg-slate-100 border-2 border-slate-900 text-slate-900 shadow-neo-sm hover:-translate-y-0.5 transition-all"
+            className="p-2.5 rounded-xl bg-white hover:bg-slate-100 border-2 border-slate-900 text-slate-900 shadow-neo-sm hover:-translate-y-0.5 transition-all shrink-0"
             title="Refresh Dataset Directory"
           >
             <RefreshCw className="w-4 h-4" />
@@ -166,16 +166,16 @@ export const CatalogueView: React.FC<{ onSelectResource?: (target: TargetResourc
               className="p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo hover:shadow-neo-lg hover:-translate-y-1 transition-all flex flex-col justify-between"
             >
               <div>
-                <div className="flex items-center justify-between mb-3.5">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-[11px] font-mono font-black px-2.5 py-0.5 rounded-md bg-amber-300 text-slate-950 border-2 border-slate-900 shadow-[1px_1px_0px_0px_rgba(15,23,42,1)] uppercase">
+                <div className="flex items-center justify-between gap-2 mb-3.5 flex-wrap">
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <span className="text-[11px] font-mono font-black px-2.5 py-0.5 rounded-md bg-amber-300 text-slate-950 border-2 border-slate-900 shadow-[1px_1px_0px_0px_rgba(15,23,42,1)] uppercase shrink-0">
                       {res.provider}
                     </span>
-                    <span className="text-[11px] font-mono text-slate-500 font-bold">
+                    <span className="text-[11px] font-mono text-slate-500 font-bold truncate">
                       /{res.slug}
                     </span>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono border border-slate-300">
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono border border-slate-300 shrink-0">
                     {res.resource_type}
                   </span>
                 </div>
