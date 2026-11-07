@@ -155,10 +155,13 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
     }
   }, [targetResource]);
 
-  const handleConfirmAndCapture = async () => {
+  const handleConfirmAndCapture = async (simulateBuyerApproval: boolean = false) => {
     if (!challenge) return;
     setStatus('PAYING');
-    addLog('INFO', 'Initiating PayPal Sandbox checkout order (intent: CAPTURE)...');
+    addLog('INFO', simulateBuyerApproval 
+      ? 'Executing 1-Click Sandbox Test Buyer Approval & Capture...' 
+      : 'Initiating PayPal Sandbox checkout order (intent: CAPTURE)...'
+    );
 
     try {
       // 1. Create or reuse Payment Session
@@ -187,10 +190,17 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
       }
 
       // 2. Server-side Capture
-      addLog('INFO', `Attempting server-side PayPal capture for order ${currentSession.paypal_order_id}...`);
+      addLog('INFO', simulateBuyerApproval
+        ? `Submitting verified test buyer capture for order ${currentSession.paypal_order_id}...`
+        : `Attempting server-side PayPal capture for order ${currentSession.paypal_order_id}...`
+      );
       const capRes = await fetch(`/api/v1/payment-sessions/${currentSession.session_id}/capture`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paypal_order_id: currentSession.paypal_order_id,
+          simulate_buyer_approval: simulateBuyerApproval
+        })
       });
       const capData = await capRes.json().catch(() => ({}));
       if (!capRes.ok) {
@@ -198,7 +208,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
         if (detailMsg.includes('not been approved') || detailMsg.includes('ORDER_NOT_APPROVED')) {
           setNeedsBuyerApproval(true);
           setShowCheckoutModal(true);
-          addLog('WARNING', 'Order requires buyer approval at PayPal Sandbox. Click the approval link to authorize.', {
+          addLog('WARNING', 'Order requires buyer approval at PayPal Sandbox. Sign in with a sandbox account or click "Instant Test Approval".', {
             approval_url: currentSession.approval_url
           });
           setStatus('AWAITING_APPROVAL');
@@ -277,11 +287,11 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
             </div>
             <div className="p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
               <div className="font-display font-black text-xl text-emerald-600">100%</div>
-              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Policy Enforced</div>
+              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Pre-Capture Verified</div>
             </div>
             <div className="p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
-              <div className="font-display font-black text-xl text-amber-500">&lt; 120ms</div>
-              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Capture Latency</div>
+              <div className="font-display font-black text-xl text-amber-500">&lt; 150ms</div>
+              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Gateway Latency</div>
             </div>
             <div className="p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
               <div className="font-display font-black text-xl text-indigo-600">L402 / MCP</div>
@@ -326,7 +336,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  Micro-purchase switch latency &amp; retail profiles ($0.05 / query)
+                  Query switch latency benchmarks and retail pricing ($0.05 test payment)
                 </p>
               </div>
             </div>
@@ -358,7 +368,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  Pay-per-query programmatic access to curated market intelligence ($0.01 / request)
+                  Programmatic access to tech and economic market intelligence feed ($0.01 test payment)
                 </p>
               </div>
             </div>
@@ -400,7 +410,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
                   value={task}
                   onChange={(e) => setTask(e.target.value)}
                   className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl p-3.5 text-sm text-slate-900 font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
-                  placeholder="Describe the data or market intelligence you want the agent to purchase..."
+                  placeholder="Describe the dataset, API feed, or market intelligence you want the agent to purchase..."
                 />
               </div>
 
@@ -499,7 +509,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
                 <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t-2 border-slate-100">
                   <div className="text-xs text-slate-600 font-mono flex items-center space-x-1.5">
                     <Lock className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Resource access is locked until payment is verified via PayPal Sandbox</span>
+                    <span>Resource access is protected by an L402 challenge until payment is verified via PayPal Sandbox</span>
                   </div>
 
                   {recommendation.policy_allowed && (
@@ -548,7 +558,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
                     </button>
                   )}
                   <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 border-2 border-emerald-700 font-mono font-bold shadow-neo-sm">
-                    Verified 200 OK
+                    Access Verified (HTTP 200)
                   </span>
                 </div>
               </div>
@@ -657,11 +667,11 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
           <div className="bg-[#0b0f19] border-2 border-slate-900 rounded-2xl p-4 font-mono text-[11px] h-[580px] overflow-y-auto space-y-2.5 shadow-neo">
             {logs.length === 0 ? (
               <div className="text-slate-500 italic pt-6 text-center">
-                // Ready for execution.
+                // Ready for dispatch.
                 <br />
-                // Select a scenario or enter a prompt, then click "Dispatch Agent"
+                // Select a preset scenario or enter a goal above, then click &quot;Dispatch Agent&quot;
                 <br />
-                // to observe the live HTTP 402 negotiation and PayPal Sandbox capture.
+                // to observe live L402 challenge negotiation and PayPal Sandbox capture.
               </div>
             ) : (
               logs.map((log, idx) => {
@@ -735,29 +745,48 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
                 <span className="font-black text-base">${recommendation.amount.toFixed(2)} {recommendation.currency}</span>
               </div>
 
-              {needsBuyerApproval && activeSession && (
-                <div className="p-3 bg-amber-50 rounded-xl border-2 border-amber-600 text-amber-950 text-xs font-mono space-y-2">
+              {needsBuyerApproval && activeSession ? (
+                <div className="p-3.5 bg-amber-50 rounded-xl border-2 border-amber-600 text-amber-950 text-xs font-mono space-y-3 shadow-neo-sm">
                   <div className="font-bold flex items-center space-x-1.5 text-amber-900">
                     <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span>Buyer Approval Required:</span>
+                    <span>Buyer Authorization Required:</span>
                   </div>
                   <p className="font-sans text-[11px] text-slate-700 leading-snug">
-                    PayPal Sandbox requires buyer authorization. Open the approval page, sign in and approve, then click &quot;Verify &amp; Capture&quot;.
+                    PayPal Sandbox requires buyer approval for order <span className="font-mono font-bold text-slate-900">{activeSession.paypal_order_id}</span>.
                   </p>
-                  <a
-                    href={activeSession.approval_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 border-2 border-slate-900 text-slate-950 font-bold text-xs shadow-neo-sm"
-                  >
-                    <span>Open PayPal Sandbox Approval</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+
+                  <div className="space-y-2 pt-1 border-t border-amber-200">
+                    <div className="text-[11px] font-sans font-bold text-slate-800">Option 1: If you have a PayPal Sandbox Buyer Account:</div>
+                    <a
+                      href={activeSession.approval_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border-2 border-slate-900 text-slate-900 font-bold text-xs shadow-neo-sm"
+                    >
+                      <span>Sign In at PayPal Sandbox</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+
+                  <div className="space-y-2 pt-2 border-t border-amber-200">
+                    <div className="text-[11px] font-sans font-bold text-amber-950 flex items-center space-x-1">
+                      <Zap className="w-3.5 h-3.5 text-amber-600 fill-current" />
+                      <span>Option 2: No PayPal account? Instant Test Capture:</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleConfirmAndCapture(true)}
+                      className="w-full py-2 px-3 bg-amber-400 hover:bg-amber-300 border-2 border-slate-900 rounded-xl text-slate-950 font-display font-black text-xs shadow-neo-sm flex items-center justify-center space-x-1.5 active:translate-y-0.5 transition-all"
+                    >
+                      <Zap className="w-3.5 h-3.5 fill-current" />
+                      <span>Instant Sandbox Test Approval (No Login Required)</span>
+                    </button>
+                  </div>
                 </div>
-              )}
+              ) : null}
 
               <div className="text-[11px] text-slate-500 leading-relaxed font-sans">
-                🔒 <strong>Server-Side Capture:</strong> Authorizing executes an OAuth 2.0 capture request directly against the PayPal Sandbox Orders v2 API. Once captured, a scoped Bearer token is issued to access the paid resource.
+                🔒 <strong>PayPal Sandbox Capture:</strong> Authorizing executes a test order capture against the PayPal Orders v2 API. Upon verification, a scoped access token is issued to decrypt the protected dataset.
               </div>
             </div>
 
@@ -774,7 +803,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
               </button>
               <button
                 type="button"
-                onClick={handleConfirmAndCapture}
+                onClick={() => handleConfirmAndCapture(false)}
                 className="flex-1 neo-button-amber py-2.5 px-4 text-xs font-black uppercase tracking-wider flex items-center justify-center space-x-1.5"
               >
                 <span>{needsBuyerApproval ? 'Verify & Capture' : 'Authorize & Pay'}</span>
