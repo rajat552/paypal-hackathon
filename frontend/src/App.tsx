@@ -20,11 +20,55 @@ import {
   Compass
 } from 'lucide-react';
 
+const VALID_TABS = ['workspace', 'policy', 'catalogue', 'analytics', 'publisher'];
+
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('workspace');
+  // Read initial tab from URL hash (e.g. #publisher) or localStorage, defaulting to 'workspace'
+  const getInitialTab = (): string => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      if (VALID_TABS.includes(hash)) return hash;
+      const saved = localStorage.getItem('paymesh_active_tab');
+      if (saved && VALID_TABS.includes(saved)) return saved;
+    }
+    return 'workspace';
+  };
+
+  const [activeTab, setActiveTabState] = useState<string>(getInitialTab);
   const [targetResource, setTargetResource] = useState<TargetResourcePayload | null>(null);
-  // Launch tour directly whenever anyone visits or reloads the URL
-  const [isTourOpen, setIsTourOpen] = useState(true);
+
+  // Auto-launch tour only on initial visit if neither completed nor dismissed
+  const [isTourOpen, setIsTourOpen] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const completed = localStorage.getItem('paymesh_tour_completed');
+      const dismissed = localStorage.getItem('paymesh_tour_dismissed');
+      return !completed && !dismissed;
+    }
+    return false;
+  });
+
+  const setActiveTab = (tab: string) => {
+    setActiveTabState(tab);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('paymesh_active_tab', tab);
+      if (window.location.hash !== `#${tab}`) {
+        window.location.hash = tab;
+      }
+    }
+  };
+
+  // Sync tab with browser back/forward history navigation
+  React.useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      if (VALID_TABS.includes(hash)) {
+        setActiveTabState(hash);
+        localStorage.setItem('paymesh_active_tab', hash);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const handleSelectResource = (target: TargetResourcePayload) => {
     setTargetResource(target);
