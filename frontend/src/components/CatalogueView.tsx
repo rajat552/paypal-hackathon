@@ -23,7 +23,14 @@ interface Resource {
   offers: Offer[];
 }
 
-export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void }> = ({ onSelectResource }) => {
+export interface TargetResourcePayload {
+  slug: string;
+  title: string;
+  suggestedBudget?: number;
+  autoRun?: boolean;
+}
+
+export const CatalogueView: React.FC<{ onSelectResource?: (target: TargetResourcePayload) => void }> = ({ onSelectResource }) => {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -223,7 +230,12 @@ export const CatalogueView: React.FC<{ onSelectResource?: (slug: string) => void
                   {onSelectResource && (
                     <button
                       data-tour="catalogue-run-agent"
-                      onClick={() => onSelectResource(res.slug)}
+                      onClick={() => onSelectResource({
+                        slug: res.slug,
+                        title: res.title,
+                        suggestedBudget: res.offers.length > 0 ? Math.max(0.10, Math.ceil(res.offers[0].amount * 100) / 100) : 0.10,
+                        autoRun: true
+                      })}
                       className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 border-2 border-slate-900 text-xs font-display font-black text-slate-950 shadow-neo-sm transition-all"
                     >
                       <span>Run Agent</span>
