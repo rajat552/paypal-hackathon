@@ -339,7 +339,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
 
   const handleFinish = () => {
     localStorage.setItem('paymesh_tour_completed', 'true');
-    onNavigateTab('workspace');
+    // Maintain current page (Step 15 is on Merchant Studio / last page)
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setCurrentStepIndex(0);
     onClose();
