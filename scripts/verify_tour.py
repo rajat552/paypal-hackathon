@@ -17,20 +17,20 @@ from playwright.async_api import async_playwright
 
 EXPECTED_STEPS = [
     {"index": 1, "title": "Welcome to PayMesh AI", "tab": "workspace"},
-    {"index": 2, "title": "Main Navigation", "tab": "workspace"},
-    {"index": 3, "title": "Agent Scenarios & Mission Presets", "tab": "workspace"},
-    {"index": 4, "title": "Research Task Input & Spending Limit", "tab": "workspace"},
-    {"index": 5, "title": "Dispatch AI Agent", "tab": "workspace"},
-    {"index": 6, "title": "Real-Time Protocol Inspector", "tab": "workspace"},
-    {"index": 7, "title": "L402 Payment Challenge & Negotiation", "tab": "workspace"},
-    {"index": 8, "title": "Spending Policies & Trust Engine", "tab": "policy"},
-    {"index": 9, "title": "24-Hour Rolling Budget Utilization", "tab": "policy"},
-    {"index": 10, "title": "Server-Enforced Constraints", "tab": "policy"},
-    {"index": 11, "title": "API & Data Catalogue", "tab": "catalogue"},
-    {"index": 12, "title": "Agent Resource Dispatch", "tab": "catalogue"},
-    {"index": 13, "title": "PayPal Sandbox Checkout & Capture", "tab": "workspace"},
-    {"index": 14, "title": "Financial Ledger & AG Grid Analytics", "tab": "analytics"},
-    {"index": 15, "title": "Merchant Studio & Developer Resources", "tab": "publisher"},
+    {"index": 2, "title": "Main Navigation Bar", "tab": "workspace"},
+    {"index": 3, "title": "Try a Sample Scenario", "tab": "workspace"},
+    {"index": 4, "title": "Set Goal & Spending Limit", "tab": "workspace"},
+    {"index": 5, "title": "Run the AI Agent", "tab": "workspace"},
+    {"index": 6, "title": "Live Activity Terminal", "tab": "workspace"},
+    {"index": 7, "title": "Payment Required (HTTP 402)", "tab": "workspace"},
+    {"index": 8, "title": "Spending Rules & Safety", "tab": "policy"},
+    {"index": 9, "title": "Daily Budget Tracker", "tab": "policy"},
+    {"index": 10, "title": "Custom Limit Settings", "tab": "policy"},
+    {"index": 11, "title": "Dataset Marketplace", "tab": "catalogue"},
+    {"index": 12, "title": "1-Click Agent Purchase", "tab": "catalogue"},
+    {"index": 13, "title": "PayPal Sandbox Payments", "tab": "workspace"},
+    {"index": 14, "title": "Financial Transaction Ledger", "tab": "analytics"},
+    {"index": 15, "title": "Publish Your Own API", "tab": "publisher"},
 ]
 
 async def run_tour_verification():
@@ -67,12 +67,13 @@ async def run_tour_verification():
         assert not await tour_dialog.is_visible(), "Clicking 'Exit Tour' failed to close tour!"
         print("PASS: Clicked 'Exit Tour' — tour closed cleanly.")
 
-        # Re-click / reload URL
-        print("\n[Phase 2] Re-clicking / reloading URL to verify tour displays again every time...")
-        await page.goto("http://localhost:3000", wait_until="networkidle")
-        await page.wait_for_timeout(1000)
-        assert await tour_dialog.is_visible(), "Tour failed to display first after clicking URL again!"
-        print("PASS: Tour displays first every time URL is accessed.")
+        # Re-open via Navbar Tour Guide button
+        print("\n[Phase 2] Opening tour via 'Tour Guide' button in Navbar...")
+        tour_guide_btn = page.locator("button:has-text('Tour Guide')")
+        await tour_guide_btn.first.click()
+        await page.wait_for_timeout(600)
+        assert await tour_dialog.is_visible(), "Tour failed to open after clicking Tour Guide button!"
+        print("PASS: Tour opened cleanly via Tour Guide button.")
 
         # 4. Step through all 15 steps sequentially
 
