@@ -31,12 +31,19 @@ interface LogEntry {
   data?: any;
 }
 
+export interface TargetResourcePayload {
+  slug: string;
+  title: string;
+  suggestedBudget?: number;
+  autoRun?: boolean;
+}
+
 interface AgentWorkspaceProps {
-  targetResourceSlug?: string | null;
+  targetResource?: TargetResourcePayload | null;
   onClearTarget?: () => void;
 }
 
-export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSlug, onClearTarget }) => {
+export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, onClearTarget }) => {
   const [task, setTask] = useState('Compare high-performance mechanical keyboards with ultra-low latency under budget.');
   const [budget, setBudget] = useState(0.10);
   const [status, setStatus] = useState<'IDLE' | 'DISCOVERING' | 'AWAITING_APPROVAL' | 'PAYING' | 'COMPLETED'>('IDLE');
@@ -58,13 +65,6 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
     comparison_reasoning?: string;
   } | null>(null);
 
-  React.useEffect(() => {
-    if (targetResourceSlug) {
-      setTask(`Procure and analyze verified dataset: ${targetResourceSlug}`);
-      if (onClearTarget) onClearTarget();
-    }
-  }, [targetResourceSlug, onClearTarget]);
-
   const addLog = (type: LogEntry['type'], message: string, data?: any) => {
     setLogs((prev) => [
       ...prev,
@@ -77,7 +77,10 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
     ]);
   };
 
-  const handleRunTask = async () => {
+  const handleRunTask = async (overrideTask?: string, overrideBudget?: number, targetSlug?: string) => {
+    const currentTask = overrideTask ?? task;
+    const currentBudget = overrideBudget ?? budget;
+
     setStatus('DISCOVERING');
     setRecommendation(null);
     setChallenge(null);
@@ -85,14 +88,18 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
     setBearerToken(null);
     setShowCheckoutModal(false);
     setAgentRunMeta(null);
-    addLog('INFO', `Starting AI commerce orchestration for task: "${task}"`);
-    addLog('INFO', `Enforcing strict spending policy limit: $${budget.toFixed(2)} USD`);
+    addLog('INFO', `Starting AI commerce orchestration for task: "${currentTask}"`);
+    addLog('INFO', `Enforcing strict spending policy limit: $${currentBudget.toFixed(2)} USD`);
 
     try {
       const res = await fetch('/api/v1/agent/runs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ task, budget_limit: budget }),
+        body: JSON.stringify({ 
+          task: currentTask, 
+          budget_limit: currentBudget,
+          target_resource_slug: targetSlug
+        }),
       });
       const data = await res.json();
 
@@ -131,6 +138,22 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
       setStatus('IDLE');
     }
   };
+
+  React.useEffect(() => {
+    if (targetResource) {
+      const formattedTask = `Procure and analyze verified dataset: ${targetResource.title} (${targetResource.slug})`;
+      const formattedBudget = targetResource.suggestedBudget ?? 0.10;
+      setTask(formattedTask);
+      setBudget(formattedBudget);
+
+      if (targetResource.autoRun) {
+        handleRunTask(formattedTask, formattedBudget, targetResource.slug);
+      }
+      if (onClearTarget) {
+        onClearTarget();
+      }
+    }
+  }, [targetResource]);
 
   const handleConfirmAndCapture = async () => {
     if (!challenge) return;
@@ -401,7 +424,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
                 <div className="sm:col-span-5 flex items-end">
                   <button
                     data-tour="dispatch-button"
-                    onClick={handleRunTask}
+                    onClick={() => handleRunTask()}
                     disabled={status === 'DISCOVERING' || status === 'PAYING'}
                     className="w-full neo-button-amber py-2.5 px-4 flex items-center justify-center space-x-2 text-xs font-black uppercase tracking-wider disabled:opacity-50"
                   >
