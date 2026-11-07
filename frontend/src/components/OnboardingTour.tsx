@@ -27,133 +27,133 @@ export const TOUR_STEPS: TourStep[] = [
     selector: '[data-tour="brand-header"]',
     title: 'Welcome to PayMesh AI',
     badge: 'Introduction',
-    description: 'PayMesh AI provides trust and payment infrastructure for autonomous AI commerce. It connects HTTP 402 challenge negotiation with verified PayPal Sandbox Orders v2 captures and server-side policy enforcement.',
+    description: 'PayMesh AI lets autonomous AI agents buy data and APIs safely using PayPal Sandbox—without giving the AI a credit card.',
     preferredPosition: 'bottom',
   },
   {
     id: 'navigation',
     tab: 'workspace',
     selector: '[data-tour="nav-tabs"]',
-    title: 'Main Navigation',
+    title: 'Main Navigation Bar',
     badge: 'Overview',
-    description: 'Switch between all 5 core modules: AI Commerce Agent, Spending Policy & Trust, API & Data Catalogue, Financial Ledger, and Merchant Studio.',
+    description: 'Use these tabs to switch between the AI Agent Studio, Spending Limits, API Catalogue, Financial Ledger, and Merchant Studio.',
     preferredPosition: 'bottom',
   },
   {
     id: 'workspace',
     tab: 'workspace',
     selector: '[data-tour="scenario-selector"]',
-    title: 'Agent Scenarios & Mission Presets',
-    badge: 'Scenarios',
-    description: 'Select a pre-configured procurement scenario—such as Channel3 Hardware Latency benchmarks or PayMesh Wire market feeds—to automatically load sample goals and spending limits.',
+    title: 'Try a Sample Scenario',
+    badge: 'Quick Start',
+    description: 'Click a preset scenario—like Hardware Latency or Market Intelligence—to quickly test the AI agent with a sample goal and budget.',
     preferredPosition: 'bottom',
   },
   {
     id: 'task-input',
     tab: 'workspace',
     selector: '[data-tour="agent-input-form"]',
-    title: 'Research Task Input & Spending Limit',
-    badge: 'Goal Formulation',
-    description: 'Describe the data or intelligence you want the agent to purchase, and define a strict per-run spending limit in USD that the agent cannot exceed.',
+    title: 'Set Goal & Spending Limit',
+    badge: 'Goal Setup',
+    description: 'Type what data you want the AI to buy, and enter the maximum dollar amount (USD) the AI is allowed to spend.',
     preferredPosition: 'top',
   },
   {
     id: 'dispatch-agent',
     tab: 'workspace',
     selector: '[data-tour="dispatch-button"]',
-    title: 'Dispatch AI Agent',
-    badge: 'Agent Execution',
-    description: 'Dispatches the AI agent to search available resources, verify price limits against spending policies, and negotiate machine-readable payment challenges.',
-    preferredPosition: 'top',
+    title: 'Run the AI Agent',
+    badge: 'Execution',
+    description: 'Click "Dispatch Agent" to let the AI search for the dataset and request a payment challenge within your budget.',
+    preferredPosition: 'bottom',
   },
   {
     id: 'protocol-inspector',
     tab: 'workspace',
     selector: '[data-tour="protocol-inspector"]',
-    title: 'Real-Time Protocol Inspector',
-    badge: 'L402 & MCP Stream',
-    description: 'A live developer terminal showing Model Context Protocol (MCP) tool execution, state transitions, HTTP 402 challenge payloads, and server-side policy verifications.',
+    title: 'Live Activity Terminal',
+    badge: 'Live Log',
+    description: 'Watch the AI agent\'s step-by-step actions, tool calls, and payment challenge messages in real time.',
     preferredPosition: 'left',
   },
   {
     id: 'l402-challenge',
     tab: 'workspace',
     selector: '[data-tour="l402-challenge-section"]',
-    title: 'L402 Payment Challenge & Negotiation',
-    badge: 'HTTP 402 Standard',
-    description: 'When an agent attempts to access a protected resource, the server responds with HTTP 402 Payment Required, containing pre-negotiated pricing and merchant terms under the L402 standard.',
+    title: 'Payment Required (HTTP 402)',
+    badge: 'Payment Protocol',
+    description: 'When the AI requests paid data, the server returns a secure payment challenge with the exact price and access terms.',
     preferredPosition: 'bottom',
   },
   {
     id: 'spending-policy',
     tab: 'policy',
     selector: '[data-tour="policy-header"]',
-    title: 'Spending Policies & Trust Engine',
-    badge: 'Safety Guardrails',
-    description: 'Large language models are probabilistic and susceptible to prompt injection. PayMesh AI removes payment authorization from the LLM, enforcing deterministic financial rules on the server.',
+    title: 'Spending Rules & Safety',
+    badge: 'Safety Rules',
+    description: 'Set hard financial rules on the server so the AI can never overspend or get tricked into unauthorized payments.',
     preferredPosition: 'bottom',
   },
   {
     id: 'budget-gauge',
     tab: 'policy',
     selector: '[data-tour="budget-gauge"]',
-    title: '24-Hour Rolling Budget Utilization',
-    badge: 'Budget Controls',
-    description: 'Track cumulative expenditures against your daily allowance in real time. This database-verified ceiling prevents runaway agent loops from overspending.',
+    title: 'Daily Budget Tracker',
+    badge: 'Budget Tracker',
+    description: 'See how much money has been spent in the last 24 hours against your daily limit in real time.',
     preferredPosition: 'bottom',
   },
   {
     id: 'policy-form',
     tab: 'policy',
     selector: '[data-tour="policy-form"]',
-    title: 'Server-Enforced Constraints',
-    badge: 'Rule Configuration',
-    description: 'Configure maximum spend per transaction, daily quotas, prompt-injection sanitization, and strict dataset scope enforcement. Updates take effect immediately in runtime.',
+    title: 'Custom Limit Settings',
+    badge: 'Rule Settings',
+    description: 'Adjust the maximum spend per purchase, allowed currencies, and prompt safety guardrails.',
     preferredPosition: 'top',
   },
   {
     id: 'catalogue',
     tab: 'catalogue',
     selector: '[data-tour="catalogue-header"]',
-    title: 'API & Data Catalogue',
-    badge: 'Data Marketplace',
-    description: 'Browse verified datasets, hardware benchmark feeds, and market wires. Resources are protected by L402 paywalls and accessible through micro-payments.',
+    title: 'Dataset Marketplace',
+    badge: 'Marketplace',
+    description: 'Browse available intelligence feeds, switch latency benchmarks, and verified data for sale.',
     preferredPosition: 'bottom',
   },
   {
     id: 'catalogue-agent-dispatch',
     tab: 'catalogue',
     selector: '[data-tour="catalogue-run-agent"]',
-    title: 'Agent Resource Dispatch',
-    badge: '1-Click Procurement',
-    description: 'Clicking "Run Agent" on any catalogue card automatically routes back to the Workspace, pre-populating the agent prompt with the selected resource slug.',
-    preferredPosition: 'top',
+    title: '1-Click Agent Purchase',
+    badge: '1-Click Buy',
+    description: 'Click "Run Agent" on any dataset card to instantly instruct the AI to purchase that specific dataset.',
+    preferredPosition: 'bottom',
   },
   {
     id: 'paypal-checkout',
     tab: 'workspace',
     selector: '[data-tour="sandbox-status-badge"]',
-    title: 'PayPal Sandbox Checkout & Capture',
-    badge: 'Server Capture',
-    description: 'Approved transactions trigger server-side PayPal Orders v2 captures via OAuth 2.0. No credit card credentials are ever exposed to the AI model or client code.',
+    title: 'PayPal Sandbox Payments',
+    badge: 'Verified Checkout',
+    description: 'All purchases are safely tested and verified using PayPal Sandbox Orders v2 before unlocking data.',
     preferredPosition: 'bottom',
   },
   {
     id: 'settlement-ledger',
     tab: 'analytics',
     selector: '[data-tour="settlement-ledger"]',
-    title: 'Financial Ledger & AG Grid Analytics',
-    badge: 'Reconciliation',
-    description: 'Review an immutable audit log of verified PayPal captures, active access tokens, conversion rates, and gross amounts. Export all ledger records directly to CSV.',
+    title: 'Financial Transaction Ledger',
+    badge: 'Audit Ledger',
+    description: 'Review every completed PayPal payment, capture ID, and timestamp in an interactive table with CSV export.',
     preferredPosition: 'top',
   },
   {
     id: 'publisher-studio',
     tab: 'publisher',
     selector: '[data-tour="publisher-form"]',
-    title: 'Merchant Studio & Developer Resources',
-    badge: 'Publishing & Docs',
-    description: 'Monetize proprietary APIs by configuring L402 pricing offers with auto-slug generation. Explore OpenAPI Swagger docs at /docs and replay this tour anytime from the header.',
+    title: 'Publish Your Own API',
+    badge: 'Merchant Studio',
+    description: 'Data sellers can publish new APIs, set custom prices, and earn money when AI agents buy their data.',
     preferredPosition: 'top',
   },
 ];
@@ -192,58 +192,72 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     if (!isOpen || !currentStep) return;
 
     const el = document.querySelector(currentStep.selector);
+    const popoverWidth = Math.min(420, window.innerWidth - 32);
+    const popoverHeight = popoverRef.current ? popoverRef.current.offsetHeight : 290;
+    const padding = 20;
+    const navbarHeight = 80;
+
     if (!el) {
-      // Element not in DOM yet or on another tab; fallback to centered
       setTargetRect(null);
       setPopoverPos({
-        top: Math.max(80, window.innerHeight / 2 - 150),
-        left: Math.max(20, window.innerWidth / 2 - 200),
+        top: Math.max(80, Math.round(window.innerHeight / 2 - 140)),
+        left: Math.max(16, Math.round((window.innerWidth - popoverWidth) / 2)),
       });
       return;
     }
 
     const rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      return;
+    }
+
     setTargetRect(rect);
 
     // Auto-scroll target into view if outside viewport
     const isInView = (
-      rect.top >= 0 &&
-      rect.left >= 0 &&
-      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+      rect.top >= 90 &&
+      rect.bottom <= (window.innerHeight - 70)
     );
 
     if (!isInView) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    // Compute Popover Coordinates based on preferred position & viewport margins
-    const popoverWidth = Math.min(420, window.innerWidth - 32);
-    const popoverHeight = 240;
-    const padding = 16;
-
-    let top = rect.bottom + padding;
+    // Determine best position for popover (avoiding overlap with target)
+    let top = 100;
     let left = rect.left + (rect.width / 2) - (popoverWidth / 2);
 
-    // If preferred is top or bottom overflows viewport
-    if (currentStep.preferredPosition === 'top' || (top + popoverHeight > window.innerHeight && rect.top > popoverHeight + padding)) {
+    const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceLeft = rect.left;
+    const spaceRight = window.innerWidth - rect.right;
+
+    if (currentStep.preferredPosition === 'bottom' && spaceBelow >= popoverHeight + padding) {
+      top = rect.bottom + padding;
+    } else if (currentStep.preferredPosition === 'top' && (spaceAbove - navbarHeight) >= popoverHeight + padding) {
       top = rect.top - popoverHeight - padding;
-    } else if (currentStep.preferredPosition === 'left' && rect.left > popoverWidth + padding) {
+    } else if (currentStep.preferredPosition === 'left' && spaceLeft >= popoverWidth + padding) {
       top = rect.top;
       left = rect.left - popoverWidth - padding;
-    } else if (currentStep.preferredPosition === 'right' && (rect.right + popoverWidth + padding < window.innerWidth)) {
+    } else if (currentStep.preferredPosition === 'right' && spaceRight >= popoverWidth + padding) {
       top = rect.top;
       left = rect.right + padding;
+    } else if (spaceBelow >= popoverHeight + padding) {
+      top = rect.bottom + padding;
+    } else if ((spaceAbove - navbarHeight) >= popoverHeight + padding) {
+      top = rect.top - popoverHeight - padding;
+    } else {
+      top = Math.max(85, window.innerHeight - popoverHeight - 20);
     }
 
-    // Boundary constraints
+    // Clamp coordinates safely within screen
     left = Math.max(16, Math.min(window.innerWidth - popoverWidth - 16, left));
     top = Math.max(80, Math.min(window.innerHeight - popoverHeight - 16, top));
 
-    setPopoverPos({ top, left });
+    setPopoverPos({ top: Math.round(top), left: Math.round(left) });
   }, [isOpen, currentStep]);
 
-  // 3. Handle cross-tab navigation when step changes
+  // 3. Handle cross-tab navigation and multi-interval element locator
   useEffect(() => {
     if (!isOpen || !currentStep) return;
 
@@ -251,20 +265,31 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       onNavigateTab(currentStep.tab);
     }
 
-    // Give DOM time to render newly selected tab
-    const timer = setTimeout(() => {
-      updateTargetPosition();
-    }, 250);
+    // Staggered attempts to guarantee element is found even on async loads
+    const intervals = [40, 120, 250, 450, 750, 1200, 1800];
+    const timers = intervals.map((delay) =>
+      setTimeout(() => {
+        updateTargetPosition();
+      }, delay)
+    );
 
-    return () => clearTimeout(timer);
+    return () => {
+      timers.forEach(clearTimeout);
+    };
   }, [isOpen, currentStepIndex, currentStep, activeTab, onNavigateTab, updateTargetPosition]);
 
   // 4. Update on window resize or scroll
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !currentStep) return;
 
     const handleResizeOrScroll = () => {
-      updateTargetPosition();
+      const el = document.querySelector(currentStep.selector);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          setTargetRect(rect);
+        }
+      }
     };
 
     window.addEventListener('resize', handleResizeOrScroll, { passive: true });
@@ -274,7 +299,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       window.removeEventListener('resize', handleResizeOrScroll);
       window.removeEventListener('scroll', handleResizeOrScroll);
     };
-  }, [isOpen, updateTargetPosition]);
+  }, [isOpen, currentStep]);
 
   // 5. Keyboard Navigation
   useEffect(() => {
@@ -314,6 +339,9 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
 
   const handleFinish = () => {
     localStorage.setItem('paymesh_tour_completed', 'true');
+    onNavigateTab('workspace');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setCurrentStepIndex(0);
     onClose();
   };
 
@@ -328,48 +356,31 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
 
   return (
     <div className="fixed inset-0 pointer-events-auto" style={{ zIndex: 99990 }}>
-      {/* 1. Backdrop Overlay with Spotlight Cutout */}
-      <svg 
-        className="absolute inset-0 w-full h-full pointer-events-none transition-all duration-300"
-        style={{ zIndex: 99991 }}
-      >
-        <defs>
-          <mask id="tour-spotlight-mask">
-            <rect x="0" y="0" width="100%" height="100%" fill="white" />
-            {targetRect && (
-              <rect
-                x={targetRect.left - 6}
-                y={targetRect.top - 6}
-                width={targetRect.width + 12}
-                height={targetRect.height + 12}
-                rx="14"
-                ry="14"
-                fill="black"
-              />
-            )}
-          </mask>
-        </defs>
-        <rect
-          x="0"
-          y="0"
-          width="100%"
-          height="100%"
-          fill="rgba(15, 23, 42, 0.72)"
-          mask="url(#tour-spotlight-mask)"
-        />
-      </svg>
-
-      {/* Target Active Highlight Border */}
-      {targetRect && (
+      {/* 1. Backdrop Overlay & Focused Spotlight Cutout */}
+      {targetRect ? (
         <div
-          className="fixed pointer-events-none rounded-2xl border-2 border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.6)] transition-all duration-300"
+          className="fixed pointer-events-none rounded-2xl transition-all duration-300"
           style={{
-            zIndex: 99992,
-            top: targetRect.top - 6,
-            left: targetRect.left - 6,
-            width: targetRect.width + 12,
-            height: targetRect.height + 12,
+            zIndex: 99991,
+            top: `${Math.round(targetRect.top - 8)}px`,
+            left: `${Math.round(targetRect.left - 8)}px`,
+            width: `${Math.round(targetRect.width + 16)}px`,
+            height: `${Math.round(targetRect.height + 16)}px`,
+            boxShadow: '0 0 0 9999px rgba(15, 23, 42, 0.76), 0 0 25px 6px rgba(245, 158, 11, 0.85)',
+            border: '3px solid #F59E0B',
+            outline: '2px solid rgba(255, 255, 255, 0.9)',
           }}
+        >
+          {/* Pulsing Target Indicator Badge */}
+          <div className="absolute -top-3.5 left-4 px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-mono text-[10px] font-black uppercase tracking-wider shadow-md flex items-center space-x-1.5 animate-pulse border border-slate-950">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-950" />
+            <span>Target Highlight</span>
+          </div>
+        </div>
+      ) : (
+        <div 
+          className="fixed inset-0 bg-slate-950/75 pointer-events-none transition-opacity duration-300" 
+          style={{ zIndex: 99991 }}
         />
       )}
 
