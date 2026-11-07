@@ -86,7 +86,7 @@ export const PolicyManager: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Top Banner with warm gradient */}
-      <div data-tour="policy-header" className="relative overflow-hidden rounded-3xl border-2 border-slate-900 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 p-6 sm:p-8 shadow-neo text-slate-950">
+      <div data-tour="policy-header" className="relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 border-slate-900 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 p-5 sm:p-8 shadow-neo text-slate-950">
         <div className="relative z-10 max-w-3xl space-y-2">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-950 text-white font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(255,255,255,0.8)]">
             <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
@@ -103,13 +103,13 @@ export const PolicyManager: React.FC = () => {
       </div>
 
       {/* Visual Budget Utilization Meter Card */}
-      <div data-tour="budget-gauge" className="p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-3">
-        <div className="flex items-center justify-between text-xs font-mono font-bold">
+      <div data-tour="budget-gauge" className="p-4 sm:p-6 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono font-bold">
           <div className="flex items-center space-x-2 text-slate-800">
-            <Activity className="w-4 h-4 text-brand-600" />
-            <span>24-Hour Rolling Budget Utilization (Database-Verified)</span>
+            <Activity className="w-4 h-4 text-brand-600 shrink-0" />
+            <span className="truncate">24-Hour Rolling Budget Utilization (Database-Verified)</span>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 shrink-0">
             <button
               onClick={fetchPolicyConfig}
               className="p-1 rounded hover:bg-slate-100 text-slate-600"
