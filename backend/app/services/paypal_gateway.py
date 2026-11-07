@@ -39,7 +39,7 @@ class PayPalGateway:
 
         auth_url = f"{settings.paypal_base_url}/v1/oauth2/token"
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:
                 resp = await client.post(
                     auth_url,
                     auth=(settings.PAYPAL_CLIENT_ID, settings.PAYPAL_CLIENT_SECRET),
@@ -114,7 +114,7 @@ class PayPalGateway:
             }
         }
 
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
                 f"{settings.paypal_base_url}/v2/checkout/orders",
                 headers=headers,
@@ -160,7 +160,7 @@ class PayPalGateway:
             "PayPal-Request-Id": str(uuid.uuid4())
         }
 
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
                 f"{settings.paypal_base_url}/v2/checkout/orders/{paypal_order_id}/capture",
                 headers=headers
@@ -247,7 +247,7 @@ class PayPalGateway:
         }
 
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:
                 resp = await client.post(
                     verify_url,
                     headers={
