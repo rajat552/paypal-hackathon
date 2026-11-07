@@ -280,22 +280,22 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
           </p>
 
           {/* Quick Metrics Bar */}
-          <div className="pt-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
-              <div className="font-display font-black text-xl text-brand-600">$0.01</div>
-              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Micro-Payments</div>
+          <div className="pt-2 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+            <div className="p-2.5 sm:p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
+              <div className="font-display font-black text-lg sm:text-xl text-brand-600">$0.01</div>
+              <div className="text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono truncate">Micro-Payments</div>
             </div>
-            <div className="p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
-              <div className="font-display font-black text-xl text-emerald-600">100%</div>
-              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Pre-Capture Verified</div>
+            <div className="p-2.5 sm:p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
+              <div className="font-display font-black text-lg sm:text-xl text-emerald-600">100%</div>
+              <div className="text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono truncate">Pre-Verified</div>
             </div>
-            <div className="p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
-              <div className="font-display font-black text-xl text-amber-500">&lt; 150ms</div>
-              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Gateway Latency</div>
+            <div className="p-2.5 sm:p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
+              <div className="font-display font-black text-lg sm:text-xl text-amber-500">&lt; 150ms</div>
+              <div className="text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono truncate">Gateway Latency</div>
             </div>
-            <div className="p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
-              <div className="font-display font-black text-xl text-indigo-600">L402 / MCP</div>
-              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono">Open Protocols</div>
+            <div className="p-2.5 sm:p-3 bg-slate-50 border-2 border-slate-900 rounded-xl shadow-neo-sm">
+              <div className="font-display font-black text-lg sm:text-xl text-indigo-600">L402 / MCP</div>
+              <div className="text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider font-mono truncate">Open Protocols</div>
             </div>
           </div>
         </div>
@@ -664,7 +664,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
           </div>
 
           {/* High-Contrast Technical Terminal */}
-          <div className="bg-[#0b0f19] border-2 border-slate-900 rounded-2xl p-4 font-mono text-[11px] h-[580px] overflow-y-auto space-y-2.5 shadow-neo">
+          <div className="bg-[#0b0f19] border-2 border-slate-900 rounded-2xl p-4 font-mono text-[11px] h-[380px] sm:h-[460px] lg:h-[580px] overflow-y-auto space-y-2.5 shadow-neo">
             {logs.length === 0 ? (
               <div className="text-slate-500 italic pt-6 text-center">
                 // Ready for dispatch.
@@ -705,8 +705,8 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
 
       {/* FinTech Checkout Confirmation Modal */}
       {showCheckoutModal && recommendation && challenge && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
-          <div className="relative w-full max-w-md bg-white border-2 border-slate-900 rounded-3xl p-6 sm:p-7 shadow-neo-lg animate-neo-pop space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-md bg-white border-2 border-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-neo-lg animate-neo-pop space-y-4 sm:space-y-5 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b-2 border-slate-100">
               <div className="flex items-center space-x-2">
                 <div className="p-1.5 bg-amber-300 border-2 border-slate-900 rounded-lg text-slate-950 shadow-neo-sm">
