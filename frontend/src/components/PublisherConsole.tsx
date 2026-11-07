@@ -145,7 +145,7 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
       <div data-tour="publisher-form" className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         {/* Form Column */}
         <div className="md:col-span-7">
-          <div className="p-6 sm:p-8 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-6">
+          <div className="p-4 sm:p-8 rounded-2xl bg-white border-2 border-slate-900 shadow-neo space-y-6">
             {message && (
               <div
                 className={`p-3.5 rounded-xl text-xs font-mono font-bold flex items-center justify-between border-2 ${
@@ -174,7 +174,7 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
                 <label className="block text-xs font-mono font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   Dataset / API Title
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     placeholder="e.g. Ultra-Low Latency Switch Profiles"
@@ -186,7 +186,7 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
                   <button
                     type="button"
                     onClick={handleAutoSlug}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 border-2 border-slate-900 rounded-xl text-[11px] font-mono font-bold flex items-center space-x-1"
+                    className="px-3.5 py-2 min-h-[40px] bg-slate-100 hover:bg-slate-200 border-2 border-slate-900 rounded-xl text-[11px] font-mono font-bold flex items-center justify-center space-x-1.5 shadow-neo-sm shrink-0"
                     title="Generate slug from title"
                   >
                     <Wand2 className="w-3.5 h-3.5 text-brand-600" />
