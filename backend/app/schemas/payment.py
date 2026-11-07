@@ -28,6 +28,7 @@ class PaymentSessionStatusResponse(BaseModel):
 
 class CaptureRequest(BaseModel):
     paypal_order_id: str | None = None
+    simulate_buyer_approval: bool = False
 
 class CaptureResponse(BaseModel):
     status: str
