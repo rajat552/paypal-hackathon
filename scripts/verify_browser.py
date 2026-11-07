@@ -5,7 +5,7 @@ from playwright.async_api import async_playwright
 
 async def run_browser_verification():
     print("=== Launching Playwright Headless Browser Verification ===")
-    screenshots_dir = Path("docs/assets/screenshots")
+    screenshots_dir = Path("assets/screenshots")
     screenshots_dir.mkdir(parents=True, exist_ok=True)
 
     async with async_playwright() as p:
