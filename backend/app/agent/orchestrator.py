@@ -16,6 +16,62 @@ class AgentOrchestrator:
     async def run_task(self, session: AsyncSession, request: AgentRunRequest) -> AgentRunResponse:
         run_id = f"run_{uuid.uuid4().hex[:12]}"
 
+        # Direct / Target Resource mode (e.g. dispatched via Catalogue "Run Agent")
+        target_slug = request.target_resource_slug
+        if not target_slug:
+            for term in request.task.replace("(", " ").replace(")", " ").split():
+                clean_term = term.strip(":;,/").lower()
+                if clean_term and len(clean_term) >= 2:
+                    direct_res = await resource_service.get_by_slug(session, clean_term)
+                    if direct_res:
+                        target_slug = clean_term
+                        break
+
+        if target_slug:
+            direct_resource = await resource_service.get_by_slug(session, target_slug)
+            if direct_resource and direct_resource.offers:
+                active_offers = [o for o in direct_resource.offers if o.active]
+                if active_offers:
+                    target_offer = active_offers[0]
+                    policy_res = await agent_tools.evaluate_purchase_policy(
+                        session=session,
+                        offer_id=target_offer.id,
+                        budget_limit=request.budget_limit,
+                        currency=request.currency
+                    )
+                    challenge_res = await agent_tools.request_access_challenge(
+                        session=session,
+                        resource_slug=direct_resource.slug,
+                        offer_id=target_offer.id
+                    )
+                    recommendation = AgentRecommendation(
+                        resource_slug=direct_resource.slug,
+                        resource_title=direct_resource.title,
+                        offer_id=target_offer.id,
+                        offer_title=target_offer.title,
+                        amount=float(target_offer.price_amount),
+                        currency=target_offer.currency,
+                        explanation=f"Agent directly dispatched to procure verified catalogue resource '{direct_resource.title}'.",
+                        scope_description="Read-only access to complete dataset and attributes",
+                        policy_allowed=policy_res["allowed"],
+                        policy_reason=policy_res["reason"]
+                    )
+                    status_text = "AWAITING_APPROVAL" if policy_res["allowed"] else "POLICY_REJECTED"
+                    return AgentRunResponse(
+                        run_id=run_id,
+                        task=request.task,
+                        budget_limit=request.budget_limit,
+                        status=status_text,
+                        ai_mode="direct_dispatch",
+                        ai_provider="paymesh_gateway",
+                        ai_model="catalogue_router",
+                        interpreted_intent=f"Procure verified catalogue dataset: {direct_resource.title}",
+                        comparison_reasoning=f"Direct 1-click catalogue dispatch targeted '{direct_resource.slug}' with ${target_offer.price_amount} USD offer.",
+                        recommendation=recommendation,
+                        challenge=challenge_res,
+                        summary=f"Routed directly to {direct_resource.title} (${target_offer.price_amount} {target_offer.currency}). {policy_res['reason']}"
+                    )
+
         # Attempt genuine LLM workflow if provider API key is configured
         llm_result = await llm_client.run_agent_workflow(
             session=session,
