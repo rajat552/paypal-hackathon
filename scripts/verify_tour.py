@@ -34,7 +34,7 @@ EXPECTED_STEPS = [
 ]
 
 async def run_tour_verification():
-    screenshots_dir = Path("docs/assets/screenshots/tour")
+    screenshots_dir = Path("assets/screenshots/tour")
     screenshots_dir.mkdir(parents=True, exist_ok=True)
 
     print("\n=== Starting PayMesh AI 15-Step Interactive Onboarding Tour Verification ===")
