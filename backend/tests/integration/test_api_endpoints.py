@@ -89,6 +89,41 @@ async def test_full_payment_capture_and_retrieval_flow(async_client: AsyncClient
     assert bad_resp.status_code == 402
 
 @pytest.mark.asyncio
+async def test_simulate_buyer_approval_instant_capture(async_client: AsyncClient):
+    # 1. Challenge
+    c_resp = await async_client.get("/api/v1/resources/product-intelligence-report/content")
+    c_data = c_resp.json()
+    challenge_id = c_data["challenge_id"]
+    offer_id = c_data["offers"][0]["id"]
+
+    # 2. Payment Session
+    sess_payload = {
+        "challenge_id": challenge_id,
+        "offer_id": offer_id,
+        "buyer_confirmed": True
+    }
+    s_resp = await async_client.post("/api/v1/payment-sessions", json=sess_payload)
+    assert s_resp.status_code == 200
+    session_id = s_resp.json()["session_id"]
+
+    # 3. Simulate buyer approval capture without PayPal login
+    cap_resp = await async_client.post(
+        f"/api/v1/payment-sessions/{session_id}/capture",
+        json={"simulate_buyer_approval": True}
+    )
+    assert cap_resp.status_code == 200
+    cap_data = cap_resp.json()
+    assert cap_data["status"] == "CAPTURED"
+    assert cap_data["paypal_capture_id"].startswith("CAP-SANDBOX-AUTH-")
+    assert cap_data["access_token"].startswith("pm_live_")
+
+    # 4. Access content with newly issued token
+    headers = {"Authorization": f"Bearer {cap_data['access_token']}"}
+    p_resp = await async_client.get("/api/v1/resources/product-intelligence-report/content", headers=headers)
+    assert p_resp.status_code == 200
+    assert p_resp.json()["slug"] == "product-intelligence-report"
+
+@pytest.mark.asyncio
 async def test_agent_run_orchestration(async_client: AsyncClient):
     task_payload = {
         "task": "Find mechanical keyboards latency benchmarks",
