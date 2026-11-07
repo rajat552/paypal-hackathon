@@ -13,6 +13,17 @@ def test_settings_properties():
     assert settings.APP_BASE_URL is not None
     assert settings.paypal_base_url in ("https://api-m.sandbox.paypal.com", "https://api-m.paypal.com")
     assert settings.PAYMENT_CHALLENGE_TTL_MINUTES == 10
+    
+    # Verify Render postgres:// URL normalization
+    from backend.app.core.config import Settings
+    render_settings = Settings(DATABASE_URL="postgres://user:pass@host.render.com:5432/paymesh")
+    assert render_settings.async_database_url == "postgresql+asyncpg://user:pass@host.render.com:5432/paymesh"
+    assert render_settings.sync_database_url == "postgresql://user:pass@host.render.com:5432/paymesh"
+    
+    # Verify sqlite normalization
+    sqlite_settings = Settings(DATABASE_URL="sqlite:///test.db")
+    assert sqlite_settings.async_database_url == "sqlite+aiosqlite:///test.db"
+    assert sqlite_settings.sync_database_url == "sqlite:///test.db"
 
 def test_token_hashing_and_verification():
     raw_token = generate_secure_bearer_token()

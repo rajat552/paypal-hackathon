@@ -45,12 +45,28 @@ class Settings(BaseSettings):
         return self.DATABASE_URL.startswith("sqlite")
 
     @property
+    def async_database_url(self) -> str:
+        """Normalize DATABASE_URL for SQLAlchemy 2.0 AsyncEngine."""
+        url = self.DATABASE_URL
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgresql://") and "+asyncpg" not in url:
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        elif url.startswith("sqlite://") and "+aiosqlite" not in url:
+            url = url.replace("sqlite://", "sqlite+aiosqlite://", 1)
+        return url
+
+    @property
     def sync_database_url(self) -> str:
-        if self.DATABASE_URL.startswith("sqlite+aiosqlite://"):
-            return self.DATABASE_URL.replace("sqlite+aiosqlite://", "sqlite://")
-        if self.DATABASE_URL.startswith("postgresql+psycopg://"):
-            return self.DATABASE_URL.replace("postgresql+psycopg://", "postgresql://")
-        return self.DATABASE_URL
+        """Normalize DATABASE_URL for sync drivers (Alembic / psycopg2)."""
+        url = self.DATABASE_URL
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql://", 1)
+        elif url.startswith("postgresql+asyncpg://"):
+            url = url.replace("postgresql+asyncpg://", "postgresql://", 1)
+        elif url.startswith("sqlite+aiosqlite://"):
+            url = url.replace("sqlite+aiosqlite://", "sqlite://", 1)
+        return url
 
     @property
     def paypal_base_url(self) -> str:
