@@ -25,7 +25,7 @@
 [![Tests](https://img.shields.io/badge/Tests-28%20Passed%20%7C%20100%25-10B981.svg)](backend/tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[🌐 Live Frontend](https://paypal-hackathon-mu.vercel.app/) • [⚡ Live Backend](https://paypal-hackathon-s0gq.onrender.com) • [📸 Visual Showcase](#-dashboard-screenshots--visual-showcase) • [💡 Overview](#-overview) • [⚡ Key Features](#-key-features) • [🛠 Tech Stack](#-technology-stack) • [🏛 Architecture](#-system-architecture) • [🔄 Workflows](#-end-to-end-workflows) • [🚀 Quick Start](#-installation--setup) • [🔐 Environment Variables](#-environment-variables) • [📡 API Docs](#-api-documentation) • [🧪 Testing](#-testing--quality-checks) • [🏆 Hackathon Tracks](#-hackathon-prize-track-alignment)
+[🌐 Live Frontend](https://paypal-hackathon-mu.vercel.app/) • [⚡ Live Backend](https://paypal-hackathon-s0gq.onrender.com) • [💡 Problem & Solution](#-the-problem--the-solution) • [📸 Visual Showcase](#-dashboard-screenshots--visual-showcase) • [⚡ Key Features](#-key-features) • [🏛 Architecture](#-system-architecture) • [🔐 Security & Trust Engine](#-deterministic-trust--security-engine) • [🏆 Hackathon Tracks](#-hackathon-track-alignment) • [🚀 Quick Start](#-installation--setup) • [📡 API Reference](#-api-documentation) • [🧪 Testing](#-testing--quality-checks)
 
 </div>
 
@@ -33,96 +33,127 @@
 
 ## 🌐 Live Deployments & Verification Endpoints
 
-| Component | Provider | Live URL | Status |
-| :--- | :--- | :--- | :--- |
-| **Production Frontend** | Vercel (Edge CDN) | [https://paypal-hackathon-mu.vercel.app/](https://paypal-hackathon-mu.vercel.app/) | ![Active](https://img.shields.io/badge/status-active-brightgreen) |
-| **API Backend Gateway** | Render Web Service | [https://paypal-hackathon-s0gq.onrender.com](https://paypal-hackathon-s0gq.onrender.com) | ![Active](https://img.shields.io/badge/status-active-brightgreen) |
-| **System Diagnostics** | Render `/health` | [https://paypal-hackathon-s0gq.onrender.com/health](https://paypal-hackathon-s0gq.onrender.com/health) | ![Healthy](https://img.shields.io/badge/status-200%20OK-brightgreen) |
-| **PayPal Sandbox Webhook** | PayPal Developer Portal | `https://paypal-hackathon-s0gq.onrender.com/api/v1/payments/webhook` | ![Registered](https://img.shields.io/badge/Webhook%20ID-70X74465B0704404B-blue) |
-| **MongoDB Atlas Cluster** | MongoDB Atlas Cloud | `cluster0.mfzju4v.mongodb.net/cohesora` (v8.0.37) | ![Connected](https://img.shields.io/badge/audit%20ledger-live-forestgreen) |
-| **Interactive OpenAPI Docs** | Swagger UI | [https://paypal-hackathon-s0gq.onrender.com/docs](https://paypal-hackathon-s0gq.onrender.com/docs) | ![Swagger](https://img.shields.io/badge/docs-OpenAPI%203.1-orange) |
-| **MCP Server Manifest** | Model Context Protocol | [https://paypal-hackathon-s0gq.onrender.com/api/v1/agent/mcp/manifest](https://paypal-hackathon-s0gq.onrender.com/api/v1/agent/mcp/manifest) | ![JSON](https://img.shields.io/badge/MCP-Standard-purple) |
+| Component | Provider | Live URL | Status | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **Production Frontend** | Vercel (Edge CDN) | [https://paypal-hackathon-mu.vercel.app/](https://paypal-hackathon-mu.vercel.app/) | ![Active](https://img.shields.io/badge/status-active-brightgreen) | High-speed React 18 SPA with Neo-Tech design system & guided onboarding tour |
+| **API Backend Gateway** | Render Web Service | [https://paypal-hackathon-s0gq.onrender.com](https://paypal-hackathon-s0gq.onrender.com) | ![Active](https://img.shields.io/badge/status-active-brightgreen) | FastAPI asynchronous gateway enforcing L402 paywalls and PayPal capture |
+| **System Diagnostics** | Render `/health` | [https://paypal-hackathon-s0gq.onrender.com/health](https://paypal-hackathon-s0gq.onrender.com/health) | ![Healthy](https://img.shields.io/badge/status-200%20OK-brightgreen) | Real-time health diagnostic endpoint returning database and MongoDB statuses |
+| **PayPal Sandbox Webhook** | PayPal Developer Portal | `https://paypal-hackathon-s0gq.onrender.com/api/v1/payments/webhook` | ![Registered](https://img.shields.io/badge/Webhook%20ID-70X74465B0704404B-blue) | Asynchronous webhook listener processing `PAYMENT.CAPTURE.COMPLETED` events |
+| **MongoDB Atlas Cluster** | MongoDB Atlas Cloud | `cluster0.mfzju4v.mongodb.net/cohesora` (v8.0.37) | ![Connected](https://img.shields.io/badge/audit%20ledger-live-forestgreen) | Immutable audit log repository with TLS certificate verification |
+| **Interactive OpenAPI Docs** | Swagger UI | [https://paypal-hackathon-s0gq.onrender.com/docs](https://paypal-hackathon-s0gq.onrender.com/docs) | ![Swagger](https://img.shields.io/badge/docs-OpenAPI%203.1-orange) | Full interactive documentation for all 15 REST and agent endpoints |
+| **MCP Server Manifest** | Model Context Protocol | [https://paypal-hackathon-s0gq.onrender.com/api/v1/agent/mcp/manifest](https://paypal-hackathon-s0gq.onrender.com/api/v1/agent/mcp/manifest) | ![JSON](https://img.shields.io/badge/MCP-Standard-purple) | Machine-readable Anthropic Model Context Protocol catalog manifest |
+
+---
+
+## 💡 The Problem & The Solution
+
+### The Fundamental Dilemma: Autonomous AI Agents Cannot Hold Credit Cards
+The software landscape is rapidly evolving from passive human-in-the-loop chatbots to autonomous AI agents that conduct deep market intelligence, procure API datasets, and assemble supply-chain information independently.
+
+However, existing financial rails are fundamentally broken for autonomous machines:
+1. **The Human-in-the-Loop Trap:** Standard checkout flows rely on browser session cookies, human-interactive redirect loops, CAPTCHAs, and SMS 3D-Secure challenges that break programmatic AI execution.
+2. **Existential Financial Security Risks:** Giving an LLM access to raw credit cards or unrestricted static API keys creates unacceptable vulnerabilities:
+   - **Prompt Injection:** Attackers can trick the model into executing rogue transactions.
+   - **Runaway Loops:** Recursive agent logic can drain thousands of dollars in minutes.
+   - **Credential Leaks:** API keys stored in agent prompts are vulnerable to context leakage.
+3. **The Data Provider Stalemate:** Premium data publishers face aggressive scraping bots that consume compute without paying, yet publishers lack a standardized mechanism to charge legitimate AI agents micropayments per query.
+
+### The Solution: PayMesh AI
+**PayMesh AI** bridges this divide by delivering a **standardized trust and settlement mesh for autonomous AI agents** powered by the open **L402 protocol** and **PayPal Developer Sandbox (Orders v2 & Webhooks)**:
+
+```
+[ Autonomous AI Agent ] 
+         │ (Requests protected dataset)
+         ▼
+[ PayMesh L402 Gateway ] ───▶ Returns HTTP 402 + Machine-Readable Challenge ($0.05 USD)
+         │
+         ▼
+[ Deterministic Spending Engine ] ───▶ Hard financial ceiling check (Zero LLM hallucination)
+         │
+         ▼
+[ PayPal Sandbox Orders v2 ] ───▶ Real-time server-side capture & settlement
+         │
+         ▼
+[ Scoped Bearer Token (pm_live_...) ] ───▶ Cryptographically hashed (HMAC-SHA256) & issued
+         │
+         ▼
+[ Decrypted Intelligence Unlocked ] ───▶ Immutable audit event saved in MongoDB Atlas Cloud
+```
+
+- **HTTP 402 Standardized Paywalls:** Returns machine-readable JSON envelopes containing precise resource IDs, verified pricing offers, and challenge tokens.
+- **Deterministic Trust Engine:** Enforces immutable spending rules (transaction caps, 24-hour daily rolling budgets, and currency validations) in code. The LLM is strictly prohibited from authorizing payments or modifying prices.
+- **Real PayPal Orders v2 Settlement:** Full PayPal Sandbox lifecycle—OAuth 2.0 authorization, server-calculated purchase units, approval delegation, and server-side capture verification.
+- **Cryptographic Token Separation:** Challenge tokens, PayPal Order IDs, and Bearer access keys are isolated. Bearer tokens (`pm_live_...`) are stored exclusively as salted HMAC-SHA256 hashes.
+- **Dual Persistence Architecture:** Transactional relational data (FastAPI + SQLAlchemy Async Engine) paired with immutable cloud audit trails (**MongoDB Atlas** `cohesora` cluster).
+- **Anthropic Model Context Protocol (MCP):** Native MCP tools enabling Claude Desktop and external agent runtimes to seamlessly negotiate paywalls without custom plugins.
 
 ---
 
 ## 📸 Dashboard Screenshots & Visual Showcase
 
-Every screenshot below reflects the genuine running application in its authentic **Neo-Tech** design system (inspired by developer engineering schematics and Major League Hacking aesthetic):
+Every screenshot below captures the genuine running application in its authentic **Neo-Tech** design system (inspired by developer engineering schematics and modern developer tools):
 
-### 1. AI Commerce Agent Studio & Mission Control
-The unified interface where developers and autonomous buyer agents formulate tasks, enforce spending policies, review tool trace logs, and inspect protocol state transitions in real time.
+### 1. Interactive 15-Step Guided Onboarding Tour
+Every visitor is greeted with an interactive guided onboarding walkthrough showcasing how PayMesh AI coordinates agent goals, spending policies, and PayPal Sandbox payments.
+
+![Interactive Onboarding Tour](assets/screenshots/tour/00_url_click_tour_first.png)
+*Figure 1: High-contrast spotlight tour guiding users through the end-to-end autonomous agent commerce flow.*
+
+---
+
+### 2. AI Commerce Agent Studio & Live Protocol Inspector
+The developer mission control where users enter autonomous research goals, configure deterministic spending limits, dispatch the multi-step agent orchestrator, and inspect real-time L402 and MCP protocol frames.
 
 ![AI Commerce Agent Workspace](assets/screenshots/01-agent-workspace.png)
-*Figure 1: PayMesh AI workspace with research goal formulate input, spending policy ceilings, and the live Protocol Inspector terminal.*
+*Figure 2: AI Commerce Agent Workspace featuring sample scenario dispatchers, spending policy inputs, and the live Protocol Inspector terminal.*
 
 ---
 
-### 2. Machine-Readable L402 Challenge & PayPal Gateway
-When an agent accesses monetized datasets without credentials, the gateway issues an authoritative `HTTP 402 Payment Required` challenge. The agent's deterministic spending engine evaluates the pre-negotiated offer and triggers the PayPal Sandbox Orders v2 checkout lifecycle.
+### 3. Machine-Readable L402 Challenge & PayPal Gateway Action
+When an agent accesses monetized resources without credentials, PayMesh AI issues an authoritative `HTTP 402 Payment Required` challenge. The agent's deterministic spending engine validates the price and initiates the PayPal Orders v2 approval card.
 
 ![L402 Challenge and PayPal Gateway](assets/screenshots/02-l402-challenge.png)
-*Figure 2: Real-time HTTP 402 Challenge card presenting the verified offer, deterministic policy clearance, and the PayPal Sandbox approval action.*
+*Figure 3: Real-time HTTP 402 Challenge card presenting the verified offer, deterministic policy clearance, and direct PayPal Sandbox approval action.*
 
 ---
 
-### 3. Decrypted Intelligence & Channel3 Product Data
-Upon server-side capture of the PayPal transaction, a cryptographic scoped Bearer token (`pm_live_...`) is minted, unlocking normalized Channel3 hardware latency benchmarks with direct retailer links.
+### 4. Decrypted Intelligence & Channel3 Product Data
+Following server-side capture of the PayPal transaction, a cryptographic Bearer token (`pm_live_...`) is minted, unlocking normalized Channel3 hardware latency benchmarks with direct retailer purchase links.
 
 ![Unlocked Channel3 Hardware Intelligence](assets/screenshots/03-unlocked-intelligence.png)
-*Figure 3: Unlocked dataset presentation displaying measured switch latencies, retail pricing, AI market synthesis, and Bearer token copy utility.*
+*Figure 4: Unlocked dataset presentation displaying measured switch latencies, retail pricing, AI market synthesis, and Bearer token copy utility.*
 
 ---
 
-### 4. Deterministic Trust & Spending Policy Engine
-Guardrails that prevent probabilistic LLM agents from runaway spending or falling victim to prompt injection. Server-enforced financial limits evaluate database records independently of the model.
+### 5. Deterministic Trust & Spending Policy Engine
+Guardrails that prevent probabilistic LLM agents from runaway spending or falling victim to prompt injection. Server-enforced financial limits evaluate database records independently of model hallucinations.
 
 ![Deterministic Policy Manager](assets/screenshots/04-spending-policy.png)
-*Figure 4: Spending Policy Engine showing per-transaction ceilings, 24-hour daily rolling caps, prompt-injection sanitization, and security invariants.*
+*Figure 5: Spending Policy Engine showing per-transaction ceilings, 24-hour daily rolling caps, prompt-injection sanitization, and security invariants.*
 
 ---
 
-### 5. API & Data Marketplace Catalogue
+### 6. API & Data Marketplace Catalogue
 A machine-readable registry where data providers list intelligence datasets, hardware benchmarks, and pricing offers for programmatic discovery.
 
 ![API and Data Catalogue](assets/screenshots/05-marketplace-catalogue.png)
-*Figure 5: Dataset marketplace featuring live search, pricing tier summaries, raw HTTP 402 endpoint testing, and one-click agent dispatch.*
+*Figure 6: Dataset marketplace featuring live search, pricing tier summaries, raw HTTP 402 endpoint testing, and one-click agent dispatch.*
 
 ---
 
-### 6. AG Grid Financial Ledger & KPI Analytics
-Enterprise-grade financial analytics tracking captured transaction volume, active entitlements, conversion rates, and immutable PayPal capture IDs.
+### 7. AG Grid Financial Settlement Ledger & KPI Analytics
+Enterprise-grade financial analytics tracking captured transaction volume, active entitlements, conversion rates, and immutable PayPal capture IDs with CSV export.
 
 ![AG Grid Financial Ledger](assets/screenshots/06-financial-ledger.png)
-*Figure 6: Interactive AG Grid financial ledger with sorting, filtering, CSV export, and real-time PayPal Sandbox capture verification.*
+*Figure 7: Interactive AG Grid financial ledger with column filtering, sorting, CSV export, and real-time PayPal Sandbox capture verification.*
 
 ---
 
-### 7. Merchant Publishing Studio
-A self-service portal for third-party data providers to register new datasets, set pricing tiers, and generate live AI agent card previews.
+### 8. Interactive Swagger OpenAPI 3.1 Documentation
+Full interactive API documentation allowing developers to inspect schemas, execute test requests, and review response headers directly in the browser.
 
-![Merchant Studio](assets/screenshots/07-merchant-studio.png)
-*Figure 7: Merchant publishing interface with custom slug generator, provider selector, offer pricing models, and instant live card preview.*
-
----
-
-## 💡 Overview
-
-### The Problem: Autonomous Agents Cannot Hold Credit Cards
-The world is transitioning to autonomous software agents capable of conducting research, purchasing data, and provisioning APIs on behalf of users. However:
-1. **Agents cannot be trusted with raw financial credentials**: Exposing static API keys or corporate credit cards to an LLM creates catastrophic risks of prompt injection, rogue spending loops, and credential exfiltration.
-2. **Traditional payment flows require human web browsers**: Redirect loops, cookie-based sessions, and multi-factor captchas break programmatic workflows.
-3. **Data providers lack machine paywalls**: Web scrapers bypass monetized paywalls while legitimate bots cannot programmatically pay for single queries.
-
-### The Solution: PayMesh AI
-**PayMesh AI** solves this by establishing a **standardized trust and settlement mesh for autonomous AI agents** using the open **L402 protocol** and **PayPal Developer Sandbox (Orders v2 & Webhooks)**:
-
-- **Machine-Readable 402 Paywalls**: Programmatic clients receive structured JSON challenges specifying verified pricing offers, expiration timestamps, and payment endpoints.
-- **Genuine PayPal Sandbox Settlement**: Full Orders v2 lifecycle—OAuth 2.0 client authentication, server-calculated purchase units, approval delegation, and server-side capture verification.
-- **Deterministic Trust Engine**: The LLM is strictly prohibited from authorizing payments or changing amounts. All financial gates evaluate database records deterministically.
-- **Dual Persistence Architecture**: Relational models (PostgreSQL/SQLite) manage transactional session states, while **MongoDB Atlas** provides immutable audit logging and document storage.
-- **Cryptographic Token Separation**: Challenge IDs, PayPal Order IDs, and Bearer Tokens are strictly separated. Only salted HMAC-SHA256 hashes of `pm_live_...` tokens are stored.
-- **Model Context Protocol (MCP)**: Native integration enabling Claude Desktop and MCP-compliant autonomous runtimes to discover, negotiate, and unlock paid data natively.
-- **Interactive Onboarding Walkthrough**: A guided 15-step interactive tour greeting users on first launch, covering end-to-end workflows from agent goal prompt to PayPal Sandbox capture.
+![Interactive Swagger API Docs](assets/screenshots/api_docs_swagger_ui.png)
+*Figure 8: Swagger UI documentation for all PayMesh AI REST endpoints and Model Context Protocol tools.*
 
 ---
 
@@ -134,7 +165,7 @@ The world is transitioning to autonomous software agents capable of conducting r
 | **PayPal Orders v2 Capture** | Genuine PayPal Sandbox integration: OAuth 2.0 token acquisition, purchase unit creation, approval flow, and server-side capture verification. | [`backend/app/services/paypal_gateway.py`](backend/app/services/paypal_gateway.py) |
 | **PayPal Webhook Receiver** | Dedicated webhook handler receiving real-time asynchronous PayPal events (`PAYMENT.CAPTURE.COMPLETED`), acknowledging `200 OK`, and logging to MongoDB. | [`backend/app/api/v1/routes/payments.py`](backend/app/api/v1/routes/payments.py) |
 | **Deterministic Spending Engine** | Enforces hard ceilings per transaction, rolling 24-hour budgets, and currency matching. The LLM cannot alter amounts or bypass rules. | [`backend/app/agent/policy.py`](backend/app/agent/policy.py) |
-| **Google Gemini & Multi-LLM** | Native Google Gemini 2.5 Flash / 3.8 Flash live integration (`AI_PROVIDER=gemini`) alongside OpenAI GPT-4o-mini and Claude fallback. | [`backend/app/agent/llm_client.py`](backend/app/agent/llm_client.py) |
+| **Google Gemini & Multi-LLM** | Native Google Gemini 2.5 Flash live integration (`AI_PROVIDER=gemini`) alongside OpenAI GPT-4o-mini and Claude fallback. | [`backend/app/agent/llm_client.py`](backend/app/agent/llm_client.py) |
 | **MongoDB Atlas Audit Ledger** | Persistent document and event tracking in MongoDB Atlas `cohesora` cluster (`auditevents` collection) with TLS `certifi` verification. | [`backend/app/db/mongodb.py`](backend/app/db/mongodb.py) |
 | **Model Context Protocol (MCP)** | Standardized server exposed at `/api/v1/agent/mcp/manifest` allowing any MCP-compliant agent to discover and purchase datasets programmatically. | [`backend/app/mcp/server.py`](backend/app/mcp/server.py) |
 | **Channel3 Intelligence** | Integrated product data provider offering retail hardware switch profiles, latency benchmarks, and verified retailer links. | [`backend/app/services/channel3_client.py`](backend/app/services/channel3_client.py) |
@@ -143,29 +174,9 @@ The world is transitioning to autonomous software agents capable of conducting r
 
 ---
 
-## 🛠 Technology Stack
-
-| Layer / Technology | Role in PayMesh AI | Codebase Location |
-| :--- | :--- | :--- |
-| **Python 3.11+ / FastAPI** | High-performance asynchronous API gateway, L402 paywall middleware, and business logic. | [`backend/app/main.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/main.py), [`backend/app/api/`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/api/) |
-| **PayPal Developer Platform** | Payment settlement gateway using PayPal Orders v2 Sandbox APIs and asynchronous Webhook events. | [`backend/app/services/paypal_gateway.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/services/paypal_gateway.py) |
-| **Google Gemini AI** | Advanced reasoning model (`gemini-2.5-flash`) interpreting tasks, selecting datasets, and synthesizing unlocked intelligence. | [`backend/app/agent/llm_client.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/agent/llm_client.py) |
-| **MongoDB Atlas Cloud** | Persistent audit log repository (`cohesora` database) storing immutable transaction histories and webhook receipts. | [`backend/app/db/mongodb.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/db/mongodb.py) |
-| **SQLAlchemy 2.0 (Async)** | Asynchronous ORM managing relational entities: Resources, Offers, Challenges, Orders, Entitlements, Events. | [`backend/app/models/entities.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/models/entities.py) |
-| **Pydantic v2** | Strict schema validation, request/response models, and environment settings parsing. | [`backend/app/schemas/`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/schemas/), [`backend/app/core/config.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/core/config.py) |
-| **React 18 + Vite** | High-speed frontend build serving the interactive AI Commerce Agent Portal. | [`frontend/src/`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/frontend/src/) |
-| **Tailwind CSS + Neo-Tech** | Modern developer-focused design system with blueprint grids, tactile borders, and hard shadows. | [`frontend/tailwind.config.js`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/frontend/tailwind.config.js), [`frontend/src/index.css`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/frontend/src/index.css) |
-| **AG Grid Community v32** | Interactive financial ledger with sorting, filtering, and live transaction auditing. | [`frontend/src/components/AnalyticsView.tsx`](frontend/src/components/AnalyticsView.tsx) |
-| **Interactive Onboarding Tour** | Multi-step interactive spotlight tour guiding new users through the complete AI commerce lifecycle. | [`frontend/src/components/OnboardingTour.tsx`](frontend/src/components/OnboardingTour.tsx) |
-| **Model Context Protocol (MCP)** | Anthropic open protocol standard for programmatic LLM tool execution and catalog discovery. | [`backend/app/mcp/server.py`](backend/app/mcp/server.py) |
-| **Channel3 API Client** | Hardware latency benchmarks and verified retailer product links integration. | [`backend/app/services/channel3_client.py`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/app/services/channel3_client.py) |
-| **Pytest Suite** | 28 automated unit and integration tests verifying 100% of the API, policy engine, and PayPal flow. | [`backend/tests/`](file:///c:/Users/LENOVO/OneDrive/Desktop/paypal-hackathon/backend/tests/) |
-
----
-
 ## 🏛 System Architecture
 
-The following diagram illustrates how the Client, AI Commerce Agent, PayMesh Gateway, PayPal Sandbox, MongoDB Atlas, and Data Providers interact:
+The following diagram illustrates how the Client, AI Commerce Agent, PayMesh Gateway, PayPal Sandbox, MongoDB Atlas, and External Data Providers interact:
 
 ```mermaid
 sequenceDiagram
@@ -211,31 +222,58 @@ sequenceDiagram
 
 ---
 
-## 🔄 End-to-End Workflows
+## 🔐 Deterministic Trust & Security Engine
 
-### 1. Autonomous Agent Data Purchase Workflow
-1. **Discovery**: The agent searches the machine-readable marketplace at `/api/v1/catalogue`.
-2. **Challenge Generation**: Attempting to fetch protected content without credentials triggers an authoritative `HTTP 402` containing challenge metadata:
-   ```json
-   {
-     "version": "2.0.0",
-     "protocol": "paymesh-l402",
-     "challenge_id": "chl_ebf3ca705752e1bedc35e9b71d7d547f",
-     "offers": [{ "id": "standard_1h", "amount": 0.01, "currency": "USD" }]
-   }
-   ```
-3. **Deterministic Verification**: The spending policy verifies that the purchase amount is within budget limits. The agent cannot alter the transaction price.
-4. **PayPal Order Creation**: The gateway invokes the PayPal Sandbox Orders v2 API with server-calculated purchase units.
-5. **Server-Side Capture**: The order is captured against PayPal Sandbox, returning an immutable capture transaction ID.
-6. **Token Issuance**: The gateway mints a cryptographic Bearer token (`pm_live_...`), hashes it with HMAC-SHA256, and links it to an entitlement.
-7. **Protected Content Retrieval**: The agent exchanges the Bearer token for the decrypted data.
-8. **Cloud Audit Ledger**: The transaction is mirrored directly to the MongoDB Atlas `auditevents` collection.
+### Zero-Hallucination Financial Architecture
+In conventional agentic setups, LLMs are tasked with parsing prices and issuing tool calls to payment gateways. This introduces critical failure modes where prompt injection or model hallucination can corrupt financial amounts.
 
-### 2. PayPal Webhook Notification Lifecycle
-1. When an event fires (e.g. `PAYMENT.CAPTURE.COMPLETED`), PayPal posts an HTTP payload to `/api/v1/payments/webhook`.
-2. PayMesh AI verifies headers and captures event metadata.
-3. The event is recorded in MongoDB Atlas.
-4. An immediate `200 OK` response is returned to PayPal within milliseconds.
+PayMesh AI enforces strict security invariants:
+1. **Server-Enforced Calculations:** The pricing amount is strictly derived from the database offer record, not the LLM's prompt.
+2. **Deterministic Pre-Flight Checks:** The spending policy engine runs pure deterministic Python checks:
+   - `transaction_amount <= policy.max_amount_per_transaction`
+   - `(daily_spending + transaction_amount) <= policy.daily_budget_usd`
+   - `offer.currency in policy.allowed_currencies`
+   - `offer.is_active is True`
+3. **HMAC-SHA256 Token Storage:** Bearer access tokens (`pm_live_...`) are generated via `secrets.token_urlsafe(32)`. The plaintext token is returned exactly once to the client; only the salted HMAC-SHA256 digest is persisted in the database.
+4. **Time-To-Live Enforcement:** Challenges expire strictly within 10 minutes, and entitlements expire per the offer terms.
+
+---
+
+## 🏆 Hackathon Track Alignment
+
+PayMesh AI was engineered specifically for the **PayPal AI Hackathon 2026** and directly aligns with the judging criteria:
+
+### 1. Agentic Commerce & Autonomous Payments
+- **Challenge:** Enabling autonomous agents to purchase digital goods, APIs, and datasets programmatically.
+- **PayMesh AI Implementation:** Full implementation of the L402 protocol over PayPal Sandbox Orders v2. Agents autonomously discover catalogs, receive HTTP 402 challenge tokens, verify pricing policies, and complete orders.
+
+### 2. Developer Tools & Infrastructure
+- **Challenge:** Creating robust infrastructure for developers building AI agents and monetizing services.
+- **PayMesh AI Implementation:** Self-service Merchant Publishing Studio, Model Context Protocol (MCP) server manifest (`/api/v1/agent/mcp/manifest`), standardized FastAPI paywall middleware, and interactive OpenAPI documentation.
+
+### 3. Trust, Safety & Financial Guardrails
+- **Challenge:** Preventing agent overspending, prompt injection exploits, and transaction fraud.
+- **PayMesh AI Implementation:** Deterministic spending policy engine, server-calculated purchase units, cryptographic HMAC token storage, and immutable cloud audit logging in MongoDB Atlas.
+
+---
+
+## 🛠 Technology Stack
+
+| Layer / Technology | Role in PayMesh AI | Codebase Location |
+| :--- | :--- | :--- |
+| **Python 3.11+ / FastAPI** | Asynchronous API gateway, L402 paywall middleware, and business logic | [`backend/app/main.py`](backend/app/main.py) |
+| **PayPal Developer Platform** | Payment settlement gateway using PayPal Orders v2 Sandbox APIs and Webhooks | [`backend/app/services/paypal_gateway.py`](backend/app/services/paypal_gateway.py) |
+| **Google Gemini AI** | Advanced reasoning model (`gemini-2.5-flash`) interpreting tasks and synthesizing data | [`backend/app/agent/llm_client.py`](backend/app/agent/llm_client.py) |
+| **MongoDB Atlas Cloud** | Persistent audit log repository (`cohesora` database) storing immutable transaction histories | [`backend/app/db/mongodb.py`](backend/app/db/mongodb.py) |
+| **SQLAlchemy 2.0 (Async)** | Asynchronous ORM managing relational entities: Resources, Offers, Challenges, Orders, Entitlements | [`backend/app/models/entities.py`](backend/app/models/entities.py) |
+| **Pydantic v2** | Strict schema validation, request/response models, and environment settings parsing | [`backend/app/schemas/`](backend/app/schemas/) |
+| **React 18 + Vite** | High-speed frontend build serving the interactive AI Commerce Agent Portal | [`frontend/src/`](frontend/src/) |
+| **Tailwind CSS + Neo-Tech** | Modern developer-focused design system with blueprint grids and tactile styling | [`frontend/tailwind.config.js`](frontend/tailwind.config.js) |
+| **AG Grid Community v32** | Interactive financial ledger with sorting, filtering, and live transaction auditing | [`frontend/src/components/AnalyticsView.tsx`](frontend/src/components/AnalyticsView.tsx) |
+| **Interactive Onboarding Tour** | 15-step interactive spotlight tour guiding new users through the AI commerce lifecycle | [`frontend/src/components/OnboardingTour.tsx`](frontend/src/components/OnboardingTour.tsx) |
+| **Model Context Protocol (MCP)** | Anthropic open protocol standard for programmatic LLM tool execution | [`backend/app/mcp/server.py`](backend/app/mcp/server.py) |
+| **Channel3 API Client** | Hardware latency benchmarks and verified retailer product links integration | [`backend/app/services/channel3_client.py`](backend/app/services/channel3_client.py) |
+| **Pytest Suite** | 28 automated unit and integration tests verifying 100% of the API and PayPal flow | [`backend/tests/`](backend/tests/) |
 
 ---
 
@@ -284,7 +322,7 @@ paypal-hackathon/
 │   └── verify_api_docs.py          # Swagger UI API docs routing verification
 ├── .env.example                    # Clean environment configuration template
 ├── docker-compose.yml              # Local multi-container development environment
-├── render.yaml                     # Render 1-click cloud Blueprint configuration
+├── render.yaml                     # Render cloud Blueprint configuration
 └── vercel.json                     # Root Vercel deployment configuration
 ```
 
@@ -333,7 +371,7 @@ python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
 ```
 
 Open your browser at:
-👉 **[http://localhost:8000](http://localhost:8000)**
+👉 **[http://localhost:8000](http://localhost:8000)** (or run frontend dev server at `http://localhost:5173` via `npm --prefix frontend run dev`).
 
 ---
 
@@ -425,7 +463,7 @@ backend/tests/unit/test_policy.py::test_policy_inactive_offer PASSED            
 backend/tests/unit/test_policy.py::test_policy_disallowed_currency PASSED                 [ 96%]
 backend/tests/unit/test_policy.py::test_policy_exceeds_platform_ceiling PASSED            [100%]
 
-============================= 28 passed in 45.73s =============================
+============================= 28 passed in 19.91s =============================
 ```
 
 ### Live Smoke Test
@@ -434,6 +472,7 @@ Execute all 7 end-to-end integration steps against the live deployment:
 python scripts/smoke_test.py https://paypal-hackathon-s0gq.onrender.com
 ```
 
+---
 
 ## 📄 License & Attribution
 
