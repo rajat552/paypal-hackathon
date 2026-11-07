@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Lock, Sliders, AlertCircle, CheckCircle2, History, RefreshCw, KeyRound, DollarSign, Check, Activity, Percent, Loader2 } from 'lucide-react';
+import { formatApiError } from '../utils/error';
 
 export const PolicyManager: React.FC = () => {
   const [maxPerTransaction, setMaxPerTransaction] = useState(0.50);
@@ -72,11 +73,11 @@ export const PolicyManager: React.FC = () => {
         setSaved(true);
         setTimeout(() => setSaved(false), 3500);
       } else {
-        const errData = await res.json();
-        throw new Error(errData.detail || 'Server rejected policy update');
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(formatApiError(errData, 'Server rejected policy update'));
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to save policy');
+      setErrorMsg(formatApiError(err, 'Failed to save policy'));
     } finally {
       setSaving(false);
     }

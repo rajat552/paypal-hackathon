@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatApiError } from '../utils/error';
 import { 
   Bot, 
   Sparkles, 
@@ -149,9 +150,9 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
             buyer_confirmed: true,
           }),
         });
-        const sessData = await sessRes.json();
+        const sessData = await sessRes.json().catch(() => ({}));
         if (!sessRes.ok) {
-          throw new Error(sessData.detail || 'Failed to initialize PayPal payment session');
+          throw new Error(formatApiError(sessData, 'Failed to initialize PayPal payment session'));
         }
         currentSession = {
           session_id: sessData.session_id,
@@ -168,9 +169,9 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
-      const capData = await capRes.json();
+      const capData = await capRes.json().catch(() => ({}));
       if (!capRes.ok) {
-        const detailMsg = capData.detail || 'PayPal server capture failed';
+        const detailMsg = formatApiError(capData, 'PayPal server capture failed');
         if (detailMsg.includes('not been approved') || detailMsg.includes('ORDER_NOT_APPROVED')) {
           setNeedsBuyerApproval(true);
           setShowCheckoutModal(true);
@@ -195,15 +196,15 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResourceSl
       const contentRes = await fetch(`/api/v1/resources/${capData.resource_slug}/content`, {
         headers: { Authorization: `Bearer ${capData.access_token}` },
       });
-      const contentData = await contentRes.json();
+      const contentData = await contentRes.json().catch(() => ({}));
       if (!contentRes.ok) {
-        throw new Error(contentData.detail || 'Failed to unlock protected dataset');
+        throw new Error(formatApiError(contentData, 'Failed to unlock protected dataset'));
       }
       setUnlockedData(contentData);
       addLog('SUCCESS', 'HTTP 200 OK — Decrypted and unlocked protected intelligence data!', contentData);
       setStatus('COMPLETED');
     } catch (e: any) {
-      addLog('ERROR', `Payment or retrieval error: ${e.message}`);
+      addLog('ERROR', `Payment or retrieval error: ${formatApiError(e)}`);
       setStatus('AWAITING_APPROVAL');
     }
   };

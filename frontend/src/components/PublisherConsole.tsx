@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PlusCircle, Tag, Check, AlertCircle, ShoppingBag, Eye, DollarSign, Clock, Layers, Wand2 } from 'lucide-react';
+import { formatApiError } from '../utils/error';
 
 export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> = ({ onNavigateToCatalogue }) => {
   const [slug, setSlug] = useState('');
@@ -32,23 +33,64 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
     setLoading(true);
     setMessage(null);
 
+    // Client-side validations
+    const cleanSlug = slug.trim();
+    const slugRegex = /^[a-zA-Z0-9_\-]+$/;
+    if (!cleanSlug || !slugRegex.test(cleanSlug)) {
+      setMessage({
+        text: 'Invalid Resource Slug: only letters, numbers, hyphens (-), and underscores (_) are allowed (no spaces or periods). Click "Auto Slug" to generate one.',
+        type: 'error'
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (description.trim().length < 5) {
+      setMessage({
+        text: 'Description must be at least 5 characters long.',
+        type: 'error'
+      });
+      setLoading(false);
+      return;
+    }
+
+    const offerRegex = /^[a-zA-Z0-9_\-]+$/;
+    if (!offerCode.trim() || !offerRegex.test(offerCode.trim())) {
+      setMessage({
+        text: 'Invalid Offer Code: only letters, numbers, hyphens (-), and underscores (_) are allowed.',
+        type: 'error'
+      });
+      setLoading(false);
+      return;
+    }
+
+    const priceNum = parseFloat(price);
+    if (isNaN(priceNum) || priceNum <= 0) {
+      setMessage({
+        text: 'Price must be a positive number (e.g. 0.05).',
+        type: 'error'
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       // 1. Create Resource
       const resRes = await fetch('/api/v1/publisher/resources', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          slug,
-          title,
-          description,
+          slug: cleanSlug,
+          title: title.trim(),
+          description: description.trim(),
           resource_type: resourceType,
           provider,
         }),
       });
 
       if (!resRes.ok) {
-        const err = await resRes.json();
-        throw new Error(err.detail || 'Failed to create resource');
+        const err = await resRes.json().catch(() => ({}));
+        throw new Error(formatApiError(err, 'Failed to create resource'));
       }
 
       const resourceData = await resRes.json();
@@ -58,18 +100,19 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          offer_code: offerCode,
-          title: offerTitle,
-          description: `Access to ${title}`,
-          price_amount: parseFloat(price),
+          offer_code: offerCode.trim(),
+          title: offerTitle.trim(),
+          description: `Access to ${title.trim()}`,
+          price_amount: priceNum,
           currency: 'USD',
           pricing_model: 'one_time',
-          duration_seconds: parseInt(duration),
+          duration_seconds: parseInt(duration) || 3600,
         }),
       });
 
       if (!offRes.ok) {
-        throw new Error('Failed to create offer');
+        const offErr = await offRes.json().catch(() => ({}));
+        throw new Error(formatApiError(offErr, 'Failed to create offer'));
       }
 
       setMessage({ text: `Successfully published resource "${title}" with $${price} USD offer!`, type: 'success' });
@@ -77,7 +120,7 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
       setTitle('');
       setDescription('');
     } catch (e: any) {
-      setMessage({ text: e.message, type: 'error' });
+      setMessage({ text: formatApiError(e, 'Failed to publish resource'), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -163,8 +206,21 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
                     required
-                    className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl p-2.5 text-xs text-slate-900 font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-brand-500 shadow-inner"
+                    className={`w-full bg-slate-50 border-2 rounded-xl p-2.5 text-xs text-slate-900 font-mono focus:outline-none focus:bg-white focus:ring-2 shadow-inner ${
+                      slug && !/^[a-zA-Z0-9_\-]+$/.test(slug)
+                        ? 'border-red-600 focus:ring-red-500'
+                        : 'border-slate-900 focus:ring-brand-500'
+                    }`}
                   />
+                  {slug && !/^[a-zA-Z0-9_\-]+$/.test(slug) ? (
+                    <p className="mt-1 text-[10px] font-mono font-bold text-red-600">
+                      No spaces or dots. Use letters, numbers, hyphens (-) or underscores (_).
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-[10px] font-mono text-slate-500">
+                      Unique identifier for URL /api/v1/resources/:slug
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-mono font-bold text-slate-700 uppercase tracking-wider mb-1.5">
