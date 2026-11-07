@@ -139,3 +139,38 @@ desktop.ini
 # 8. Internal Planning, Specs & Workflow Notes
 # ------------------------------------------------------------------------------
 workflows.md
+
+# ------------------------------------------------------------------------------
+# 9. Remotion Video Generator & Local Media
+# Used locally for demo video rendering. Excluded from repository submission.
+# ------------------------------------------------------------------------------
+remotion/
+
+# ------------------------------------------------------------------------------
+# 10. Internal Documentation & Session Notes
+# Architecture drafts, session notes, and audit reports excluded from GitHub.
+# ------------------------------------------------------------------------------
+docs/
+understanding.md
+
+# ------------------------------------------------------------------------------
+# 11. Temporary & Unused Root Assets
+# ------------------------------------------------------------------------------
+landing.png
+paypal-payments.jpg
+
+# ------------------------------------------------------------------------------
+# 12. AI Agent & Tooling Scratch Files
+# Local AI assistant scratch files and brain state — never commit these.
+# ------------------------------------------------------------------------------
+brain/
+.gemini/antigravity/brain/
+
+# ------------------------------------------------------------------------------
+# 13. Python Script Caches & Test State
+# ------------------------------------------------------------------------------
+scripts/__pycache__/
+server/__pycache__/
+backend/tests/__pycache__/
+backend/tests/unit/__pycache__/
+backend/tests/integration/__pycache__/
