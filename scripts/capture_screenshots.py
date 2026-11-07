@@ -14,8 +14,15 @@ async def capture_all():
 
         # 1. Main Workspace
         print("Capturing 01: Agent Workspace...")
-        await page.goto("http://localhost:8000", wait_until="networkidle")
-        await asyncio.sleep(2)
+        await page.goto("http://localhost:3000", wait_until="networkidle")
+        await asyncio.sleep(1)
+
+        # Dismiss tour if open
+        exit_tour_btn = page.locator("button:has-text('Exit Tour')")
+        if await exit_tour_btn.count() > 0:
+            await exit_tour_btn.first.click()
+            await asyncio.sleep(0.5)
+
         await page.screenshot(path=SCREENSHOT_DIR / "01-agent-workspace.png", full_page=False)
 
         # 2. Trigger Agent Run -> HTTP 402 Challenge
@@ -27,9 +34,9 @@ async def capture_all():
             await asyncio.sleep(1.5)
             await page.screenshot(path=SCREENSHOT_DIR / "02-l402-challenge.png", full_page=False)
 
-            # 3. Open Modal -> Authorize & Pay -> Unlocked Intelligence
+            # 3. Open Modal -> Authorize & Pay -> Instant Approval -> Unlocked Intelligence
             print("Opening PayPal Sandbox Order modal & capturing...")
-            pay_btn = page.locator("button:has-text('Approve & Pay via PayPal Sandbox')").first
+            pay_btn = page.locator("button:has-text('Approve & Pay with PayPal Sandbox')").first
             if await pay_btn.is_visible():
                 await pay_btn.click()
                 await asyncio.sleep(1)
@@ -38,6 +45,13 @@ async def capture_all():
                 auth_btn = page.locator("button:has-text('Authorize & Pay')").first
                 if await auth_btn.is_visible():
                     await auth_btn.click()
+                    await asyncio.sleep(1)
+                    
+                    # Click Instant Sandbox Test Approval if prompted for buyer authorization
+                    instant_btn = page.locator("button:has-text('Instant Sandbox Test Approval')").first
+                    if await instant_btn.is_visible():
+                        await instant_btn.click()
+                    
                     await page.wait_for_selector("text=Unlocked:", timeout=15000)
                     await asyncio.sleep(2)
                     await page.screenshot(path=SCREENSHOT_DIR / "03-unlocked-intelligence.png", full_page=False)
@@ -56,9 +70,9 @@ async def capture_all():
         await asyncio.sleep(1.5)
         await page.screenshot(path=SCREENSHOT_DIR / "05-marketplace-catalogue.png", full_page=False)
 
-        # 6. Financial Ledger (AG Grid) Tab
+        # 6. Financial Ledger Tab
         print("Capturing 06: AG Grid Financial Ledger...")
-        analytics_tab = page.locator("button:has-text('Financial Ledger (AG Grid)')").first
+        analytics_tab = page.locator("button:has-text('Financial Ledger')").first
         await analytics_tab.click()
         await asyncio.sleep(2)
         await page.screenshot(path=SCREENSHOT_DIR / "06-financial-ledger.png", full_page=False)
