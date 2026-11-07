@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { ColDef } from 'ag-grid-community';
 import { DollarSign, ShoppingCart, KeyRound, Users, Activity, TrendingUp, RefreshCw, BarChart3, Download, Check } from 'lucide-react';
@@ -30,23 +30,51 @@ export const AnalyticsView: React.FC = () => {
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshed, setRefreshed] = useState(false);
   const [exported, setExported] = useState(false);
+  const gridRef = useRef<AgGridReact<TransactionRow>>(null);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (isManualRefresh: boolean = false) => {
+    if (isManualRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     try {
+      const ts = Date.now();
       const [sumRes, txRes] = await Promise.all([
-        fetch('/api/v1/publisher/analytics/summary'),
-        fetch('/api/v1/publisher/analytics/transactions?limit=100'),
+        fetch(`/api/v1/publisher/analytics/summary?_t=${ts}`, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', Pragma: 'no-cache' },
+        }),
+        fetch(`/api/v1/publisher/analytics/transactions?limit=100&_t=${ts}`, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', Pragma: 'no-cache' },
+        }),
       ]);
-      const sumData = await sumRes.json();
-      const txData = await txRes.json();
-      setSummary(sumData);
-      setTransactions(txData.items || []);
+
+      if (sumRes.ok) {
+        const sumData = await sumRes.json();
+        setSummary(sumData);
+      }
+      if (txRes.ok) {
+        const txData = await txRes.json();
+        setTransactions(txData.items || []);
+        if (gridRef.current?.api) {
+          gridRef.current.api.redrawRows();
+        }
+      }
+
+      if (isManualRefresh) {
+        setRefreshed(true);
+        setTimeout(() => setRefreshed(false), 2500);
+      }
     } catch (e) {
       console.error('Error fetching analytics data', e);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -198,11 +226,17 @@ export const AnalyticsView: React.FC = () => {
           </button>
 
           <button
-            onClick={fetchData}
-            className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 border-2 border-slate-900 text-xs font-mono font-bold text-slate-900 shadow-neo-sm hover:-translate-y-0.5 transition-all"
+            onClick={() => fetchData(true)}
+            disabled={loading || refreshing}
+            className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 border-2 border-slate-900 text-xs font-mono font-bold text-slate-900 shadow-neo-sm hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-75 transition-all"
+            title="Refresh financial ledger and KPI metrics"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Refresh Ledger</span>
+            {refreshed ? (
+              <Check className="w-3.5 h-3.5 text-emerald-600" />
+            ) : (
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing || loading ? 'animate-spin text-brand-600' : ''}`} />
+            )}
+            <span>{refreshing ? 'Refreshing...' : refreshed ? 'Refreshed!' : 'Refresh Ledger'}</span>
           </button>
         </div>
       </div>
@@ -294,7 +328,9 @@ export const AnalyticsView: React.FC = () => {
 
         <div className="ag-theme-alpine-dark w-full h-[460px] rounded-xl overflow-hidden border-2 border-slate-900 shadow-inner">
           <AgGridReact<TransactionRow>
+            ref={gridRef}
             rowData={transactions}
+            getRowId={(params) => params.data.id}
             columnDefs={columnDefs}
             defaultColDef={defaultColDef}
             pagination={true}
