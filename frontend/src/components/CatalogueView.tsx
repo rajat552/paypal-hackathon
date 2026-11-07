@@ -96,7 +96,7 @@ export const CatalogueView: React.FC<{ onSelectResource?: (target: TargetResourc
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search datasets..."
+              placeholder="Search datasets, APIs, or providers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="bg-white border-2 border-slate-900 rounded-xl pl-9 pr-3.5 py-2 text-xs font-mono font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-neo-sm"
@@ -200,7 +200,7 @@ export const CatalogueView: React.FC<{ onSelectResource?: (target: TargetResourc
                       <div>
                         <div className="font-bold text-slate-900">{offer.title}</div>
                         <div className="text-[11px] text-slate-500 font-mono">
-                          Duration: {Math.round(offer.duration_seconds / 60)} mins &bull; Model: {offer.pricing_model}
+                          Access: {Math.round(offer.duration_seconds / 60)} mins &bull; Model: One-Time Purchase
                         </div>
                       </div>
                       <div className="font-mono font-black text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-600 text-sm shadow-[1px_1px_0px_0px_rgba(15,23,42,1)]">
@@ -222,8 +222,9 @@ export const CatalogueView: React.FC<{ onSelectResource?: (target: TargetResourc
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border-2 border-slate-900 text-xs font-mono font-bold text-slate-800 shadow-neo-sm transition-all"
+                    title="Inspect raw HTTP 402 challenge response"
                   >
-                    <span>HTTP 402</span>
+                    <span>Inspect 402</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
 
