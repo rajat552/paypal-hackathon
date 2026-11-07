@@ -14,7 +14,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onStart
     { id: 'workspace', label: 'AI Commerce Agent', icon: Bot },
     { id: 'policy', label: 'Spending Policy & Trust', icon: ShieldCheck },
     { id: 'catalogue', label: 'API & Data Catalogue', icon: Database },
-    { id: 'analytics', label: 'Financial Ledger (AG Grid)', icon: BarChart3 },
+    { id: 'analytics', label: 'Financial Ledger', icon: BarChart3 },
     { id: 'publisher', label: 'Merchant Studio', icon: ShoppingBag },
   ];
 
@@ -92,7 +92,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onStart
           <div 
             data-tour="sandbox-status-badge"
             className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-emerald-50 border-2 border-emerald-800 text-emerald-950 text-xs font-mono font-bold shadow-[2px_2px_0px_0px_rgba(6,78,59,1)] cursor-help"
-            title="Active PayPal Sandbox environment utilizing OAuth 2.0 and Orders v2 server capture"
+            title="PayPal Sandbox (Test Environment) — OAuth 2.0 and Orders v2 server-side capture active"
           >
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -107,7 +107,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onStart
             target="_blank"
             rel="noreferrer"
             className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white border-2 border-slate-900 text-xs font-mono font-bold text-slate-800 hover:bg-amber-100 shadow-neo-sm hover:-translate-y-0.5 transition-all"
-            title="Interactive OpenAPI / Swagger Documentation"
+            title="Interactive REST API Documentation (OpenAPI / Swagger)"
           >
             <Terminal className="w-3.5 h-3.5 text-brand-600" />
             <span>API Docs</span>
