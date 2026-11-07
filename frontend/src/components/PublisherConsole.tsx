@@ -138,7 +138,7 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
           Publish Dataset or API
         </h2>
         <p className="text-xs sm:text-sm text-slate-600 font-medium">
-          Monetize APIs and datasets for AI agents with automated PayPal Sandbox payments and L402 access tokens.
+          Publish verified APIs and datasets with automated HTTP 402 paywalls, custom pricing offers, and PayPal Sandbox settlement.
         </p>
       </div>
 
@@ -256,13 +256,13 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
               <div className="p-4 rounded-xl bg-slate-50 border-2 border-slate-900 space-y-4 shadow-neo-sm">
                 <div className="flex items-center space-x-2 text-xs font-mono font-bold text-slate-800 uppercase">
                   <Tag className="w-3.5 h-3.5 text-brand-600" />
-                  <span>Initial L402 Pricing Offer</span>
+                  <span>Initial Pricing &amp; Access Offer</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[11px] font-mono font-bold text-slate-600 mb-1">
-                      Offer Code
+                      Offer Code (Identifier)
                     </label>
                     <input
                       type="text"
@@ -274,7 +274,7 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
                   </div>
                   <div>
                     <label className="block text-[11px] font-mono font-bold text-slate-600 mb-1">
-                      Offer Label
+                      Display Title (e.g. 1-Hour Verified Access)
                     </label>
                     <input
                       type="text"
@@ -367,7 +367,7 @@ export const PublisherConsole: React.FC<{ onNavigateToCatalogue?: () => void }> 
             </div>
 
             <div className="text-[11px] font-mono text-slate-500 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
-              💡 <strong>Activation:</strong> Once published, this resource immediately appears in the catalogue, generates machine-readable L402 challenge envelopes on access, and supports PayPal Sandbox checkout.
+              💡 <strong>Activation:</strong> Once published, this resource appears immediately in the marketplace catalogue, returns machine-readable L402 payment challenges, and supports automated PayPal Sandbox checkout.
             </div>
           </div>
         </div>
