@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { AgentWorkspace } from './components/AgentWorkspace';
-import { CatalogueView } from './components/CatalogueView';
+import { CatalogueView, TargetResourcePayload } from './components/CatalogueView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { PublisherConsole } from './components/PublisherConsole';
 import { PolicyManager } from './components/PolicyManager';
@@ -22,12 +22,12 @@ import {
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('workspace');
-  const [targetResourceSlug, setTargetResourceSlug] = useState<string | null>(null);
+  const [targetResource, setTargetResource] = useState<TargetResourcePayload | null>(null);
   // Launch tour directly whenever anyone visits or reloads the URL
   const [isTourOpen, setIsTourOpen] = useState(true);
 
-  const handleSelectResource = (slug: string) => {
-    setTargetResourceSlug(slug);
+  const handleSelectResource = (target: TargetResourcePayload) => {
+    setTargetResource(target);
     setActiveTab('workspace');
   };
 
@@ -46,8 +46,8 @@ export const App: React.FC = () => {
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 sm:py-10 w-full">
         {activeTab === 'workspace' && (
           <AgentWorkspace 
-            targetResourceSlug={targetResourceSlug} 
-            onClearTarget={() => setTargetResourceSlug(null)} 
+            targetResource={targetResource} 
+            onClearTarget={() => setTargetResource(null)} 
           />
         )}
         {activeTab === 'policy' && <PolicyManager />}
