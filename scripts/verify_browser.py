@@ -16,6 +16,14 @@ async def run_browser_verification():
         # 1. Load application root
         print("\n[Step 1] Navigating to http://localhost:3000...")
         await page.goto("http://localhost:3000", wait_until="networkidle")
+
+        # If tour is open on fresh load, dismiss it via Exit Tour
+        exit_tour_btn = page.locator('button:has-text("Exit Tour")')
+        if await exit_tour_btn.count() > 0:
+            print("Tour opened on initial visit. Clicking 'Exit Tour'...")
+            await exit_tour_btn.first.click()
+            await page.wait_for_timeout(500)
+
         content = await page.content()
 
         # Check for PayMesh AI branding
@@ -28,10 +36,10 @@ async def run_browser_verification():
 
         # 2. Select mission preset and dispatch agent
         print("\n[Step 2] Selecting mission preset and dispatching agent...")
-        preset = page.locator("text=Economics & Tech Intelligence")
+        preset = page.locator("text=Hardware Latency Benchmarks")
         if await preset.count() > 0:
             await preset.first.click()
-            print("PASS: Clicked 'Economics & Tech Intelligence' preset chip.")
+            print("PASS: Clicked 'Hardware Latency Benchmarks' preset chip.")
 
         dispatch_btn = page.locator("button:has-text('Dispatch Agent')")
         await dispatch_btn.first.click()
@@ -45,7 +53,7 @@ async def run_browser_verification():
 
         # 3. Test PayPal checkout modal
         print("\n[Step 3] Opening PayPal Sandbox authorization modal...")
-        pay_btn = page.locator("button:has-text('Approve & Pay via PayPal Sandbox')")
+        pay_btn = page.locator("button:has-text('Approve & Pay')")
         if await pay_btn.count() > 0:
             await pay_btn.first.click()
             modal = page.locator("text=PayPal Sandbox Authorization")
