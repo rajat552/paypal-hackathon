@@ -40,6 +40,7 @@ class AgentRunRequest(BaseModel):
     budget_limit: float = Field(0.10, description="Maximum amount the buyer is willing to spend")
     currency: str = "USD"
     auto_approve_under_budget: bool = False
+    target_resource_slug: str | None = None
 
 class AgentRecommendation(BaseModel):
     resource_slug: str
