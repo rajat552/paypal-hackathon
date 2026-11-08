@@ -596,7 +596,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
                         <a
                           href={item.source_url}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           className="mt-3 inline-flex items-center justify-center space-x-1.5 py-1.5 px-3 rounded-lg bg-brand-50 hover:bg-brand-100 border border-brand-300 text-brand-700 font-mono font-bold text-xs transition-colors"
                         >
                           <span>Channel3 Retail Link</span>
@@ -760,7 +760,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
                     <a
                       href={activeSession.approval_url}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border-2 border-slate-900 text-slate-900 font-bold text-xs shadow-neo-sm"
                     >
                       <span>Sign In at PayPal Sandbox</span>
