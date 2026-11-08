@@ -174,6 +174,25 @@ class PayPalGateway:
                 "approval_url": approval_url
             }
 
+    async def get_order(self, paypal_order_id: str) -> dict[str, Any]:
+        """Fetch current order details and status from PayPal Orders v2 API."""
+        if not self.is_configured:
+            return {"id": paypal_order_id, "status": "APPROVED"}
+
+        token = await self.get_access_token()
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}",
+        }
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.get(
+                f"{settings.paypal_base_url}/v2/checkout/orders/{paypal_order_id}",
+                headers=headers
+            )
+            if resp.status_code != 200:
+                raise PayPalApiException(f"Failed to fetch PayPal order {paypal_order_id}: {resp.text}")
+            return resp.json()
+
     async def capture_order(self, paypal_order_id: str) -> dict[str, Any]:
         """Capture an approved PayPal order and verify COMPLETED status."""
         if not self.is_configured:
