@@ -2,10 +2,13 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from backend.app.core.config import settings
 from backend.app.db.base import Base
 from backend.app.db.session import get_db
 from backend.app.main import app
 from backend.app.scripts.seed_demo import seed_demo_data
+
+settings.APP_ENV = "testing"
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_paymesh.db"
 
