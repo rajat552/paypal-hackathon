@@ -1,12 +1,24 @@
+import re
 import time
 import uuid
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 
 from backend.app.core.config import settings
 from backend.app.core.exceptions import PayPalApiException
 from backend.app.core.logging import logger
+
+PAYPAL_CERT_URL_REGEX = re.compile(
+    r"^https://api(\.sandbox)?\.paypal\.com/v1/notifications/certs/[A-Za-z0-9\-_]+$"
+)
+
+ALLOWED_REDIRECT_DOMAINS = {
+    "localhost",
+    "127.0.0.1",
+    "paypal-hackathon-mu.vercel.app"
+}
 
 
 class PayPalGateway:
@@ -61,6 +73,21 @@ class PayPalGateway:
                 raise
             raise PayPalApiException(f"Network error during PayPal OAuth: {e!s}") from e
 
+    def _is_safe_redirect_url(self, url: str | None) -> bool:
+        if not url:
+            return False
+        try:
+            parsed = urlparse(url)
+            if parsed.scheme not in ("http", "https"):
+                return False
+            hostname = parsed.hostname or ""
+            if hostname in ALLOWED_REDIRECT_DOMAINS or hostname.endswith(".vercel.app"):
+                return True
+            frontend_host = urlparse(settings.FRONTEND_URL).hostname
+            return bool(frontend_host and hostname == frontend_host)
+        except Exception:  # noqa: BLE001
+            return False
+
     async def create_order(
         self,
         amount: float,
@@ -70,8 +97,15 @@ class PayPalGateway:
         cancel_url: str | None = None
     ) -> dict[str, Any]:
         """Create a PayPal Sandbox order with intent: CAPTURE."""
-        ret_url = return_url or f"{settings.FRONTEND_URL}/checkout/success?session_id={session_id}"
-        cnc_url = cancel_url or f"{settings.FRONTEND_URL}/checkout/cancel?session_id={session_id}"
+        if return_url and self._is_safe_redirect_url(return_url):
+            ret_url = return_url
+        else:
+            ret_url = f"{settings.FRONTEND_URL}/checkout/success?session_id={session_id}"
+
+        if cancel_url and self._is_safe_redirect_url(cancel_url):
+            cnc_url = cancel_url
+        else:
+            cnc_url = f"{settings.FRONTEND_URL}/checkout/cancel?session_id={session_id}"
         formatted_amount = f"{amount:.2f}"
 
         if not self.is_configured:
@@ -210,11 +244,18 @@ class PayPalGateway:
         Verify incoming webhook signature with PayPal Notifications API:
         POST /v1/notifications/verify-webhook-signature
         """
+        norm_headers = {k.lower(): v for k, v in headers.items()}
+        cert_url = norm_headers.get("paypal-cert-url")
+
         if not self.is_configured:
             # When testing locally with test fixtures, verify transmission headers are present
             has_transmission_id = any(
                 k.lower() == "paypal-transmission-id" for k in headers
             )
+            # Enforce that if cert_url is provided, it must match the PayPal cert host pattern
+            if cert_url and not PAYPAL_CERT_URL_REGEX.match(cert_url):
+                logger.warning(f"Incoming webhook rejected: invalid or untrusted paypal-cert-url: {cert_url}")
+                return False
             return has_transmission_id
 
         webhook_id = settings.PAYPAL_WEBHOOK_ID
@@ -222,16 +263,17 @@ class PayPalGateway:
             logger.warning("PAYPAL_WEBHOOK_ID is not configured; cannot verify signature.")
             return False
 
-        # Extract headers case-insensitively
-        norm_headers = {k.lower(): v for k, v in headers.items()}
         auth_algo = norm_headers.get("paypal-auth-algo")
-        cert_url = norm_headers.get("paypal-cert-url")
         transmission_id = norm_headers.get("paypal-transmission-id")
         transmission_sig = norm_headers.get("paypal-transmission-sig")
         transmission_time = norm_headers.get("paypal-transmission-time")
 
         if not all([auth_algo, cert_url, transmission_id, transmission_sig, transmission_time]):
             logger.warning("Incoming webhook missing required PayPal transmission verification headers.")
+            return False
+
+        if not cert_url or not PAYPAL_CERT_URL_REGEX.match(cert_url):
+            logger.warning(f"Incoming webhook rejected: invalid or untrusted paypal-cert-url: {cert_url}")
             return False
 
         token = await self.get_access_token()
@@ -265,7 +307,7 @@ class PayPalGateway:
                     return is_valid
                 logger.error(f"PayPal webhook verification API returned HTTP {resp.status_code}: {resp.text}")
                 return False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Network error during PayPal webhook signature verification: {e!s}")
             return False
 
