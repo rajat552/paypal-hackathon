@@ -1,5 +1,3 @@
-import certifi
-from pymongo import MongoClient
 from backend.app.core.config import settings
 from backend.app.db.mongodb import check_mongo_health, log_mongo_audit_event
 
