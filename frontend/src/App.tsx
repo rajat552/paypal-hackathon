@@ -23,11 +23,23 @@ import {
 
 const VALID_TABS = ['workspace', 'policy', 'catalogue', 'analytics', 'publisher'];
 
+export interface CheckoutReturnPayload {
+  status: 'success' | 'cancelled';
+  sessionId?: string;
+  token?: string;
+  payerId?: string;
+}
+
 // Helper to check if current pathname or hash is an invalid route (404)
 const isRouteNotFound = (): boolean => {
   if (typeof window === 'undefined') return false;
   const pathname = window.location.pathname.replace(/\/+$/, '') || '/';
   const hash = window.location.hash.replace(/^#/, '').toLowerCase();
+
+  // PayPal Sandbox Return and Cancel routes are valid application endpoints
+  if (pathname === '/checkout/success' || pathname === '/checkout/cancel') {
+    return false;
+  }
 
   // Explicit /404 path or #404 hash
   if (pathname === '/404' || hash === '404') {
@@ -57,6 +69,11 @@ export const App: React.FC = () => {
   // Read initial tab from URL hash (e.g. #publisher), direct pathname, or localStorage
   const getInitialTab = (): string => {
     if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname;
+      if (pathname === '/checkout/success' || pathname === '/checkout/cancel') {
+        return 'workspace';
+      }
+
       const hash = window.location.hash.replace('#', '').toLowerCase();
       if (VALID_TABS.includes(hash)) return hash;
 
@@ -75,6 +92,28 @@ export const App: React.FC = () => {
       return `${window.location.pathname}${window.location.hash}`;
     }
     return '/';
+  });
+
+  const [checkoutReturn, setCheckoutReturn] = useState<CheckoutReturnPayload | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const pathname = window.location.pathname;
+    const params = new URLSearchParams(window.location.search);
+    if (pathname === '/checkout/success') {
+      return {
+        status: 'success',
+        sessionId: params.get('session_id') || undefined,
+        token: params.get('token') || undefined,
+        payerId: params.get('PayerID') || undefined,
+      };
+    }
+    if (pathname === '/checkout/cancel') {
+      return {
+        status: 'cancelled',
+        sessionId: params.get('session_id') || undefined,
+        token: params.get('token') || undefined,
+      };
+    }
+    return null;
   });
 
   const [activeTab, setActiveTabState] = useState<string>(getInitialTab);
@@ -142,6 +181,28 @@ export const App: React.FC = () => {
       setCurrentPath(`${window.location.pathname}${window.location.hash}`);
 
       if (!notFound) {
+        const pathname = window.location.pathname;
+        const params = new URLSearchParams(window.location.search);
+        if (pathname === '/checkout/success') {
+          setActiveTabState('workspace');
+          setCheckoutReturn({
+            status: 'success',
+            sessionId: params.get('session_id') || undefined,
+            token: params.get('token') || undefined,
+            payerId: params.get('PayerID') || undefined,
+          });
+          return;
+        }
+        if (pathname === '/checkout/cancel') {
+          setActiveTabState('workspace');
+          setCheckoutReturn({
+            status: 'cancelled',
+            sessionId: params.get('session_id') || undefined,
+            token: params.get('token') || undefined,
+          });
+          return;
+        }
+
         const hash = window.location.hash.replace('#', '').toLowerCase();
         if (VALID_TABS.includes(hash)) {
           setActiveTabState(hash);
@@ -195,6 +256,8 @@ export const App: React.FC = () => {
               <AgentWorkspace 
                 targetResource={targetResource} 
                 onClearTarget={() => setTargetResource(null)} 
+                checkoutReturn={checkoutReturn}
+                onClearCheckoutReturn={() => setCheckoutReturn(null)}
               />
             )}
             {activeTab === 'policy' && <PolicyManager />}
