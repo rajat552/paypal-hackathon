@@ -1,6 +1,6 @@
 import asyncio
 import os
-from typing import List, TypedDict
+from typing import TypedDict
 from playwright.async_api import async_playwright
 
 class ViewportDef(TypedDict):
@@ -13,7 +13,7 @@ class TabDef(TypedDict):
     hash: str
     name: str
 
-VIEWPORTS: List[ViewportDef] = [
+VIEWPORTS: list[ViewportDef] = [
     {"name": "01_small_mobile_320x568", "width": 320, "height": 568},
     {"name": "02_standard_mobile_375x667", "width": 375, "height": 667},
     {"name": "03_large_mobile_390x844", "width": 390, "height": 844},
@@ -26,7 +26,7 @@ VIEWPORTS: List[ViewportDef] = [
     {"name": "10_large_desktop_1920x1080", "width": 1920, "height": 1080},
 ]
 
-TABS: List[TabDef] = [
+TABS: list[TabDef] = [
     {"id": "workspace", "hash": "#workspace", "name": "Agent Workspace"},
     {"id": "policy", "hash": "#policy", "name": "Spending Policy"},
     {"id": "catalogue", "hash": "#catalogue", "name": "API Catalogue"},
@@ -72,7 +72,10 @@ async def audit_responsiveness():
                 }""")
 
                 if metrics["hasHorizontalOverflow"]:
-                    issue = f"Viewport {vp['name']} on Tab {tab['id']}: scrollWidth ({metrics['scrollWidth']}px) > clientWidth ({metrics['clientWidth']}px)"
+                    issue = (
+                        f"Viewport {vp['name']} on Tab {tab['id']}: "
+                        f"scrollWidth ({metrics['scrollWidth']}px) > clientWidth ({metrics['clientWidth']}px)"
+                    )
                     print(f"  [OVERFLOW DETECTED] {issue}")
                     overflow_issues.append(issue)
                 else:
@@ -82,7 +85,11 @@ async def audit_responsiveness():
                 if vp["width"] in [320, 390, 768, 1280, 1920]:
                     shot_path = f"assets/screenshots/responsive_audit/{vp['width']}px_{tab['id']}.png"
                     await page.screenshot(path=shot_path)
-                    await page.screenshot(path=f"C:/Users/LENOVO/.gemini/antigravity/brain/4216dfba-b02d-40c3-a0cd-9c315d6b113a/responsive/{vp['width']}px_{tab['id']}.png")
+                    brain_shot_path = (
+                        f"C:/Users/LENOVO/.gemini/antigravity/brain/4216dfba-b02d-40c3-a0cd-9c315d6b113a/"
+                        f"responsive/{vp['width']}px_{tab['id']}.png"
+                    )
+                    await page.screenshot(path=brain_shot_path)
 
         print("\n=== AUDIT SUMMARY ===")
         if overflow_issues:
