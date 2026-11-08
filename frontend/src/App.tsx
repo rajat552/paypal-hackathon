@@ -181,7 +181,7 @@ export const App: React.FC = () => {
         onStartTour={handleStartTour}
       />
       
-      <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-10 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-12 sm:pb-16 w-full">
         {isNotFound ? (
           <NotFound 
             onNavigateHome={handleBackToHome}
@@ -234,7 +234,7 @@ export const App: React.FC = () => {
               <a
                 href="https://github.com/rajat552/paypal-hackathon"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="h-11 px-3 bg-white hover:bg-amber-100 border-2 border-slate-900 rounded-xl shadow-neo-sm flex items-center space-x-2 text-xs font-mono font-bold text-slate-900 hover:-translate-y-0.5 transition-all"
                 title="View GitHub Repository"
               >
@@ -245,7 +245,7 @@ export const App: React.FC = () => {
               <a
                 href="/docs"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="h-11 px-3 bg-white hover:bg-amber-100 border-2 border-slate-900 rounded-xl shadow-neo-sm flex items-center space-x-2 text-xs font-mono font-bold text-slate-900 hover:-translate-y-0.5 transition-all"
                 title="Interactive Swagger OpenAPI"
               >
@@ -256,7 +256,7 @@ export const App: React.FC = () => {
               <a
                 href="/api/v1/agent/mcp/manifest"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="h-11 px-3 bg-white hover:bg-amber-100 border-2 border-slate-900 rounded-xl shadow-neo-sm flex items-center space-x-2 text-xs font-mono font-bold text-slate-900 hover:-translate-y-0.5 transition-all"
                 title="Model Context Protocol Manifest"
               >
@@ -267,7 +267,7 @@ export const App: React.FC = () => {
               <a
                 href="https://developer.paypal.com"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="h-11 px-3 bg-white hover:bg-amber-100 border-2 border-slate-900 rounded-xl shadow-neo-sm flex items-center space-x-2 text-xs font-mono font-bold text-slate-900 hover:-translate-y-0.5 transition-all"
                 title="PayPal Developer Portal"
               >
