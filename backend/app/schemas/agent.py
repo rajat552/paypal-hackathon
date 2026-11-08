@@ -28,16 +28,16 @@ class PolicyConfigResponse(BaseModel):
     utilized_pct: int
 
 class PolicyConfigUpdateRequest(BaseModel):
-    max_per_transaction: float = Field(0.50, gt=0)
-    daily_cap: float = Field(5.00, gt=0)
+    max_per_transaction: float = Field(0.50, gt=0.0, le=500.0, description="Max single transaction ceiling")
+    daily_cap: float = Field(5.00, gt=0.0, le=5000.0, description="24-hour cumulative spending cap")
     allowed_currencies: list[str] = ["USD"]
-    auto_approve_under: float = 0.0
+    auto_approve_under: float = Field(0.0, ge=0.0, le=50.0, description="Auto-approve threshold")
     enforce_prompt_sanitization: bool = True
     strict_scope_check: bool = True
 
 class AgentRunRequest(BaseModel):
-    task: str = Field(..., description="Natural language search or data research request")
-    budget_limit: float = Field(0.10, description="Maximum amount the buyer is willing to spend")
+    task: str = Field(..., min_length=2, max_length=1000, description="Natural language search or data research request")
+    budget_limit: float = Field(0.10, gt=0.0, le=500.0, description="Maximum amount the buyer is willing to spend")
     currency: str = "USD"
     auto_approve_under_budget: bool = False
     target_resource_slug: str | None = None
