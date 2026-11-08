@@ -220,7 +220,7 @@ export const CatalogueView: React.FC<{ onSelectResource?: (target: TargetResourc
                   <a
                     href={`/api/v1/resources/${res.slug}/content`}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border-2 border-slate-900 text-xs font-mono font-bold text-slate-800 shadow-neo-sm transition-all"
                     title="Inspect raw HTTP 402 challenge response"
                   >
