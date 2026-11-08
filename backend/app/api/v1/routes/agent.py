@@ -48,7 +48,7 @@ async def get_policy_config(session: AsyncSession = Depends(get_db)):
     """Retrieve active deterministic spending policy limits and 24-hour utilized budget."""
     try:
         await policy_engine.sync_from_db(session)
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
 
     cutoff = datetime.now(UTC) - timedelta(hours=24)
