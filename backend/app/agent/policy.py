@@ -45,7 +45,7 @@ class PolicyEngine:
         self.daily_cap = float(record.daily_cap)
         try:
             self.allowed_currencies = set(json.loads(record.allowed_currencies_json))
-        except Exception:
+        except Exception:  # noqa: BLE001
             self.allowed_currencies = set(DEFAULT_ALLOWED_CURRENCIES)
         self.auto_approve_under = float(record.auto_approve_under)
         self.enforce_prompt_sanitization = bool(record.enforce_prompt_sanitization)
@@ -142,7 +142,7 @@ class PolicyEngine:
         # Ensure fresh policy limits from database
         try:
             await self.sync_from_db(session)
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass  # Fall back to in-memory defaults if table not yet initialized in early migration
 
         cap_to_use = daily_cap if daily_cap is not None else self.daily_cap
