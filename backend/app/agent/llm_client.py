@@ -368,7 +368,11 @@ class LLMClient:
 
         model_name = settings.AI_MODEL or "gemini-2.5-flash"
         clean_model = model_name.replace("models/", "")
-        endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={api_key}"
+        endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent"
+        req_headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": api_key
+        }
 
         user_content = (
             f"User Research Query: \"{task}\"\n"
@@ -400,17 +404,17 @@ class LLMClient:
                 }
 
                 try:
-                    resp = await client.post(endpoint, json=request_body)
+                    resp = await client.post(endpoint, headers=req_headers, json=request_body)
                     if resp.status_code != 200:
                         logger.error(f"Gemini API returned HTTP {resp.status_code}: {resp.text}")
                         # Fallback to gemini-1.5-flash if 2.5-flash is not available on key tier
                         if clean_model != "gemini-1.5-flash" and resp.status_code in (404, 400):
                             clean_model = "gemini-1.5-flash"
-                            endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={api_key}"
+                            endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent"
                             continue
                         return None
                     data = resp.json()
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.error(f"Gemini API network error: {e!s}")
                     return None
 
