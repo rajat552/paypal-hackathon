@@ -174,3 +174,32 @@ server/__pycache__/
 backend/tests/__pycache__/
 backend/tests/unit/__pycache__/
 backend/tests/integration/__pycache__/
+
+# ------------------------------------------------------------------------------
+# 14. Assets & Screenshots: Whitelist ONLY files required for README.md
+# Everything else in assets/ is strictly ignored to keep repo lightweight.
+# ------------------------------------------------------------------------------
+assets/*
+!assets/screenshots/
+assets/screenshots/*
+
+# 7 Root Showcase Screenshots required for README.md
+!assets/screenshots/01-agent-workspace.png
+!assets/screenshots/02-l402-challenge.png
+!assets/screenshots/03-unlocked-intelligence.png
+!assets/screenshots/04-spending-policy.png
+!assets/screenshots/05-marketplace-catalogue.png
+!assets/screenshots/06-financial-ledger.png
+!assets/screenshots/07-merchant-studio.png
+
+# Subdirectories required for README.md
+!assets/screenshots/tour/
+!assets/screenshots/404/
+
+# Ignore all other files inside tour/ and 404/
+assets/screenshots/tour/*
+assets/screenshots/404/*
+
+# Exact 2 Subdirectory Showcase Screenshots required for README.md
+!assets/screenshots/tour/00_url_click_tour_first.png
+!assets/screenshots/404/01_404_desktop.png
