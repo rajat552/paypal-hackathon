@@ -100,7 +100,7 @@ async def policy_violation_handler(request: Request, exc: PolicyViolationExcepti
 async def paypal_api_handler(request: Request, exc: PayPalApiException):
     return JSONResponse(
         status_code=status.HTTP_502_BAD_GATEWAY,
-        content={"error": exc.code, "message": exc.message}
+        content={"error": exc.code, "message": exc.message, "details": exc.details}
     )
 
 @app.exception_handler(PayMeshException)
