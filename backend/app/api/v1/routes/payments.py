@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.core.config import settings
 from backend.app.db.session import get_db
 from backend.app.models.entities import (
     AuditLog,
@@ -103,6 +104,24 @@ async def get_payment_session_status(session_id: str, session: AsyncSession = De
         created_at=ps.created_at.isoformat()
     )
 
+@router.get("/api/v1/payment-sessions/{session_id}/check-approval")
+async def check_payment_session_approval(session_id: str, session: AsyncSession = Depends(get_db)):
+    """Check live approval status of a PayPal order before attempting capture."""
+    stmt = select(PaymentSession).where(PaymentSession.id == session_id)
+    res = await session.execute(stmt)
+    ps = res.scalars().first()
+    if not ps:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment session not found")
+
+    order_info = await paypal_gateway.get_order(ps.paypal_order_id)
+    order_status = order_info.get("status", "UNKNOWN")
+    return {
+        "session_id": ps.id,
+        "paypal_order_id": ps.paypal_order_id,
+        "paypal_status": order_status,
+        "is_approved": order_status in ("APPROVED", "COMPLETED")
+    }
+
 @router.post("/api/v1/payment-sessions/{session_id}/capture", response_model=CaptureResponse)
 async def capture_payment_session(
     session_id: str,
@@ -148,6 +167,11 @@ async def capture_payment_session(
     # 2. Capture PayPal Sandbox Order on server
     simulate_approval = bool(payload and payload.simulate_buyer_approval)
     if simulate_approval:
+        if paypal_gateway.is_configured and settings.APP_ENV != "testing":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Simulated approval is disabled. Real PayPal Sandbox credentials are active — complete buyer approval at PayPal Sandbox."
+            )
         simulated_capture_id = f"CAP-SANDBOX-AUTH-{uuid.uuid4().hex[:8].upper()}"
         capture_data = {
             "id": ps.paypal_order_id,
@@ -168,17 +192,22 @@ async def capture_payment_session(
             await session.commit()
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="PayPal capture was not completed")
 
-    # 3. Create Transaction record
-    tx = Transaction(
-        payment_session_id=ps.id,
-        paypal_order_id=ps.paypal_order_id,
-        paypal_capture_id=capture_data.get("capture_id", f"CAP-{ps.paypal_order_id}"),
-        gross_amount=ps.amount,
-        currency=ps.currency,
-        payment_status="COMPLETED",
-        raw_summary_json=json.dumps(capture_data.get("raw_response", {}))
-    )
-    session.add(tx)
+    # 3. Create or reuse Transaction record (idempotent against concurrent capture requests)
+    capture_id = capture_data.get("capture_id", f"CAP-{ps.paypal_order_id}")
+    stmt_existing_tx = select(Transaction).where(Transaction.paypal_capture_id == capture_id)
+    res_existing_tx = await session.execute(stmt_existing_tx)
+    tx = res_existing_tx.scalars().first()
+    if not tx:
+        tx = Transaction(
+            payment_session_id=ps.id,
+            paypal_order_id=ps.paypal_order_id,
+            paypal_capture_id=capture_id,
+            gross_amount=ps.amount,
+            currency=ps.currency,
+            payment_status="COMPLETED",
+            raw_summary_json=json.dumps(capture_data.get("raw_response", {}))
+        )
+        session.add(tx)
 
     # 4. Issue Entitlement and generate separate Bearer token
     duration = offer.duration_seconds if offer else 3600
