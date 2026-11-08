@@ -13,9 +13,15 @@ Tests:
 
 import asyncio
 from pathlib import Path
+from typing import List, TypedDict
 from playwright.async_api import async_playwright
 
-EXPECTED_STEPS = [
+class StepDef(TypedDict):
+    index: int
+    title: str
+    tab: str
+
+EXPECTED_STEPS: List[StepDef] = [
     {"index": 1, "title": "Welcome to PayMesh AI", "tab": "workspace"},
     {"index": 2, "title": "Main Navigation Bar", "tab": "workspace"},
     {"index": 3, "title": "Try a Sample Scenario", "tab": "workspace"},
