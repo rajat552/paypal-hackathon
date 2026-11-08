@@ -76,6 +76,13 @@ async def create_resource_offer(
     if not resource:
         raise HTTPException(status_code=404, detail="Resource not found")
 
+    # Authoritative ownership validation to prevent cross-tenant IDOR
+    user_stmt = select(User).where(User.role == "publisher")
+    user_res = await session.execute(user_stmt)
+    publisher = user_res.scalars().first()
+    if publisher and resource.publisher_id != publisher.id:
+        raise HTTPException(status_code=403, detail="Forbidden: You do not have permission to attach offers to this resource.")
+
     if request.currency.upper() not in {"USD", "EUR", "GBP"}:
         raise HTTPException(status_code=400, detail=f"Currency '{request.currency}' is not allowed. Must be USD, EUR, or GBP.")
 
