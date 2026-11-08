@@ -23,7 +23,7 @@ def get_mongo_client() -> MongoClient | None:
                 serverSelectionTimeoutMS=4000,
                 connectTimeoutMS=4000
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to initialize MongoDB client: {e}")
             return None
     return _mongo_client
@@ -45,9 +45,9 @@ def check_mongo_health() -> dict[str, Any]:
             "server_version": info.get("version"),
             "database": db_name,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"MongoDB health check failed: {e}")
-        return {"status": "unreachable", "error": str(e)}
+        return {"status": "unreachable"}
 
 
 def log_mongo_audit_event(event_type: str, details: dict[str, Any]) -> bool:
@@ -68,6 +68,6 @@ def log_mongo_audit_event(event_type: str, details: dict[str, Any]) -> bool:
         }
         collection.insert_one(doc)
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"MongoDB audit log insert skipped: {e}")
         return False
