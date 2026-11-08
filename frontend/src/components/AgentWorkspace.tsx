@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { formatApiError } from '../utils/error';
 import { 
   Bot, 
@@ -41,9 +41,21 @@ export interface TargetResourcePayload {
 interface AgentWorkspaceProps {
   targetResource?: TargetResourcePayload | null;
   onClearTarget?: () => void;
+  checkoutReturn?: {
+    status: 'success' | 'cancelled';
+    sessionId?: string;
+    token?: string;
+    payerId?: string;
+  } | null;
+  onClearCheckoutReturn?: () => void;
 }
 
-export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, onClearTarget }) => {
+export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ 
+  targetResource, 
+  onClearTarget,
+  checkoutReturn,
+  onClearCheckoutReturn 
+}) => {
   const [task, setTask] = useState('Compare high-performance mechanical keyboards with ultra-low latency under budget.');
   const [budget, setBudget] = useState(0.10);
   const [status, setStatus] = useState<'IDLE' | 'DISCOVERING' | 'AWAITING_APPROVAL' | 'PAYING' | 'COMPLETED'>('IDLE');
@@ -155,18 +167,93 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
     }
   }, [targetResource]);
 
-  const handleConfirmAndCapture = async (simulateBuyerApproval: boolean = false) => {
-    if (!challenge) return;
+  // Helper to execute server-side capture, mint bearer token, and fetch protected content
+  const executeCapture = async (
+    sessionId: string,
+    paypalOrderId: string,
+    resourceSlug?: string
+  ) => {
     setStatus('PAYING');
-    addLog('INFO', simulateBuyerApproval 
-      ? 'Executing 1-Click Sandbox Test Buyer Approval & Capture...' 
-      : 'Initiating PayPal Sandbox checkout order (intent: CAPTURE)...'
-    );
+    addLog('INFO', `Executing server-side PayPal capture for approved order ${paypalOrderId}...`);
+
+    try {
+      const capRes = await fetch(`/api/v1/payment-sessions/${sessionId}/capture`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paypal_order_id: paypalOrderId
+        })
+      });
+      const capData = await capRes.json().catch(() => ({}));
+      if (!capRes.ok) {
+        const detailMsg = formatApiError(capData, 'PayPal server capture failed');
+        if (detailMsg.includes('not been approved') || detailMsg.includes('ORDER_NOT_APPROVED')) {
+          setNeedsBuyerApproval(true);
+          setShowCheckoutModal(true);
+          addLog('WARNING', `PayPal order ${paypalOrderId} has not been approved yet. Please complete approval at PayPal Sandbox first.`, {
+            approval_url: activeSession?.approval_url
+          });
+          setStatus('AWAITING_APPROVAL');
+          return;
+        }
+        throw new Error(detailMsg);
+      }
+
+      setShowCheckoutModal(false);
+      setNeedsBuyerApproval(false);
+      addLog('SUCCESS', `PayPal Capture Verified: Status ${capData.status} (Capture ID: ${capData.paypal_capture_id})`, capData);
+      
+      setBearerToken(capData.access_token);
+      addLog('INFO', `Issued Cryptographic Bearer Token: ${capData.access_token}`);
+
+      // Retrieve Protected Content
+      const targetSlug = capData.resource_slug || resourceSlug || 'channel3_switch_profiles';
+      addLog('INFO', `Exchanging Bearer token for protected dataset from /api/v1/resources/${targetSlug}/content...`);
+      const contentRes = await fetch(`/api/v1/resources/${targetSlug}/content`, {
+        headers: { Authorization: `Bearer ${capData.access_token}` },
+      });
+      const contentData = await contentRes.json().catch(() => ({}));
+      if (!contentRes.ok) {
+        throw new Error(formatApiError(contentData, 'Failed to unlock protected dataset'));
+      }
+      setUnlockedData(contentData);
+      addLog('SUCCESS', 'HTTP 200 OK — Decrypted and unlocked protected intelligence data!', contentData);
+      setStatus('COMPLETED');
+    } catch (e: any) {
+      addLog('ERROR', `Payment or retrieval error: ${formatApiError(e)}`);
+      setStatus('AWAITING_APPROVAL');
+    }
+  };
+
+  // Handle return from PayPal redirect (/checkout/success or /checkout/cancel)
+  useEffect(() => {
+    if (!checkoutReturn) return;
+
+    if (checkoutReturn.status === 'success' && checkoutReturn.sessionId) {
+      addLog('SUCCESS', `Buyer returned from PayPal Sandbox! Order ${checkoutReturn.token || ''} is ready for capture.`);
+      executeCapture(checkoutReturn.sessionId, checkoutReturn.token || '');
+    } else if (checkoutReturn.status === 'cancelled') {
+      addLog('WARNING', 'PayPal Sandbox checkout was cancelled by the buyer. No funds were captured.');
+      setStatus('AWAITING_APPROVAL');
+    }
+
+    if (onClearCheckoutReturn) {
+      onClearCheckoutReturn();
+    }
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', '/#workspace');
+    }
+  }, [checkoutReturn]);
+
+  const handleConfirmAndCapture = async () => {
+    if (!challenge) return;
 
     try {
       // 1. Create or reuse Payment Session
       let currentSession = activeSession;
       if (!currentSession) {
+        setStatus('PAYING');
+        addLog('INFO', 'Initiating PayPal Sandbox checkout session (intent: CAPTURE)...');
         const sessRes = await fetch('/api/v1/payment-sessions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -189,55 +276,25 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
         addLog('SUCCESS', `PayPal Sandbox Order Created: ${sessData.paypal_order_id}`, sessData);
       }
 
-      // 2. Server-side Capture
-      addLog('INFO', simulateBuyerApproval
-        ? `Submitting verified test buyer capture for order ${currentSession.paypal_order_id}...`
-        : `Attempting server-side PayPal capture for order ${currentSession.paypal_order_id}...`
+      // 2. If genuine flow and not yet approved, present buyer authorization link
+      if (!needsBuyerApproval) {
+        setNeedsBuyerApproval(true);
+        setShowCheckoutModal(true);
+        setStatus('AWAITING_APPROVAL');
+        addLog('INFO', `PayPal Sandbox order ${currentSession.paypal_order_id} is awaiting buyer approval. Click "Sign In at PayPal Sandbox" to approve.`, {
+          approval_url: currentSession.approval_url
+        });
+        return;
+      }
+
+      // 3. Buyer has approved: execute capture on PayPal Sandbox API
+      await executeCapture(
+        currentSession.session_id,
+        currentSession.paypal_order_id,
+        recommendation?.resource_slug
       );
-      const capRes = await fetch(`/api/v1/payment-sessions/${currentSession.session_id}/capture`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          paypal_order_id: currentSession.paypal_order_id,
-          simulate_buyer_approval: simulateBuyerApproval
-        })
-      });
-      const capData = await capRes.json().catch(() => ({}));
-      if (!capRes.ok) {
-        const detailMsg = formatApiError(capData, 'PayPal server capture failed');
-        if (detailMsg.includes('not been approved') || detailMsg.includes('ORDER_NOT_APPROVED')) {
-          setNeedsBuyerApproval(true);
-          setShowCheckoutModal(true);
-          addLog('WARNING', 'Order requires buyer approval at PayPal Sandbox. Sign in with a sandbox account or click "Instant Test Approval".', {
-            approval_url: currentSession.approval_url
-          });
-          setStatus('AWAITING_APPROVAL');
-          return;
-        }
-        throw new Error(detailMsg);
-      }
-
-      setShowCheckoutModal(false);
-      setNeedsBuyerApproval(false);
-      addLog('SUCCESS', `PayPal Capture Verified: Status ${capData.status} (Capture ID: ${capData.paypal_capture_id})`, capData);
-      
-      setBearerToken(capData.access_token);
-      addLog('INFO', `Issued Cryptographic Bearer Token: ${capData.access_token}`);
-
-      // 3. Retrieve Protected Content
-      addLog('INFO', `Exchanging Bearer token for protected dataset from /api/v1/resources/${capData.resource_slug}/content...`);
-      const contentRes = await fetch(`/api/v1/resources/${capData.resource_slug}/content`, {
-        headers: { Authorization: `Bearer ${capData.access_token}` },
-      });
-      const contentData = await contentRes.json().catch(() => ({}));
-      if (!contentRes.ok) {
-        throw new Error(formatApiError(contentData, 'Failed to unlock protected dataset'));
-      }
-      setUnlockedData(contentData);
-      addLog('SUCCESS', 'HTTP 200 OK — Decrypted and unlocked protected intelligence data!', contentData);
-      setStatus('COMPLETED');
     } catch (e: any) {
-      addLog('ERROR', `Payment or retrieval error: ${formatApiError(e)}`);
+      addLog('ERROR', `Checkout initiation error: ${formatApiError(e)}`);
       setStatus('AWAITING_APPROVAL');
     }
   };
@@ -749,44 +806,32 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
                 <div className="p-3.5 bg-amber-50 rounded-xl border-2 border-amber-600 text-amber-950 text-xs font-mono space-y-3 shadow-neo-sm">
                   <div className="font-bold flex items-center space-x-1.5 text-amber-900">
                     <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span>Buyer Authorization Required:</span>
+                    <span>PayPal Sandbox Buyer Approval Required</span>
                   </div>
                   <p className="font-sans text-[11px] text-slate-700 leading-snug">
-                    PayPal Sandbox requires buyer approval for order <span className="font-mono font-bold text-slate-900">{activeSession.paypal_order_id}</span>.
+                    Order <span className="font-mono font-bold text-slate-900">{activeSession.paypal_order_id}</span> has been created on PayPal Sandbox. Complete authorization using your PayPal Sandbox Personal test buyer account.
                   </p>
 
-                  <div className="space-y-2 pt-1 border-t border-amber-200">
-                    <div className="text-[11px] font-sans font-bold text-slate-800">Option 1: If you have a PayPal Sandbox Buyer Account:</div>
+                  <div className="pt-1 border-t border-amber-200">
                     <a
                       href={activeSession.approval_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border-2 border-slate-900 text-slate-900 font-bold text-xs shadow-neo-sm"
+                      className="w-full inline-flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 border-2 border-slate-900 text-slate-950 font-display font-black text-xs shadow-neo-sm active:translate-y-0.5 transition-all"
                     >
-                      <span>Sign In at PayPal Sandbox</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Sign In at PayPal Sandbox to Approve</span>
+                      <ExternalLink className="w-4 h-4" />
                     </a>
                   </div>
 
-                  <div className="space-y-2 pt-2 border-t border-amber-200">
-                    <div className="text-[11px] font-sans font-bold text-amber-950 flex items-center space-x-1">
-                      <Zap className="w-3.5 h-3.5 text-amber-600 fill-current" />
-                      <span>Option 2: No PayPal account? Instant Test Capture:</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleConfirmAndCapture(true)}
-                      className="w-full py-2 px-3 bg-amber-400 hover:bg-amber-300 border-2 border-slate-900 rounded-xl text-slate-950 font-display font-black text-xs shadow-neo-sm flex items-center justify-center space-x-1.5 active:translate-y-0.5 transition-all"
-                    >
-                      <Zap className="w-3.5 h-3.5 fill-current" />
-                      <span>Instant Sandbox Test Approval (No Login Required)</span>
-                    </button>
-                  </div>
+                  <p className="font-sans text-[10px] text-slate-500 leading-tight">
+                    💡 After completing approval on PayPal, click <strong>Verify &amp; Capture</strong> below (or wait for the redirect) to execute server-side capture and unlock the dataset.
+                  </p>
                 </div>
               ) : null}
 
               <div className="text-[11px] text-slate-500 leading-relaxed font-sans">
-                🔒 <strong>PayPal Sandbox Capture:</strong> Authorizing executes a test order capture against the PayPal Orders v2 API. Upon verification, a scoped access token is issued to decrypt the protected dataset.
+                🔒 <strong>PayPal Sandbox Capture:</strong> Server verifies buyer approval via PayPal Orders v2 API before executing capture and minting cryptographic access tokens.
               </div>
             </div>
 
@@ -803,7 +848,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ targetResource, 
               </button>
               <button
                 type="button"
-                onClick={() => handleConfirmAndCapture(false)}
+                onClick={handleConfirmAndCapture}
                 className="flex-1 neo-button-amber py-2.5 px-4 text-xs font-black uppercase tracking-wider flex items-center justify-center space-x-1.5"
               >
                 <span>{needsBuyerApproval ? 'Verify & Capture' : 'Authorize & Pay'}</span>
