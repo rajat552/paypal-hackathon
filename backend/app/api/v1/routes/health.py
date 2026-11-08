@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.db.session import get_db
+from backend.app.core.logging import logger
 from backend.app.db.mongodb import check_mongo_health
+from backend.app.db.session import get_db
 
 router = APIRouter(tags=["Health"])
 
@@ -15,7 +16,8 @@ async def health_check(session: AsyncSession = Depends(get_db)):
     try:
         await session.execute(text("SELECT 1"))
     except Exception as e:  # noqa: BLE001
-        db_status = f"unhealthy: {e!s}"
+        logger.error(f"Database health check failed: {e!s}")
+        db_status = "unhealthy: database connectivity failed"
 
     mongo_info = check_mongo_health()
 
