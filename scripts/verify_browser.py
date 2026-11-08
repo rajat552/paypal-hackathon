@@ -1,5 +1,4 @@
 import asyncio
-import os
 from pathlib import Path
 from playwright.async_api import async_playwright
 
@@ -30,7 +29,7 @@ async def run_browser_verification():
         assert "PayMesh AI" in content or "PayMesh" in content, "Brand 'PayMesh' not found on page"
         # Verify 0 occurrences of CrawlerPal in user-visible text
         body_text = await page.inner_text("body")
-        assert "CrawlerPal" not in body_text, f"Found unexpected 'CrawlerPal' in visible page text!"
+        assert "CrawlerPal" not in body_text, "Found unexpected 'CrawlerPal' in visible page text!"
         print("PASS: Verified PayMesh AI branding and zero CrawlerPal occurrences on initial load.")
         await page.screenshot(path=str(screenshots_dir / "01_workspace_initial.png"))
 
