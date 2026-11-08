@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     # AI Provider
     AI_PROVIDER: str = "gemini"
     AI_API_KEY: str | None = None
-    AI_MODEL: str = "gemini-2.5-flash"
+    AI_MODEL: str = "gemini-3.1-flash-lite"
 
     # Channel3 Data
     CHANNEL3_API_KEY: str | None = None
