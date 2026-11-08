@@ -29,7 +29,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onStart
         {/* Brand Logo & Tagline */}
         <div 
           data-tour="brand-header"
-          className="flex items-center space-x-2.5 sm:space-x-3.5 cursor-pointer group min-w-0"
+          className="flex items-center space-x-2.5 sm:space-x-3.5 cursor-pointer group shrink-0"
           onClick={() => handleTabClick('workspace')}
         >
           {/* Isometric Neo-Tech Logo Icon */}
@@ -42,20 +42,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onStart
             </div>
           </div>
 
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center space-x-2">
-              <span className="font-display font-black text-lg sm:text-xl tracking-tight text-slate-900 group-hover:text-brand-600 transition-colors truncate">
-                PayMesh<span className="text-amber-500">.AI</span>
-              </span>
-            </div>
-            <span className="text-xs text-slate-600 font-medium hidden md:inline-block truncate">
-              A Trust &amp; Payment Infrastructure for Autonomous AI Commerce
-            </span>
-          </div>
+          <span className="font-display font-black text-lg sm:text-xl tracking-tight text-slate-900 group-hover:text-brand-600 transition-colors whitespace-nowrap">
+            PayMesh<span className="text-amber-500">.AI</span>
+          </span>
         </div>
 
         {/* Desktop Navigation Tabs (Compact at lg: 1024px, Full at xl: 1280px+) */}
-        <nav data-tour="nav-tabs" className="hidden lg:flex items-center space-x-1 xl:space-x-2">
+        <nav data-tour="nav-tabs" className="hidden lg:flex items-center space-x-2 xl:space-x-3.5">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -63,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onStart
               <button
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id)}
-                className={`flex items-center space-x-1.5 xl:space-x-2 px-2.5 xl:px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                className={`flex items-center space-x-2 xl:space-x-2.5 px-3 xl:px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                   isActive
                     ? 'bg-amber-400 text-slate-950 border-2 border-slate-900 shadow-neo-sm translate-x-[-1px] translate-y-[-1px]'
                     : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100 border-2 border-transparent hover:border-slate-300'
@@ -106,7 +99,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onStart
           <a
             href="/docs"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="hidden xl:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white border-2 border-slate-900 text-xs font-mono font-bold text-slate-800 hover:bg-amber-100 shadow-neo-sm hover:-translate-y-0.5 transition-all whitespace-nowrap"
             title="Interactive REST API Documentation (OpenAPI / Swagger)"
           >
@@ -163,7 +156,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onStart
             <a
               href="/docs"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="flex-1 min-h-[40px] flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-xs font-mono font-bold text-slate-800 hover:bg-amber-100 transition"
             >
               <Terminal className="w-3.5 h-3.5 text-brand-600" />
@@ -172,7 +165,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onStart
             <a
               href="/api/v1/agent/mcp/manifest"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="flex-1 min-h-[40px] flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-xs font-mono font-bold text-slate-800 hover:bg-amber-100 transition"
             >
               <Cpu className="w-3.5 h-3.5 text-indigo-600" />
