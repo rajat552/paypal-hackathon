@@ -366,8 +366,12 @@ class LLMClient:
         if not api_key:
             return None
 
-        model_name = settings.AI_MODEL or "gemini-2.5-flash"
+        model_name = settings.AI_MODEL or "gemini-3.1-flash-lite"
         clean_model = model_name.replace("models/", "")
+        candidate_models = [m for m in [clean_model, "gemini-3.1-flash-lite", "gemini-3.5-flash", "gemini-3-flash-preview"] if m]
+        # Deduplicate while preserving order
+        candidate_models = list(dict.fromkeys(candidate_models))
+
         endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent"
         req_headers = {
             "Content-Type": "application/json",
@@ -390,7 +394,7 @@ class LLMClient:
         tool_calls_trace = []
         max_iterations = 4
 
-        async with httpx.AsyncClient(timeout=25.0) as client:
+        async with httpx.AsyncClient(timeout=35.0) as client:
             for _ in range(max_iterations):
                 request_body = {
                     "system_instruction": {
@@ -407,10 +411,16 @@ class LLMClient:
                     resp = await client.post(endpoint, headers=req_headers, json=request_body)
                     if resp.status_code != 200:
                         logger.error(f"Gemini API returned HTTP {resp.status_code}: {resp.text}")
-                        # Fallback to gemini-1.5-flash if 2.5-flash is not available on key tier
-                        if clean_model != "gemini-1.5-flash" and resp.status_code in (404, 400):
-                            clean_model = "gemini-1.5-flash"
-                            endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent"
+                        # Fallback across candidate models if model is rejected or rate-limited (404, 400, 429)
+                        switched = False
+                        for alt in candidate_models:
+                            if alt != clean_model:
+                                logger.info(f"Switching Gemini model from {clean_model} to {alt}...")
+                                clean_model = alt
+                                endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent"
+                                switched = True
+                                break
+                        if switched:
                             continue
                         return None
                     data = resp.json()
@@ -455,6 +465,7 @@ class LLMClient:
                 for fc in function_calls:
                     fn_name = fc.get("name")
                     fn_args = fc.get("args", {})
+                    fn_id = fc.get("id")
                     result, success, error_msg = await self.execute_tool(session, fn_name, fn_args)
 
                     tool_calls_trace.append({
@@ -464,15 +475,19 @@ class LLMClient:
                         "result_summary": result if success else {"error": error_msg}
                     })
 
+                    fn_resp_obj: dict[str, Any] = {
+                        "name": fn_name,
+                        "response": {"name": fn_name, "content": result}
+                    }
+                    if fn_id:
+                        fn_resp_obj["id"] = fn_id
+
                     function_response_parts.append({
-                        "functionResponse": {
-                            "name": fn_name,
-                            "response": {"name": fn_name, "content": result}
-                        }
+                        "functionResponse": fn_resp_obj
                     })
 
                 contents.append({
-                    "role": "function",
+                    "role": "user",
                     "parts": function_response_parts
                 })
 
