@@ -1,8 +1,19 @@
 import asyncio
 import os
+from typing import List, TypedDict
 from playwright.async_api import async_playwright
 
-VIEWPORTS = [
+class ViewportDef(TypedDict):
+    name: str
+    width: int
+    height: int
+
+class TabDef(TypedDict):
+    id: str
+    hash: str
+    name: str
+
+VIEWPORTS: List[ViewportDef] = [
     {"name": "01_small_mobile_320x568", "width": 320, "height": 568},
     {"name": "02_standard_mobile_375x667", "width": 375, "height": 667},
     {"name": "03_large_mobile_390x844", "width": 390, "height": 844},
@@ -15,7 +26,7 @@ VIEWPORTS = [
     {"name": "10_large_desktop_1920x1080", "width": 1920, "height": 1080},
 ]
 
-TABS = [
+TABS: List[TabDef] = [
     {"id": "workspace", "hash": "#workspace", "name": "Agent Workspace"},
     {"id": "policy", "hash": "#policy", "name": "Spending Policy"},
     {"id": "catalogue", "hash": "#catalogue", "name": "API Catalogue"},
