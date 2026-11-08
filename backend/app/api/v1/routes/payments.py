@@ -276,7 +276,7 @@ async def paypal_webhook_handler(
     """Handle incoming asynchronous PayPal webhook events with signature verification & reconciliation."""
     try:
         body = await request.json()
-    except Exception:
+    except Exception:  # noqa: BLE001
         body = {}
 
     headers = dict(request.headers)
