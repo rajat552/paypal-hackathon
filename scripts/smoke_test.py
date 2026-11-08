@@ -62,7 +62,7 @@ def run_smoke_test(base_url="http://localhost:8000"):
     cap_res = requests.post(f"{base_url}/api/v1/payment-sessions/{session_id}/capture", json={})
     if cap_res.status_code == 502 and "not been approved" in cap_res.text:
         print("PASS (Genuine PayPal Security Invariant Enforced):")
-        print(f"      Unapproved order correctly rejected by PayPal Gateway.")
+        print("      Unapproved order correctly rejected by PayPal Gateway.")
         print(f"      Approval URL: {s_data.get('approval_url')}")
         print("      To complete capture, approve the order at sandbox.paypal.com or execute via test fixture.")
         print("\n[6/7] Skipping live retrieval (requires approved PayPal transaction)")
