@@ -123,6 +123,30 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
     }
   }, [task, budget, status, recommendation, challenge, bearerToken, unlockedData, logs, agentRunMeta, activeSession]);
 
+  // Synchronize state across browser tabs when payment is captured
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleCrossTabSync = (e: StorageEvent) => {
+      if (e.key === 'paymesh_last_capture' && e.newValue) {
+        try {
+          const syncData = JSON.parse(e.newValue);
+          if (syncData.unlockedData && syncData.bearerToken) {
+            setBearerToken(syncData.bearerToken);
+            setUnlockedData(syncData.unlockedData);
+            setStatus('COMPLETED');
+            setShowCheckoutModal(false);
+            setNeedsBuyerApproval(false);
+            addLog('SUCCESS', 'Payment verified and synchronized across browser tabs!');
+          }
+        } catch {
+          // Safe ignore
+        }
+      }
+    };
+    window.addEventListener('storage', handleCrossTabSync);
+    return () => window.removeEventListener('storage', handleCrossTabSync);
+  }, []);
+
   const addLog = (type: LogEntry['type'], message: string, data?: any) => {
     setLogs((prev) => [
       ...prev,
@@ -281,6 +305,18 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
       setUnlockedData(contentData);
       addLog('SUCCESS', 'HTTP 200 OK — Decrypted and unlocked protected intelligence data!', contentData);
       setStatus('COMPLETED');
+
+      // Cross-tab synchronization so any open tabs automatically display unlocked data
+      try {
+        localStorage.setItem('paymesh_last_capture', JSON.stringify({
+          sessionId,
+          bearerToken: capData.access_token,
+          unlockedData: contentData,
+          timestamp: Date.now()
+        }));
+      } catch {
+        // Safe ignore
+      }
     } catch (e: any) {
       addLog('ERROR', `Payment or retrieval error: ${formatApiError(e)}`);
       setStatus('AWAITING_APPROVAL');
@@ -893,8 +929,6 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
                   <div className="pt-1 border-t border-amber-200">
                     <a
                       href={activeSession.approval_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className="w-full inline-flex items-center justify-center space-x-2 py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 border-2 border-slate-900 text-slate-950 font-display font-black text-xs shadow-neo-sm active:translate-y-0.5 transition-all"
                     >
                       <span>Sign In at PayPal Sandbox to Approve</span>
