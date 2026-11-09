@@ -80,7 +80,7 @@ class AgentOrchestrator:
             currency=request.currency
         )
 
-        if llm_result and llm_result.selected_resource_slug:
+        if llm_result and llm_result.success and llm_result.selected_resource_slug:
             # LLM autonomously discovered and recommended a verified resource
             res_slug = llm_result.selected_resource_slug
             resource = await resource_service.get_by_slug(session, res_slug)
@@ -143,28 +143,38 @@ class AgentOrchestrator:
                     )
 
         # Fallback / Deterministic Mode: Used when AI key is omitted or LLM failed
+        ai_failure_notice = None
+        if llm_result and not llm_result.success:
+            ai_failure_notice = f"[AI API Notice: {llm_result.error_type} - {llm_result.error_message}]"
+
         discovery = await agent_tools.discover_resources(session, query=request.task, limit=3)
         resources = discovery.get("resources", [])
 
         if not resources:
+            summary_msg = "No resources in the publisher catalogue matched your research query."
+            if ai_failure_notice:
+                summary_msg = f"{ai_failure_notice} {summary_msg}"
             return AgentRunResponse(
                 run_id=run_id,
                 task=request.task,
                 budget_limit=request.budget_limit,
                 status="NO_RESOURCES_FOUND",
                 ai_mode="deterministic_fallback",
-                summary="No resources in the publisher catalogue matched your research query."
+                summary=summary_msg
             )
 
         selected_res = resources[0]
         if not selected_res.get("offers"):
+            summary_msg = f"Resource '{selected_res['title']}' has no active pricing offers."
+            if ai_failure_notice:
+                summary_msg = f"{ai_failure_notice} {summary_msg}"
             return AgentRunResponse(
                 run_id=run_id,
                 task=request.task,
                 budget_limit=request.budget_limit,
                 status="NO_OFFERS",
                 ai_mode="deterministic_fallback",
-                summary=f"Resource '{selected_res['title']}' has no active pricing offers."
+                summary=summary_msg
             )
 
         selected_offer = selected_res["offers"][0]
@@ -199,21 +209,37 @@ class AgentOrchestrator:
 
         status_text = "AWAITING_APPROVAL" if policy_res["allowed"] else "POLICY_REJECTED"
 
+        tool_trace = llm_result.tool_calls_trace if (llm_result and llm_result.tool_calls_trace) else [
+            {"tool": "discover_resources", "arguments": {"query": request.task, "limit": 3}, "success": True},
+            {"tool": "evaluate_purchase_policy", "arguments": {"offer_id": selected_offer["id"], "budget_limit": request.budget_limit}, "success": True}
+        ]
+
+        summary_text = (
+            f"{ai_failure_notice} Fallback to catalogue discovery: {selected_res['title']} (${selected_offer['amount']:.2f} {selected_offer['currency']}). {policy_res['reason']}"
+            if ai_failure_notice
+            else f"Agent recommended {selected_res['title']} at ${selected_offer['amount']:.2f} {selected_offer['currency']}. {policy_res['reason']}"
+        )
+
+        reasoning_text = (
+            f"AI model inference was not used ({llm_result.error_type}: {llm_result.error_message}). Recommendation generated via deterministic database catalog search."
+            if ai_failure_notice
+            else f"Matched resource '{selected_res['title']}' via catalogue keywords."
+        )
+
         return AgentRunResponse(
             run_id=run_id,
             task=request.task,
             budget_limit=request.budget_limit,
             status=status_text,
             ai_mode="deterministic_fallback",
+            ai_provider="paymesh_deterministic",
+            ai_model="catalogue_router",
             interpreted_intent=f"Catalog match for task: {request.task}",
-            comparison_reasoning=f"Matched resource '{selected_res['title']}' via catalogue keywords.",
-            tool_calls_trace=[
-                {"tool": "discover_resources", "arguments": {"query": request.task, "limit": 3}, "success": True},
-                {"tool": "evaluate_purchase_policy", "arguments": {"offer_id": selected_offer["id"], "budget_limit": request.budget_limit}, "success": True}
-            ],
+            comparison_reasoning=reasoning_text,
+            tool_calls_trace=tool_trace,
             recommendation=recommendation,
             challenge=challenge_res,
-            summary=f"Agent recommended {selected_res['title']} at ${selected_offer['amount']:.2f} {selected_offer['currency']}. {policy_res['reason']}"
+            summary=summary_text
         )
 
 agent_orchestrator = AgentOrchestrator()
