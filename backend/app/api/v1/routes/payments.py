@@ -3,16 +3,19 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.config import settings
 from backend.app.db.session import get_db
 from backend.app.models.entities import (
     AuditLog,
+    Entitlement,
     Offer,
     PaymentSession,
     Resource,
     Transaction,
+    WebhookEvent,
 )
 from backend.app.schemas.payment import (
     CaptureRequest,
@@ -134,7 +137,44 @@ async def capture_payment_session(
     if not ps:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment session not found")
 
-    # Retrieve challenge to get resource & offer
+    # 1. Idempotency check: if session already captured, return existing active entitlement
+    if ps.status == "CAPTURED":
+        challenge = await challenge_service.get_challenge(session, ps.challenge_id)
+        if not challenge:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment challenge not found")
+
+        stmt_offer = select(Offer).where(Offer.id == challenge.offer_id)
+        res_offer = await session.execute(stmt_offer)
+        offer = res_offer.scalars().first()
+
+        stmt_res = select(Resource).where(Resource.id == challenge.resource_id)
+        res_resource = await session.execute(stmt_res)
+        resource = res_resource.scalars().first()
+
+        stmt_tx = select(Transaction).where(Transaction.payment_session_id == ps.id)
+        res_tx = await session.execute(stmt_tx)
+        tx = res_tx.scalars().first()
+
+        stmt_ent = select(Entitlement).where(
+            Entitlement.resource_id == challenge.resource_id,
+            Entitlement.offer_id == challenge.offer_id,
+            Entitlement.status == "ACTIVE"
+        ).order_by(Entitlement.starts_at.desc())
+        res_ent = await session.execute(stmt_ent)
+        existing_ent = res_ent.scalars().first()
+
+        return CaptureResponse(
+            status="CAPTURED",
+            payment_session_id=ps.id,
+            paypal_order_id=ps.paypal_order_id,
+            paypal_capture_id=tx.paypal_capture_id if tx else f"CAP-{ps.paypal_order_id}",
+            access_token="[SESSION_ALREADY_CAPTURED_RETAIN_EXISTING_TOKEN]",
+            expires_at=existing_ent.expires_at.isoformat() if existing_ent else challenge.expires_at.isoformat(),
+            resource_slug=resource.slug if resource else "unknown",
+            scope=json.loads(offer.scope_json) if offer else {"access": "read"}
+        )
+
+    # Retrieve and validate challenge to get resource & offer
     challenge = await challenge_service.get_and_validate_challenge(session, ps.challenge_id)
     
     # Retrieve offer
@@ -146,23 +186,6 @@ async def capture_payment_session(
     stmt_res = select(Resource).where(Resource.id == challenge.resource_id)
     res_resource = await session.execute(stmt_res)
     resource = res_resource.scalars().first()
-
-    # 1. Idempotency check: if already captured, return existing active entitlement
-    if ps.status == "CAPTURED":
-        # Already captured! Look up transaction
-        stmt_tx = select(Transaction).where(Transaction.payment_session_id == ps.id)
-        res_tx = await session.execute(stmt_tx)
-        tx = res_tx.scalars().first()
-        return CaptureResponse(
-            status="CAPTURED",
-            payment_session_id=ps.id,
-            paypal_order_id=ps.paypal_order_id,
-            paypal_capture_id=tx.paypal_capture_id if tx else "CAP-RECORDED",
-            access_token="[SESSION_ALREADY_CAPTURED_RETAIN_EXISTING_TOKEN]",
-            expires_at=challenge.expires_at.isoformat(),
-            resource_slug=resource.slug if resource else "unknown",
-            scope=json.loads(offer.scope_json) if offer else {"access": "read"}
-        )
 
     # 2. Capture PayPal Sandbox Order on server
     simulate_approval = bool(payload and payload.simulate_buyer_approval)
@@ -192,24 +215,81 @@ async def capture_payment_session(
             await session.commit()
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="PayPal capture was not completed")
 
-    # 3. Create or reuse Transaction record (idempotent against concurrent capture requests)
     capture_id = capture_data.get("capture_id", f"CAP-{ps.paypal_order_id}")
+
+    # 3. Check for existing Transaction (idempotent against concurrent/replayed captures)
     stmt_existing_tx = select(Transaction).where(Transaction.paypal_capture_id == capture_id)
     res_existing_tx = await session.execute(stmt_existing_tx)
-    tx = res_existing_tx.scalars().first()
-    if not tx:
-        tx = Transaction(
+    existing_tx = res_existing_tx.scalars().first()
+
+    if existing_tx:
+        # A transaction already exists for this capture! Do NOT issue another entitlement.
+        ps.status = "CAPTURED"
+        await session.commit()
+
+        stmt_ent = select(Entitlement).where(
+            Entitlement.resource_id == challenge.resource_id,
+            Entitlement.offer_id == challenge.offer_id,
+            Entitlement.status == "ACTIVE"
+        ).order_by(Entitlement.starts_at.desc())
+        res_ent = await session.execute(stmt_ent)
+        existing_ent = res_ent.scalars().first()
+
+        return CaptureResponse(
+            status="CAPTURED",
             payment_session_id=ps.id,
             paypal_order_id=ps.paypal_order_id,
             paypal_capture_id=capture_id,
-            gross_amount=ps.amount,
-            currency=ps.currency,
-            payment_status="COMPLETED",
-            raw_summary_json=json.dumps(capture_data.get("raw_response", {}))
+            access_token="[SESSION_ALREADY_CAPTURED_RETAIN_EXISTING_TOKEN]",
+            expires_at=existing_ent.expires_at.isoformat() if existing_ent else challenge.expires_at.isoformat(),
+            resource_slug=resource.slug if resource else "unknown",
+            scope=json.loads(offer.scope_json) if offer else {"access": "read"}
         )
-        session.add(tx)
 
-    # 4. Issue Entitlement and generate separate Bearer token
+    # 4. Durable transaction persistence BEFORE entitlement issuance
+    tx = Transaction(
+        payment_session_id=ps.id,
+        paypal_order_id=ps.paypal_order_id,
+        paypal_capture_id=capture_id,
+        gross_amount=ps.amount,
+        currency=ps.currency,
+        payment_status="COMPLETED",
+        raw_summary_json=json.dumps(capture_data.get("raw_response", {}))
+    )
+    session.add(tx)
+
+    try:
+        # Enforce database unique constraint on paypal_capture_id and test DB durability
+        await session.flush()
+    except IntegrityError:
+        # A concurrent request committed the transaction first
+        await session.rollback()
+        stmt_ent = select(Entitlement).where(
+            Entitlement.resource_id == challenge.resource_id,
+            Entitlement.offer_id == challenge.offer_id,
+            Entitlement.status == "ACTIVE"
+        ).order_by(Entitlement.starts_at.desc())
+        res_ent = await session.execute(stmt_ent)
+        existing_ent = res_ent.scalars().first()
+
+        return CaptureResponse(
+            status="CAPTURED",
+            payment_session_id=ps.id,
+            paypal_order_id=ps.paypal_order_id,
+            paypal_capture_id=capture_id,
+            access_token="[SESSION_ALREADY_CAPTURED_RETAIN_EXISTING_TOKEN]",
+            expires_at=existing_ent.expires_at.isoformat() if existing_ent else challenge.expires_at.isoformat(),
+            resource_slug=resource.slug if resource else "unknown",
+            scope=json.loads(offer.scope_json) if offer else {"access": "read"}
+        )
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to record payment transaction in database: {e!s}. Entitlement was not issued."
+        ) from e
+
+    # 5. Issue Entitlement ONLY AFTER durable transaction persistence
     duration = offer.duration_seconds if offer else 3600
     scope_str = offer.scope_json if offer else '{"access": "read"}'
     entitlement, raw_bearer_token = await entitlement_service.issue_entitlement(
@@ -221,7 +301,7 @@ async def capture_payment_session(
         agent_id=ps.agent_id
     )
 
-    # 5. Mark PaymentSession CAPTURED and consume challenge
+    # 6. Mark PaymentSession CAPTURED and consume challenge
     ps.status = "CAPTURED"
     await challenge_service.consume_challenge(session, challenge)
 
@@ -326,57 +406,66 @@ async def paypal_webhook_handler(
             detail="PayPal webhook signature verification failed."
         )
 
-    # 2. Idempotency: Deduplicate events by event_id in audit log
-    stmt_dup = select(AuditLog).where(
-        AuditLog.action == "PAYPAL_WEBHOOK_PROCESSED",
-        AuditLog.entity_id == event_id
+    # 2. Database-enforced idempotency: record WebhookEvent with unique event_id
+    webhook_event_record = WebhookEvent(
+        event_id=event_id,
+        event_type=event_type,
+        resource_id=resource_data.get("id"),
+        summary=body.get("summary", ""),
+        status="PROCESSED",
+        payload_json=json.dumps(body)
     )
-    dup_res = await session.execute(stmt_dup)
-    if dup_res.scalars().first():
+    session.add(webhook_event_record)
+
+    try:
+        # 3. Reconcile transaction or payment session state atomically
+        reconciled_session_id = None
+        if event_type == "CHECKOUT.ORDER.APPROVED":
+            order_id = resource_data.get("id")
+            if order_id:
+                stmt_ps = select(PaymentSession).where(PaymentSession.paypal_order_id == order_id)
+                ps_res = await session.execute(stmt_ps)
+                ps = ps_res.scalars().first()
+                if ps and ps.status == "CREATED":
+                    ps.status = "APPROVED"
+                    reconciled_session_id = ps.id
+
+        elif event_type == "PAYMENT.CAPTURE.COMPLETED":
+            custom_id = resource_data.get("custom_id")
+            if custom_id:
+                stmt_ps = select(PaymentSession).where(PaymentSession.id == custom_id)
+                ps_res = await session.execute(stmt_ps)
+                ps = ps_res.scalars().first()
+                if ps:
+                    reconciled_session_id = ps.id
+
+        # 4. Record audit log
+        audit = AuditLog(
+            actor_type="paypal_webhook",
+            actor_id=headers.get("paypal-transmission-id", "webhook_transmission"),
+            action="PAYPAL_WEBHOOK_PROCESSED",
+            entity_type="webhook_event",
+            entity_id=event_id,
+            metadata_json=json.dumps({
+                "event_type": event_type,
+                "summary": body.get("summary", ""),
+                "reconciled_session_id": reconciled_session_id
+            })
+        )
+        session.add(audit)
+
+        # Commit WebhookEvent + state mutations + audit log atomically
+        await session.commit()
+
+    except IntegrityError:
+        # Database UNIQUE constraint on webhook_events.event_id triggered!
+        # Revert any staged session mutations completely
+        await session.rollback()
         return {
             "status": "already_processed",
             "event_type": event_type,
             "event_id": event_id
         }
-
-    # 3. Reconcile transaction or payment session state
-    reconciled_session_id = None
-    if event_type == "CHECKOUT.ORDER.APPROVED":
-        order_id = resource_data.get("id")
-        if order_id:
-            stmt_ps = select(PaymentSession).where(PaymentSession.paypal_order_id == order_id)
-            ps_res = await session.execute(stmt_ps)
-            ps = ps_res.scalars().first()
-            if ps and ps.status == "CREATED":
-                ps.status = "APPROVED"
-                reconciled_session_id = ps.id
-                await session.commit()
-
-    elif event_type == "PAYMENT.CAPTURE.COMPLETED":
-        # Check associated custom_id or invoice_id
-        custom_id = resource_data.get("custom_id")
-        if custom_id:
-            stmt_ps = select(PaymentSession).where(PaymentSession.id == custom_id)
-            ps_res = await session.execute(stmt_ps)
-            ps = ps_res.scalars().first()
-            if ps:
-                reconciled_session_id = ps.id
-
-    # 4. Record audit logs in both SQL and MongoDB
-    audit = AuditLog(
-        actor_type="paypal_webhook",
-        actor_id=headers.get("paypal-transmission-id", "webhook_transmission"),
-        action="PAYPAL_WEBHOOK_PROCESSED",
-        entity_type="webhook_event",
-        entity_id=event_id,
-        metadata_json=json.dumps({
-            "event_type": event_type,
-            "summary": body.get("summary", ""),
-            "reconciled_session_id": reconciled_session_id
-        })
-    )
-    session.add(audit)
-    await session.commit()
 
     log_mongo_audit_event("PAYPAL_WEBHOOK_PROCESSED", {
         "event_id": event_id,
