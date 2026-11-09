@@ -19,12 +19,12 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite-61DAFB.svg?logo=react&logoColor=black)](https://react.dev/)
 [![PayPal](https://img.shields.io/badge/PayPal%20Sandbox-Orders%20v2%20%2B%20Webhooks-003087.svg?logo=paypal&logoColor=white)](https://developer.paypal.com)
-[![Google Gemini](https://img.shields.io/badge/AI%20Engine-Gemini%202.5%20Flash-8E75C2.svg?logo=google&logoColor=white)](https://ai.google.dev/)
+[![Google Gemini](https://img.shields.io/badge/AI%20Engine-Gemini%203.1%20Flash%20Lite-8E75C2.svg?logo=google&logoColor=white)](https://ai.google.dev/)
 [![MongoDB Atlas](https://img.shields.io/badge/Database-MongoDB%20Atlas%208.0-47A248.svg?logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
 [![AG Grid](https://img.shields.io/badge/Financial%20Ledger-AG%20Grid%20v32-E0234E.svg?logo=aggrid&logoColor=white)](https://www.ag-grid.com)
 [![Protocol](https://img.shields.io/badge/Protocol-L402%20HTTP%20402-F5A623.svg)](https://L402.org)
 [![MCP Standard](https://img.shields.io/badge/Standard-Anthropic%20MCP-6366F1.svg)](https://modelcontextprotocol.io/)
-[![Tests](https://img.shields.io/badge/Tests-29%20Passed%20%7C%20100%25-10B981.svg)](backend/tests/)
+[![Tests](https://img.shields.io/badge/Tests-45%20Passed%20%7C%20100%25-10B981.svg)](backend/tests/)
 
 [Live Frontend](https://paypal-hackathon-mu.vercel.app/) • [API Backend Gateway](https://paypal-hackathon-s0gq.onrender.com) • [Interactive Swagger Docs](https://paypal-hackathon-s0gq.onrender.com/docs) • [Architecture](#4-how-it-works) • [Screenshots](#5-screenshots--visual-showcase) • [Quick Start](#9-installation--setup) • [Testing](#16-testing--verification)
 
@@ -73,10 +73,11 @@ Autonomous AI agents are shifting from passive conversational assistants into in
 
 - **L402 HTTP 402 Paywall Protocol**: Standardized negotiation protocol returning machine-readable JSON envelopes containing offer details, expiration windows, and payment challenge tokens.
 - **Deterministic Spending Guardrails**: Immutable server-side validation enforcing hard ceilings per transaction, 24-hour rolling quotas, and strict currency matching before any PayPal order is created.
-- **PayPal Orders v2 Capture Flow**: Full server-side lifecycle using official PayPal REST APIs. Supports both standard Sandbox Buyer Account approval and an instant one-click test approval mode for evaluators without sandbox logins.
-- **Asynchronous PayPal Webhook Processing**: Dedicated endpoint validating incoming webhook notifications, updating transaction states, and persisting immutable capture events in MongoDB Atlas.
-- **Multi-Model AI Integration**: Powered by Google Gemini 2.5 Flash (`AI_PROVIDER=gemini`) for intent parsing and product synthesis, with support for OpenAI and Claude, as well as a zero-key deterministic procurement fallback.
-- **Dual Persistence Architecture**: High-speed relational storage (SQLite locally, PostgreSQL in production) for resources, offers, and entitlements, paired with MongoDB Atlas cloud for audit trails.
+- **PayPal Orders v2 Capture Flow**: Full server-side lifecycle using official PayPal REST APIs. Supports standard Sandbox Buyer Account approval with durable transaction persistence and database-level unique constraints (`ix_transactions_paypal_capture_id`) preventing double captures.
+- **Asynchronous PayPal Webhook Processing**: Dedicated endpoint validating incoming webhook notifications, enforcing database-level unique `event_id` deduplication (`ix_webhook_events_event_id`), and persisting immutable capture events in MongoDB Atlas.
+- **Google Gemini 3.1 Flash Lite Engine**: Powered by Google Gemini (`AI_MODEL=gemini-3.1-flash-lite`) executing multi-turn function calling (`discover_resources`, `get_resource_offer`, `evaluate_purchase_policy`), bounded exponential backoff for HTTP 429 rate limits, daily quota ceiling detection, HTTP 400 rejection, and deterministic catalog routing fallback.
+- **Channel3 Retail Intelligence**: Normalized hardware switch benchmarks and latency data with dual-mode support (external API when key configured, and verified high-fidelity retail fixtures when key is omitted).
+- **Dual Persistence Architecture**: High-speed relational storage (SQLite locally, PostgreSQL in production) with 13 SQLAlchemy models for resources, offers, transactions, and entitlements, paired with MongoDB Atlas cloud for immutable audit trails.
 - **Enterprise AG Grid Financial Ledger**: Real-time KPI cards (volume, order count, conversion rate, active tokens) and an interactive financial settlement ledger with sorting, filtering, and CSV export.
 - **Self-Service Merchant Studio**: Publisher console for external data providers to register APIs, define custom pricing tiers ($0.01 - $0.50), and generate instant L402 paywalls.
 - **15-Step Guided Onboarding Tour**: Integrated SVG spotlight walkthrough introducing users to the autonomous AI commerce lifecycle.
@@ -422,15 +423,20 @@ PayMesh AI connects directly to the official **PayPal Sandbox Orders v2 API**:
 
 ## 13. AI Configuration & Multi-Model Engine
 
-PayMesh AI supports dynamic AI model inference for intent analysis and product synthesis:
+PayMesh AI connects directly to Google's official Gemini Generative Language REST API:
 
-- **Google Gemini 2.5 Flash (Primary)**:
-  - Set `AI_PROVIDER=gemini`, `AI_MODEL=gemini-2.5-flash`, and provide your `AI_API_KEY`.
-  - Used for intent extraction, benchmark comparisons, and structured market synthesis.
-- **OpenAI & Claude Support**:
-  - Set `AI_PROVIDER=openai` (e.g., `gpt-4o-mini`) or `AI_PROVIDER=anthropic` with the corresponding `AI_API_KEY`.
-- **Deterministic Fallback (Zero-Key Execution)**:
-  - If no `AI_API_KEY` is configured, PayMesh AI automatically runs in deterministic rule-based mode. The system executes catalogue discovery, evaluates spending limits, negotiates L402 paywalls, and processes PayPal Sandbox orders without requiring external AI credentials.
+- **Google Gemini 3.1 Flash Lite (Primary Verified Engine)**:
+  - Default configured model: `AI_PROVIDER=gemini`, `AI_MODEL=gemini-3.1-flash-lite`.
+  - Genuine function/tool calling loop executing:
+    - `discover_resources(query, limit)`: searches catalogue datasets.
+    - `get_resource_offer(resource_slug)`: retrieves authoritative pricing offers.
+    - `evaluate_purchase_policy(offer_id, budget_limit)`: verifies price against spending ceilings.
+  - **Bounded Exponential Backoff with Jitter**: Automatically retries HTTP 429 rate limit responses (up to 3 attempts, respecting `Retry-After` headers).
+  - **Daily Quota Ceiling Detection**: Detects per-day free tier quota limits cleanly without infinite loops.
+  - **Strict HTTP 400 Rejection**: Rejects malformed requests immediately without masking them behind fallback.
+  - **404 Model Fallback Chain**: Gracefully cycles through candidate model identifiers (`gemini-3.1-flash-lite`, `gemini-3.5-flash`, `gemini-3-flash-preview`) if a model identifier is deprecated.
+- **Deterministic Procurement Gateway (Zero-Key Mode)**:
+  - When `AI_API_KEY` is omitted, PayMesh AI operates in deterministic catalog routing mode. It executes catalogue discovery, evaluates spending limits, negotiates L402 paywalls, and processes PayPal Sandbox orders without requiring external AI credentials.
 
 ---
 
@@ -447,13 +453,12 @@ Complete interactive documentation with request/response schemas is available at
 | `GET` | `/api/v1/resources/{slug}/content` | Retrieve protected content (returns `HTTP 402` without valid token) | Bearer Token |
 | `POST` | `/api/v1/payment-sessions` | Create a PayPal Sandbox Orders v2 checkout session | Public |
 | `POST` | `/api/v1/payment-sessions/{id}/capture` | Server-side capture and verification of an approved PayPal order | Public |
-| `POST` | `/api/v1/payment-sessions/{id}/simulate-approval` | Simulate Sandbox buyer authorization for rapid evaluation | Public |
-| `POST` | `/api/v1/payments/webhook` | Handle asynchronous PayPal webhook events (`PAYMENT.CAPTURE.COMPLETED`) | Public |
+| `POST` | `/api/v1/payments/webhook` | Handle asynchronous PayPal webhook events with atomic DB deduplication | Public |
 | `POST` | `/api/v1/agent/runs` | Multi-step agent orchestrator (discovery, challenge, and policy check) | Public |
 | `GET` | `/api/v1/agent/policy/config` | Read current server-side spending guardrails and 24h budget metrics | Public |
 | `PUT` | `/api/v1/agent/policy/config` | Update per-transaction limits, daily budgets, and security flags | Public |
 | `GET` | `/api/v1/agent/mcp/manifest` | Anthropic Model Context Protocol (MCP) server manifest | Public |
-| `POST` | `/api/v1/agent/mcp/tools/{tool_name}` | Execute MCP tools programmatically via standard JSON-RPC | Public |
+| `POST` | `/api/v1/agent/mcp/call` | Execute MCP tools programmatically via standard JSON-RPC | Public |
 | `POST` | `/api/v1/publisher/resources` | Register a new dataset product in the marketplace | Public |
 | `POST` | `/api/v1/publisher/resources/{id}/offers` | Create custom pricing tiers and access durations | Public |
 | `GET` | `/api/v1/publisher/analytics/summary` | Real-time financial KPI metrics (volume, order count, conversion) | Public |
@@ -466,14 +471,21 @@ Complete interactive documentation with request/response schemas is available at
 PayMesh AI utilizes a dual-database architecture:
 
 1. **Transactional Relational Database (SQLAlchemy 2.0 Async Engine)**:
-   - Default: `sqlite+aiosqlite:///./paymesh.db` (local development).
-   - Production: PostgreSQL (Render Managed PostgreSQL).
-   - **Core Entities**:
-     - `Resource`: Monetized datasets and API endpoints (`slug`, `provider`, `resource_type`).
+   - Configured via `DATABASE_URL` (SQLite locally at `crawlerpal.db` / PostgreSQL in production).
+   - **13 Database Models**:
+     - `User`: Publisher and agent accounts with hashed credentials.
+     - `Agent`: Autonomous agent identities linked to owners.
+     - `Resource`: Monetized intelligence datasets and API endpoints (`slug`, `provider`, `resource_type`).
      - `Offer`: Pricing rules, currency, amounts ($0.01 - $0.50), and access durations.
-     - `Challenge`: Authoritative L402 challenge tokens with 10-minute expiration.
-     - `PaymentSession`: Tracks PayPal Order IDs, capture IDs, session state, and timestamps.
-     - `Entitlement`: Issued access grants mapped to salted HMAC-SHA256 token hashes.
+     - `PaymentChallenge`: Authoritative L402 challenge tokens with 10-minute expiration.
+     - `PaymentSession`: Tracks PayPal Order IDs, approval URLs, and session states.
+     - `Transaction`: Durably persisted financial records with unique index on `paypal_capture_id`.
+     - `Entitlement`: Cryptographic access grants mapped to salted HMAC-SHA256 token hashes.
+     - `UsageEvent`: Metered read events and dataset decryption timestamps.
+     - `AuditLog`: Relational audit trail for webhook events and administrative actions.
+     - `ProductSnapshot`: Normalized hardware cache from Channel3 retail intelligence.
+     - `PolicySetting`: Global and agent-level spending limits and security toggles.
+     - `WebhookEvent`: Database-enforced unique PayPal webhook event deduplication table (`ix_webhook_events_event_id`).
 2. **Cloud Audit Ledger (MongoDB Atlas)**:
    - Dedicated `auditevents` collection on MongoDB Atlas (`cohesora` cluster).
    - Stores immutable audit events (`PAYPAL_CAPTURE_SUCCESS`, `ENTITLEMENT_ISSUED`, `WEBHOOK_RECEIVED`) with TLS certificate verification via `certifi`.
@@ -482,45 +494,61 @@ PayMesh AI utilizes a dual-database architecture:
 
 ## 16. Testing & Verification
 
-PayMesh AI includes an automated testing suite with **29 passing unit and integration tests**:
+PayMesh AI includes an automated testing suite with **45 passing unit and integration tests**:
 
 ```bash
 python -m pytest backend/tests/ -v
 ```
 
-### Verified Test Results
+### Verified Test Results (45 / 45 Passed)
 ```text
-backend/tests/integration/test_api_endpoints.py::test_health_endpoint PASSED              [  3%]
-backend/tests/integration/test_api_endpoints.py::test_catalogue_endpoint PASSED           [  6%]
-backend/tests/integration/test_api_endpoints.py::test_protected_resource_returns_402_challenge PASSED [ 10%]
-backend/tests/integration/test_api_endpoints.py::test_full_payment_capture_and_retrieval_flow PASSED [ 13%]
-backend/tests/integration/test_api_endpoints.py::test_simulate_buyer_approval_instant_capture PASSED [ 17%]
-backend/tests/integration/test_api_endpoints.py::test_agent_run_orchestration PASSED      [ 20%]
-backend/tests/integration/test_api_endpoints.py::test_mcp_manifest_and_tool_execution PASSED [ 24%]
-backend/tests/integration/test_api_endpoints.py::test_legacy_bot_l402_and_payment_flow PASSED [ 27%]
-backend/tests/integration/test_api_endpoints.py::test_security_headers_enforced PASSED   [ 31%]
-backend/tests/integration/test_api_endpoints.py::test_publisher_validation_rejects_invalid_currency PASSED [ 34%]
-backend/tests/integration/test_api_endpoints.py::test_agent_orchestration_returns_ai_metadata PASSED [ 37%]
-backend/tests/integration/test_api_endpoints.py::test_paypal_webhook_handler PASSED      [ 41%]
-backend/tests/integration/test_api_endpoints.py::test_policy_config_get_and_update PASSED [ 44%]
-backend/tests/unit/test_ai_agent.py::test_discover_resources_args_validation PASSED       [ 48%]
-backend/tests/unit/test_ai_agent.py::test_get_resource_offer_args_validation PASSED       [ 51%]
-backend/tests/unit/test_ai_agent.py::test_evaluate_purchase_policy_args_validation PASSED [ 55%]
-backend/tests/unit/test_ai_agent.py::test_llm_client_unconfigured_by_default PASSED      [ 58%]
-backend/tests/unit/test_ai_agent.py::test_llm_client_execute_unknown_tool PASSED         [ 62%]
-backend/tests/unit/test_ai_agent.py::test_orchestrator_returns_structured_trace PASSED   [ 65%]
-backend/tests/unit/test_config_and_security.py::test_settings_properties PASSED          [ 68%]
-backend/tests/unit/test_config_and_security.py::test_token_hashing_and_verification PASSED [ 72%]
-backend/tests/unit/test_config_and_security.py::test_challenge_id_format PASSED          [ 75%]
-backend/tests/unit/test_config_and_security.py::test_password_hashing PASSED             [ 79%]
-backend/tests/unit/test_policy.py::test_policy_within_budget PASSED                       [ 82%]
-backend/tests/unit/test_policy.py::test_policy_exceeds_budget PASSED                      [ 86%]
-backend/tests/unit/test_policy.py::test_policy_currency_mismatch PASSED                   [ 89%]
-backend/tests/unit/test_policy.py::test_policy_inactive_offer PASSED                      [ 93%]
-backend/tests/unit/test_policy.py::test_policy_disallowed_currency PASSED                 [ 96%]
+backend/tests/integration/test_api_endpoints.py::test_health_endpoint PASSED              [  2%]
+backend/tests/integration/test_api_endpoints.py::test_catalogue_endpoint PASSED           [  4%]
+backend/tests/integration/test_protected_resource_returns_402_challenge PASSED [  6%]
+backend/tests/integration/test_full_payment_capture_and_retrieval_flow PASSED [  8%]
+backend/tests/integration/test_simulate_buyer_approval_instant_capture PASSED [ 11%]
+backend/tests/integration/test_agent_run_orchestration PASSED      [ 13%]
+backend/tests/integration/test_mcp_manifest_and_tool_execution PASSED [ 15%]
+backend/tests/integration/test_legacy_bot_l402_and_payment_flow PASSED [ 17%]
+backend/tests/integration/test_security_headers_enforced PASSED   [ 20%]
+backend/tests/integration/test_publisher_validation_rejects_invalid_currency PASSED [ 22%]
+backend/tests/integration/test_agent_orchestration_returns_ai_metadata PASSED [ 24%]
+backend/tests/integration/test_paypal_webhook_handler PASSED      [ 26%]
+backend/tests/integration/test_policy_config_get_and_update PASSED [ 28%]
+backend/tests/integration/test_reliability.py::test_gemini_error_handling_http_400 PASSED  [ 31%]
+backend/tests/integration/test_reliability.py::test_gemini_error_handling_http_404_model_switch PASSED [ 33%]
+backend/tests/integration/test_reliability.py::test_gemini_error_handling_http_429_daily_quota_exhausted PASSED [ 35%]
+backend/tests/integration/test_reliability.py::test_gemini_error_handling_http_429_rate_limit_backoff_exhaustion PASSED [ 37%]
+backend/tests/integration/test_concurrent_duplicate_webhook_deliveries PASSED [ 40%]
+backend/tests/integration/test_reliability.py::test_invalid_webhook_signature_rejected PASSED [ 42%]
+backend/tests/integration/test_reliability.py::test_concurrent_capture_requests_idempotency PASSED [ 44%]
+backend/tests/integration/test_reliability.py::test_database_failure_before_entitlement_issuance PASSED [ 46%]
+backend/tests/integration/test_reliability.py::test_existing_successful_sandbox_payment_behaviour PASSED [ 48%]
+backend/tests/integration/test_security_audit.py::test_webhook_rejects_untrusted_cert_urls PASSED [ 51%]
+backend/tests/integration/test_security_audit.py::test_paypal_cert_url_regex PASSED       [ 53%]
+backend/tests/integration/test_security_audit.py::test_safe_redirect_url_validation PASSED [ 55%]
+backend/tests/integration/test_security_audit.py::test_health_check_does_not_leak_exception PASSED [ 57%]
+backend/tests/integration/test_policy_config_bounds_enforced PASSED [ 60%]
+backend/tests/integration/test_agent_run_task_length_enforced PASSED [ 62%]
+backend/tests/integration/test_publisher_idor_prevention PASSED   [ 64%]
+backend/tests/unit/test_ai_agent.py::test_discover_resources_args_validation PASSED       [ 66%]
+backend/tests/unit/test_ai_agent.py::test_get_resource_offer_args_validation PASSED       [ 68%]
+backend/tests/unit/test_ai_agent.py::test_evaluate_purchase_policy_args_validation PASSED [ 71%]
+backend/tests/unit/test_ai_agent.py::test_llm_client_unconfigured_by_default PASSED      [ 73%]
+backend/tests/unit/test_ai_agent.py::test_llm_client_execute_unknown_tool PASSED         [ 75%]
+backend/tests/unit/test_ai_agent.py::test_orchestrator_returns_structured_trace PASSED   [ 77%]
+backend/tests/unit/test_config_and_security.py::test_settings_properties PASSED          [ 80%]
+backend/tests/unit/test_config_and_security.py::test_token_hashing_and_verification PASSED [ 82%]
+backend/tests/unit/test_config_and_security.py::test_challenge_id_format PASSED          [ 84%]
+backend/tests/unit/test_config_and_security.py::test_password_hashing PASSED             [ 86%]
+backend/tests/unit/test_policy.py::test_policy_within_budget PASSED                       [ 88%]
+backend/tests/unit/test_policy.py::test_policy_exceeds_budget PASSED                      [ 91%]
+backend/tests/unit/test_policy.py::test_policy_currency_mismatch PASSED                   [ 93%]
+backend/tests/unit/test_policy.py::test_policy_inactive_offer PASSED                      [ 95%]
+backend/tests/unit/test_policy.py::test_policy_disallowed_currency PASSED                 [ 97%]
 backend/tests/unit/test_policy.py::test_policy_exceeds_platform_ceiling PASSED            [100%]
 
-============================= 29 passed in 19.93s =============================
+============================= 45 passed in 98.72s =============================
 ```
 
 ### Additional Verification Scripts
