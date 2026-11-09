@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { formatApiError } from '../utils/error';
 import { 
   Bot, 
@@ -50,24 +50,45 @@ interface AgentWorkspaceProps {
   onClearCheckoutReturn?: () => void;
 }
 
+const STORAGE_KEY = 'paymesh_agent_workspace_session';
+
+const getInitialSessionState = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+};
+
 export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({ 
   targetResource, 
   onClearTarget,
   checkoutReturn,
   onClearCheckoutReturn 
 }) => {
-  const [task, setTask] = useState('Compare high-performance mechanical keyboards with ultra-low latency under budget.');
-  const [budget, setBudget] = useState(0.10);
-  const [status, setStatus] = useState<'IDLE' | 'DISCOVERING' | 'AWAITING_APPROVAL' | 'PAYING' | 'COMPLETED'>('IDLE');
-  const [recommendation, setRecommendation] = useState<any>(null);
-  const [challenge, setChallenge] = useState<any>(null);
-  const [bearerToken, setBearerToken] = useState<string | null>(null);
-  const [unlockedData, setUnlockedData] = useState<any>(null);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const initialSaved = getInitialSessionState();
+
+  const [task, setTask] = useState(
+    initialSaved?.task ?? 'Compare high-performance mechanical keyboards with ultra-low latency under budget.'
+  );
+  const [budget, setBudget] = useState(initialSaved?.budget ?? 0.10);
+  const [status, setStatus] = useState<'IDLE' | 'DISCOVERING' | 'AWAITING_APPROVAL' | 'PAYING' | 'COMPLETED'>(
+    initialSaved?.status ?? 'IDLE'
+  );
+  const [recommendation, setRecommendation] = useState<any>(initialSaved?.recommendation ?? null);
+  const [challenge, setChallenge] = useState<any>(initialSaved?.challenge ?? null);
+  const [bearerToken, setBearerToken] = useState<string | null>(initialSaved?.bearerToken ?? null);
+  const [unlockedData, setUnlockedData] = useState<any>(initialSaved?.unlockedData ?? null);
+  const [logs, setLogs] = useState<LogEntry[]>(initialSaved?.logs ?? []);
   const [copiedToken, setCopiedToken] = useState(false);
   const [copiedLog, setCopiedLog] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [activeSession, setActiveSession] = useState<{ session_id: string; approval_url: string; paypal_order_id: string } | null>(null);
+  const [activeSession, setActiveSession] = useState<{ session_id: string; approval_url: string; paypal_order_id: string } | null>(
+    initialSaved?.activeSession ?? null
+  );
   const [needsBuyerApproval, setNeedsBuyerApproval] = useState(false);
   const [agentRunMeta, setAgentRunMeta] = useState<{
     ai_mode?: string;
@@ -75,7 +96,32 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
     ai_model?: string;
     interpreted_intent?: string;
     comparison_reasoning?: string;
-  } | null>(null);
+  } | null>(initialSaved?.agentRunMeta ?? null);
+
+  const processingSessionsRef = useRef<Set<string>>(new Set());
+
+  // Persist session workspace so rendering another page/tab or PayPal return preserves history
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (logs.length > 0 || status !== 'IDLE' || recommendation || bearerToken || unlockedData) {
+      try {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+          task,
+          budget,
+          status,
+          recommendation,
+          challenge,
+          bearerToken,
+          unlockedData,
+          logs,
+          agentRunMeta,
+          activeSession,
+        }));
+      } catch {
+        // Safe ignore
+      }
+    }
+  }, [task, budget, status, recommendation, challenge, bearerToken, unlockedData, logs, agentRunMeta, activeSession]);
 
   const addLog = (type: LogEntry['type'], message: string, data?: any) => {
     setLogs((prev) => [
@@ -100,6 +146,8 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
     setBearerToken(null);
     setShowCheckoutModal(false);
     setAgentRunMeta(null);
+    setActiveSession(null);
+    processingSessionsRef.current.clear();
     addLog('INFO', `Starting AI commerce orchestration for task: "${currentTask}"`);
     addLog('INFO', `Enforcing strict spending policy limit: $${currentBudget.toFixed(2)} USD`);
 
@@ -173,6 +221,12 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
     paypalOrderId: string,
     resourceSlug?: string
   ) => {
+    if (!sessionId) return;
+    if (processingSessionsRef.current.has(sessionId)) {
+      return;
+    }
+    processingSessionsRef.current.add(sessionId);
+
     setStatus('PAYING');
     addLog('INFO', `Executing server-side PayPal capture for approved order ${paypalOrderId}...`);
 
@@ -194,6 +248,7 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
             approval_url: activeSession?.approval_url
           });
           setStatus('AWAITING_APPROVAL');
+          processingSessionsRef.current.delete(sessionId);
           return;
         }
         throw new Error(detailMsg);
@@ -203,6 +258,13 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
       setNeedsBuyerApproval(false);
       addLog('SUCCESS', `PayPal Capture Verified: Status ${capData.status} (Capture ID: ${capData.paypal_capture_id})`, capData);
       
+      // Handle idempotent replay if session was previously captured
+      if (capData.access_token && capData.access_token.includes('RETAIN_EXISTING_TOKEN')) {
+        addLog('INFO', 'Payment session was previously verified and captured. Preserving active dataset access.');
+        setStatus('COMPLETED');
+        return;
+      }
+
       setBearerToken(capData.access_token);
       addLog('INFO', `Issued Cryptographic Bearer Token: ${capData.access_token}`);
 
@@ -227,9 +289,12 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
 
   // Handle return from PayPal redirect (/checkout/success or /checkout/cancel)
   useEffect(() => {
-    if (!checkoutReturn) return;
+    if (!checkoutReturn || !checkoutReturn.sessionId) return;
 
-    if (checkoutReturn.status === 'success' && checkoutReturn.sessionId) {
+    if (checkoutReturn.status === 'success') {
+      if (processingSessionsRef.current.has(checkoutReturn.sessionId)) {
+        return;
+      }
       addLog('SUCCESS', `Buyer returned from PayPal Sandbox! Order ${checkoutReturn.token || ''} is ready for capture.`);
       executeCapture(checkoutReturn.sessionId, checkoutReturn.token || '');
     } else if (checkoutReturn.status === 'cancelled') {
@@ -316,6 +381,19 @@ export const AgentWorkspace: React.FC<AgentWorkspaceProps> = ({
 
   const clearLogs = () => {
     setLogs([]);
+    setStatus('IDLE');
+    setRecommendation(null);
+    setChallenge(null);
+    setBearerToken(null);
+    setUnlockedData(null);
+    setAgentRunMeta(null);
+    setActiveSession(null);
+    setNeedsBuyerApproval(false);
+    setShowCheckoutModal(false);
+    processingSessionsRef.current.clear();
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch {}
   };
 
   return (
