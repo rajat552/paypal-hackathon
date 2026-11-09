@@ -10,6 +10,8 @@ services:
     envVars:
       - key: APP_ENV
         value: production
+      - key: FRONTEND_URL
+        value: https://paypal-hackathon-mu.vercel.app
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL

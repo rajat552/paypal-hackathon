@@ -34,6 +34,7 @@ router = APIRouter(tags=["Payments"])
 @router.post("/api/v1/payment-sessions", response_model=PaymentSessionResponse)
 async def create_payment_session(
     payload: PaymentSessionCreateRequest,
+    request: Request,
     session: AsyncSession = Depends(get_db)
 ):
     if not payload.buyer_confirmed:
@@ -56,12 +57,26 @@ async def create_payment_session(
     if offer.id != challenge.offer_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Offer does not match the active challenge.")
 
-    # 3. Create PayPal Sandbox Order
+    # 3. Create PayPal Sandbox Order with dynamic origin-aware redirect URLs
     session_id = str(uuid.uuid4())
+
+    # Dynamically detect frontend origin from request header (supports both localhost and live Vercel domain)
+    origin = request.headers.get("origin") or request.headers.get("referer")
+    ret_url = None
+    cnc_url = None
+    if origin and paypal_gateway._is_safe_redirect_url(origin):
+        from urllib.parse import urlparse
+        parsed = urlparse(origin)
+        frontend_origin = f"{parsed.scheme}://{parsed.netloc}"
+        ret_url = f"{frontend_origin}/checkout/success?session_id={session_id}"
+        cnc_url = f"{frontend_origin}/checkout/cancel?session_id={session_id}"
+
     paypal_order = await paypal_gateway.create_order(
         amount=float(offer.price_amount),
         currency=offer.currency,
-        session_id=session_id
+        session_id=session_id,
+        return_url=ret_url,
+        cancel_url=cnc_url
     )
 
     # 4. Persist PaymentSession
