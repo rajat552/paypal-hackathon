@@ -1,7 +1,10 @@
+import asyncio
 import json
 import logging
+import random
 from typing import Any
 
+import httpx
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -171,9 +174,11 @@ MANDATORY SECURITY INVARIANTS:
 
 class LLMExecutionResult(BaseModel):
     success: bool
-    ai_mode: str  # "live_llm" or "deterministic_fallback"
+    ai_mode: str  # "live_llm", "deterministic_fallback", or "error"
     provider: str | None = None
     model: str | None = None
+    error_type: str | None = None
+    error_message: str | None = None
     interpreted_intent: str
     comparison_reasoning: str
     selected_resource_slug: str | None = None
@@ -359,9 +364,7 @@ class LLMClient:
         budget_limit: float,
         currency: str
     ) -> LLMExecutionResult | None:
-        """Run genuine tool-calling loop using Google Gemini Flash REST API."""
-        import httpx
-
+        """Run genuine tool-calling loop using Google Gemini Flash REST API with robust error handling."""
         api_key = settings.AI_API_KEY
         if not api_key:
             return None
@@ -369,8 +372,8 @@ class LLMClient:
         model_name = settings.AI_MODEL or "gemini-3.1-flash-lite"
         clean_model = model_name.replace("models/", "")
         candidate_models = [m for m in [clean_model, "gemini-3.1-flash-lite", "gemini-3.5-flash", "gemini-3-flash-preview"] if m]
-        # Deduplicate while preserving order
         candidate_models = list(dict.fromkeys(candidate_models))
+        current_candidate_idx = 0
 
         endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent"
         req_headers = {
@@ -393,9 +396,12 @@ class LLMClient:
 
         tool_calls_trace = []
         max_iterations = 4
+        rate_limit_retries = 0
+        max_429_retries = 3
 
         async with httpx.AsyncClient(timeout=35.0) as client:
-            for _ in range(max_iterations):
+            turn = 0
+            while turn < max_iterations:
                 request_body = {
                     "system_instruction": {
                         "parts": [{"text": SYSTEM_PROMPT}]
@@ -409,24 +415,140 @@ class LLMClient:
 
                 try:
                     resp = await client.post(endpoint, headers=req_headers, json=request_body)
-                    if resp.status_code != 200:
-                        logger.error(f"Gemini API returned HTTP {resp.status_code}: {resp.text}")
-                        # Fallback across candidate models if model is rejected or rate-limited (404, 400, 429)
-                        switched = False
-                        for alt in candidate_models:
-                            if alt != clean_model:
-                                logger.info(f"Switching Gemini model from {clean_model} to {alt}...")
-                                clean_model = alt
-                                endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent"
-                                switched = True
-                                break
-                        if switched:
-                            continue
-                        return None
-                    data = resp.json()
                 except Exception as e:  # noqa: BLE001
                     logger.error(f"Gemini API network error: {e!s}")
-                    return None
+                    return LLMExecutionResult(
+                        success=False,
+                        ai_mode="error",
+                        provider="gemini",
+                        model=clean_model,
+                        error_type="network_error",
+                        error_message=f"Network error connecting to Gemini API: {e!s}",
+                        interpreted_intent=f"Research evaluation for '{task}'",
+                        comparison_reasoning="Network failure while communicating with Gemini API.",
+                        proposed_action="Check network connectivity or retry.",
+                        tool_calls_trace=tool_calls_trace
+                    )
+
+                if resp.status_code != 200:
+                    status_code = resp.status_code
+                    resp_text = resp.text
+                    logger.error(f"Gemini API returned HTTP {status_code}: {resp_text}")
+
+                    # 1. HTTP 400 Bad Request: NEVER trigger model fallback for malformed client/schema requests
+                    if status_code == 400:
+                        return LLMExecutionResult(
+                            success=False,
+                            ai_mode="error",
+                            provider="gemini",
+                            model=clean_model,
+                            error_type="bad_request",
+                            error_message=f"Gemini API rejected request (HTTP 400 Bad Request): {resp_text[:300]}",
+                            interpreted_intent=f"Research evaluation for '{task}'",
+                            comparison_reasoning=f"AI model inference aborted due to HTTP 400 Bad Request: {resp_text[:300]}",
+                            proposed_action="Validate request parameters and tool schema.",
+                            tool_calls_trace=tool_calls_trace,
+                            raw_response=resp_text
+                        )
+
+                    # 2. HTTP 404 Model Not Found: Cycle to next candidate model
+                    if status_code == 404:
+                        current_candidate_idx += 1
+                        if current_candidate_idx < len(candidate_models):
+                            clean_model = candidate_models[current_candidate_idx]
+                            endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent"
+                            logger.info(f"Model not found (HTTP 404). Switching Gemini model to {clean_model}...")
+                            continue
+                        else:
+                            return LLMExecutionResult(
+                                success=False,
+                                ai_mode="error",
+                                provider="gemini",
+                                model=clean_model,
+                                error_type="model_not_found",
+                                error_message=f"All candidate Gemini models returned HTTP 404 Not Found: {candidate_models}",
+                                interpreted_intent=f"Research evaluation for '{task}'",
+                                comparison_reasoning="All candidate Gemini models were unavailable or deprecated.",
+                                proposed_action="Configure a valid model identifier in settings.",
+                                tool_calls_trace=tool_calls_trace,
+                                raw_response=resp_text
+                            )
+
+                    # 3. HTTP 429 Rate Limit / Quota Exhaustion
+                    if status_code == 429:
+                        lower_text = resp_text.lower()
+                        # Distinguish daily quota / billing exhaustion from transient per-minute rate limits
+                        is_daily_quota = (
+                            "daily" in lower_text
+                            or "per_day" in lower_text
+                            or "quota exceeded" in lower_text
+                            or "free_tier" in lower_text
+                            or "billing" in lower_text
+                        )
+
+                        if is_daily_quota:
+                            logger.error(f"Gemini daily quota or billing ceiling exhausted (HTTP 429): {resp_text}")
+                            return LLMExecutionResult(
+                                success=False,
+                                ai_mode="error",
+                                provider="gemini",
+                                model=clean_model,
+                                error_type="daily_quota_exhausted",
+                                error_message=f"Gemini daily quota exhausted: {resp_text[:300]}",
+                                interpreted_intent=f"Research evaluation for '{task}'",
+                                comparison_reasoning="Daily quota exhausted for this Google Gemini API key.",
+                                proposed_action="Upgrade Google AI quota or wait for daily reset.",
+                                tool_calls_trace=tool_calls_trace,
+                                raw_response=resp_text
+                            )
+
+                        # Transient rate limit: bounded exponential backoff with jitter, respecting Retry-After
+                        if rate_limit_retries < max_429_retries:
+                            rate_limit_retries += 1
+                            retry_after_hdr = resp.headers.get("Retry-After")
+                            if retry_after_hdr:
+                                try:
+                                    delay = min(float(retry_after_hdr), 10.0)
+                                except (ValueError, TypeError):
+                                    delay = min(8.0, 1.5 * (2 ** rate_limit_retries)) + random.uniform(0.1, 0.4)
+                            else:
+                                delay = min(8.0, 1.5 * (2 ** rate_limit_retries)) + random.uniform(0.1, 0.4)
+
+                            logger.warning(f"Gemini rate limit encountered. Retrying in {delay:.2f}s (retry {rate_limit_retries}/{max_429_retries})...")
+                            await asyncio.sleep(delay)
+                            continue
+                        else:
+                            return LLMExecutionResult(
+                                success=False,
+                                ai_mode="error",
+                                provider="gemini",
+                                model=clean_model,
+                                error_type="rate_limit_exceeded",
+                                error_message=f"Gemini rate limit exceeded after {max_429_retries} backoff attempts: {resp_text[:300]}",
+                                interpreted_intent=f"Research evaluation for '{task}'",
+                                comparison_reasoning=f"Rate limit exceeded after {max_429_retries} retries with exponential backoff.",
+                                proposed_action="Throttle requests or check API concurrency.",
+                                tool_calls_trace=tool_calls_trace,
+                                raw_response=resp_text
+                            )
+
+                    # Other HTTP status codes (e.g. 500, 503)
+                    return LLMExecutionResult(
+                        success=False,
+                        ai_mode="error",
+                        provider="gemini",
+                        model=clean_model,
+                        error_type=f"http_{status_code}",
+                        error_message=f"Gemini API returned unexpected HTTP {status_code}: {resp_text[:300]}",
+                        interpreted_intent=f"Research evaluation for '{task}'",
+                        comparison_reasoning=f"Gemini API returned unexpected HTTP status {status_code}.",
+                        proposed_action="Retry request later.",
+                        tool_calls_trace=tool_calls_trace,
+                        raw_response=resp_text
+                    )
+
+                data = resp.json()
+                turn += 1
 
                 candidates = data.get("candidates", [])
                 if not candidates:
