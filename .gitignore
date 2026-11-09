@@ -203,3 +203,16 @@ assets/screenshots/404/*
 # Exact 2 Subdirectory Showcase Screenshots required for README.md
 !assets/screenshots/tour/00_url_click_tour_first.png
 !assets/screenshots/404/01_404_desktop.png
+
+# ------------------------------------------------------------------------------
+# 15. Hackathon Video Production, Storyboards, Scripts & Internal QA Reports
+# Generated during video demo planning and QA; excluded to keep repository clean.
+# ------------------------------------------------------------------------------
+FINAL_APPLICATION_QA_REPORT.md
+nextwork.md
+PayMesh_AI_Shot_List*.md
+PayMesh_AI_Storyboard*.md
+PayMesh_AI_Video_Production_Report.md
+PayMesh_AI_Video_QA_Report.md
+PayMesh_AI_Voiceover_Script*.md
+
