@@ -180,3 +180,16 @@ class PolicySetting(Base):
     enforce_prompt_sanitization: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     strict_scope_check: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+class WebhookEvent(Base):
+    __tablename__ = "webhook_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    event_id: Mapped[str] = mapped_column(String(128), unique=True, index=True, nullable=False)
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    resource_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    summary: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="PROCESSED", nullable=False)
+    payload_json: Mapped[str] = mapped_column(Text, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
