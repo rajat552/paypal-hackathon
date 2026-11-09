@@ -252,14 +252,14 @@ export const App: React.FC = () => {
           />
         ) : (
           <>
-            {activeTab === 'workspace' && (
+            <div className={activeTab === 'workspace' ? 'block' : 'hidden'}>
               <AgentWorkspace 
                 targetResource={targetResource} 
                 onClearTarget={() => setTargetResource(null)} 
                 checkoutReturn={checkoutReturn}
                 onClearCheckoutReturn={() => setCheckoutReturn(null)}
               />
-            )}
+            </div>
             {activeTab === 'policy' && <PolicyManager />}
             {activeTab === 'catalogue' && <CatalogueView onSelectResource={handleSelectResource} />}
             {activeTab === 'analytics' && <AnalyticsView />}
