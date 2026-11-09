@@ -36,6 +36,15 @@ class ChallengeService:
         await session.refresh(challenge)
         return challenge
 
+    async def get_challenge(
+        self,
+        session: AsyncSession,
+        challenge_id: str
+    ) -> PaymentChallenge | None:
+        stmt = select(PaymentChallenge).where(PaymentChallenge.id == challenge_id)
+        result = await session.execute(stmt)
+        return result.scalars().first()
+
     async def get_and_validate_challenge(
         self,
         session: AsyncSession,
